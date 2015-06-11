@@ -1,0 +1,10 @@
+prefix=@PREFIX@
+exec_prefix=@EXEC_PREFIX@
+libdir=@LIBDIR@
+includedir=@INCLUDEDIR@
+
+Name: lib@PROJECT_NAME@_setting
+Description: Voice control setting library
+Version: @VERSION@
+Libs: -L${libdir} -l@PROJECT_NAME@_setting
+Cflags: -I${includedir}
