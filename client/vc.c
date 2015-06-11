@@ -33,8 +33,10 @@ static Ecore_Timer* g_connect_timer = NULL;
 
 static vc_h g_vc = NULL;
 
+#if 0
 static Ecore_Event_Handler* g_focus_in_hander = NULL;
 static Ecore_Event_Handler* g_focus_out_hander = NULL;
+#endif
 
 Eina_Bool __vc_notify_state_changed(void *data);
 Eina_Bool __vc_notify_error(void *data);
@@ -206,8 +208,10 @@ static void __vc_internal_unprepare()
 
 	g_is_daemon_started = false;
 
+#if 0
 	ecore_event_handler_del(g_focus_in_hander);
 	ecore_event_handler_del(g_focus_out_hander);
+#endif
 
 	vc_cmd_parser_delete_file(getpid(), VC_COMMAND_TYPE_FOREGROUND);
 	vc_cmd_parser_delete_file(getpid(), VC_COMMAND_TYPE_BACKGROUND);
@@ -292,6 +296,7 @@ static Eina_Bool __notify_auth_changed_cb(void *data)
 
 }
 
+#if 0
 static Eina_Bool __vc_x_event_window_focus_in(void *data, int type, void *event) 
 { 
 	Ecore_X_Event_Window_Focus_In *e;
@@ -361,6 +366,7 @@ static Eina_Bool __vc_x_event_window_focus_out(void *data, int type, void *event
 
 	return ECORE_CALLBACK_PASS_ON;
 }
+#endif
 
 static void __vc_fork_vc_daemon()
 {
@@ -426,8 +432,10 @@ static Eina_Bool __vc_connect_daemon(void *data)
 
 	g_connect_timer = NULL;
 
+#if 0
 	g_focus_in_hander = ecore_event_handler_add(ECORE_X_EVENT_WINDOW_FOCUS_IN, __vc_x_event_window_focus_in, NULL);
 	g_focus_out_hander = ecore_event_handler_add(ECORE_X_EVENT_WINDOW_FOCUS_OUT, __vc_x_event_window_focus_out, NULL);
+#endif
 
 	vc_client_set_client_state(g_vc, VC_STATE_READY);
 	ecore_timer_add(0, __vc_notify_state_changed, g_vc);

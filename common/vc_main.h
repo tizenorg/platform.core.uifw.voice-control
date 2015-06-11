@@ -21,7 +21,6 @@
 #include <dbus/dbus.h>
 #include <dlog.h>
 #include <Ecore.h>
-#include <Ecore_X.h>
 #include <glib.h>
 #include <stdio.h>
 #include <stdlib.h>
