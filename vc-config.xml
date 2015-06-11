@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+<voice-control-config>
+        <engine>C7AEDE1D-90F7-41ea-9AB4-FD99966D2654</engine>
+        <auto>on</auto>
+        <language>en_US</language>
+        <enabled>off</enabled>
+</voice-control-config>

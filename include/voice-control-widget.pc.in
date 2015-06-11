@@ -1,0 +1,10 @@
+prefix=@PREFIX@
+exec_prefix=@EXEC_PREFIX@
+libdir=@LIBDIR@
+includedir=@INCLUDEDIR@
+
+Name: lib@PROJECT_NAME@_widget
+Description: Voice control library for widget
+Version: @VERSION@
+Libs: -L${libdir} -l@PROJECT_NAME@_widget
+Cflags: -I${includedir}
