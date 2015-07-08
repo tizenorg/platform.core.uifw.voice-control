@@ -28,8 +28,6 @@
 
 #define VC_WIDGET_CONFIG_HANDLE	200000
 
-static bool g_w_is_daemon_started = false;
-
 static Ecore_Timer* g_w_connect_timer = NULL;
 
 static Ecore_Timer* g_w_start_timer = NULL;
@@ -195,8 +193,6 @@ static void __vc_widget_internal_unprepare()
 		SLOG(LOG_WARN, TAG_VCW, "[ERROR] Fail to request finalize : %s", __vc_widget_get_error_code(ret));
 	}
 
-	g_w_is_daemon_started = false;
-
 	vc_cmd_parser_delete_file(getpid(), VC_COMMAND_TYPE_WIDGET);
 
 	return;
@@ -253,36 +249,10 @@ int vc_widget_deinitialize()
 	return VC_ERROR_NONE;
 }
 
-static void __vc_widget_fork_vc_daemon()
-{
-	int pid, i;
-	pid = fork();
-
-	switch(pid) {
-	case -1:
-		SLOG(LOG_ERROR, TAG_VCW, "Fail to create daemon");
-		break;
-	case 0:
-		setsid();
-		for (i = 0;i < _NSIG;i++)
-			signal(i, SIG_DFL);
-
-		execl(VC_DAEMON_PATH, VC_DAEMON_PATH, NULL);
-		break;
-	default:
-		break;
-	}
-	return;
-}
-
 static Eina_Bool __vc_widget_connect_daemon(void *data)
 {
 	/* Send hello */
 	if (0 != vc_widget_dbus_request_hello()) {
-		if (false == g_w_is_daemon_started) {
-			g_w_is_daemon_started = true;
-			__vc_widget_fork_vc_daemon();
-		}
 		return EINA_TRUE;
 	}
 
@@ -343,8 +313,6 @@ int vc_widget_prepare()
 		SLOG(LOG_DEBUG, TAG_VCW, " ");
 		return VC_ERROR_INVALID_STATE;
 	}
-
-	g_w_is_daemon_started = false;
 
 	g_w_connect_timer = ecore_timer_add(0, __vc_widget_connect_daemon, NULL);
 

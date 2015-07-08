@@ -24,8 +24,8 @@ static int g_waiting_time = 3000;
 
 static Ecore_Fd_Handler* g_fd_handler = NULL;
 
-static DBusConnection* g_conn = NULL;
-
+static DBusConnection* g_conn_sender = NULL;
+static DBusConnection* g_conn_listener = NULL;
 
 extern int __vc_cb_error(int pid, int reason);
 
@@ -34,16 +34,12 @@ extern void __vc_cb_result();
 
 static Eina_Bool listener_event_callback(void* data, Ecore_Fd_Handler *fd_handler)
 {
-	DBusConnection* conn = (DBusConnection*)data;
+	if (NULL == g_conn_listener)	return ECORE_CALLBACK_RENEW;
+
+	dbus_connection_read_write_dispatch(g_conn_listener, 50);
+
 	DBusMessage* msg = NULL;
-	DBusMessage *reply = NULL;
-
-	if (NULL == conn)
-		return ECORE_CALLBACK_RENEW;
-
-	dbus_connection_read_write_dispatch(conn, 50);
-
-	msg = dbus_connection_pop_message(conn);
+	msg = dbus_connection_pop_message(g_conn_listener);
 
 	/* loop again if we haven't read a message */
 	if (NULL == msg) { 
@@ -54,7 +50,7 @@ static Eina_Bool listener_event_callback(void* data, Ecore_Fd_Handler *fd_handle
 	dbus_error_init(&err);
 
 	char if_name[64];
-	snprintf(if_name, 64, "%s%d", VC_CLIENT_SERVICE_INTERFACE, getpid());
+	snprintf(if_name, 64, "%s", VC_CLIENT_SERVICE_INTERFACE);
 
 	if (dbus_message_is_method_call(msg, if_name, VCD_METHOD_HELLO)) {
 		SLOG(LOG_DEBUG, TAG_VCC, "===== Get Hello");
@@ -76,18 +72,19 @@ static Eina_Bool listener_event_callback(void* data, Ecore_Fd_Handler *fd_handle
 			SLOG(LOG_ERROR, TAG_VCC, "<<<< vc get hello : invalid pid ");
 		}
 
+		DBusMessage* reply = NULL;
 		reply = dbus_message_new_method_return(msg);
 		
 		if (NULL != reply) {
 			dbus_message_append_args(reply, DBUS_TYPE_INT32, &response, DBUS_TYPE_INVALID);
 
-			if (!dbus_connection_send(conn, reply, NULL))
+			if (!dbus_connection_send(g_conn_listener, reply, NULL))
 				SLOG(LOG_ERROR, TAG_VCC, ">>>> vc get hello : fail to send reply");
 			else 
 				SLOG(LOG_DEBUG, TAG_VCC, ">>>> vc get hello : result(%d)", response);
 
-			dbus_connection_flush(conn);
-			dbus_message_unref(reply); 
+			dbus_connection_flush(g_conn_listener);
+			dbus_message_unref(reply);
 		} else {
 			SLOG(LOG_ERROR, TAG_VCC, ">>>> vc get hello : fail to create reply message");
 		}
@@ -105,13 +102,13 @@ static Eina_Bool listener_event_callback(void* data, Ecore_Fd_Handler *fd_handle
 		reply = dbus_message_new_method_return(msg);
 
 		if (NULL != reply) {
-			if (!dbus_connection_send(conn, reply, NULL))
+			if (!dbus_connection_send(g_conn_listener, reply, NULL))
 				SLOG(LOG_ERROR, TAG_VCC, ">>>> vc get result : fail to send reply");
 			else 
 				SLOG(LOG_DEBUG, TAG_VCC, ">>>> vc get result");
 
-			dbus_connection_flush(conn);
-			dbus_message_unref(reply); 
+			dbus_connection_flush(g_conn_listener);
+			dbus_message_unref(reply);
 		} else {
 			SLOG(LOG_ERROR, TAG_VCC, ">>>> vc get result : fail to create reply message");
 		}
@@ -146,13 +143,13 @@ static Eina_Bool listener_event_callback(void* data, Ecore_Fd_Handler *fd_handle
 		reply = dbus_message_new_method_return(msg);
 
 		if (NULL != reply) {
-			if (!dbus_connection_send(conn, reply, NULL))
+			if (!dbus_connection_send(g_conn_listener, reply, NULL))
 				SLOG(LOG_ERROR, TAG_VCC, ">>>> vc Error message : fail to send reply");
 			else 
 				SLOG(LOG_DEBUG, TAG_VCC, ">>>> vc Error message");
 
-			dbus_connection_flush(conn);
-			dbus_message_unref(reply); 
+			dbus_connection_flush(g_conn_listener);
+			dbus_message_unref(reply);
 		} else {
 			SLOG(LOG_ERROR, TAG_VCC, ">>>> vc Error message : fail to create reply message");
 		}
@@ -170,7 +167,7 @@ static Eina_Bool listener_event_callback(void* data, Ecore_Fd_Handler *fd_handle
 
 int vc_dbus_open_connection()
 {
-	if (NULL != g_conn) {
+	if (NULL != g_conn_sender && NULL != g_conn_listener) {
 		SLOG(LOG_WARN, TAG_VCC, "already existed connection ");
 		return 0;
 	}
@@ -182,28 +179,40 @@ int vc_dbus_open_connection()
 	dbus_error_init(&err);
 
 	/* connect to the DBUS system bus, and check for errors */
-	g_conn = dbus_bus_get_private(DBUS_BUS_SYSTEM, &err);
+	g_conn_sender = dbus_bus_get_private(DBUS_BUS_SYSTEM, &err);
 
 	if (dbus_error_is_set(&err)) { 
 		SLOG(LOG_ERROR, TAG_VCC, "Dbus Connection Error (%s)", err.message); 
 		dbus_error_free(&err); 
 	}
 
-	if (NULL == g_conn) {
+	if (NULL == g_conn_sender) {
 		SLOG(LOG_ERROR, TAG_VCC, "Fail to get dbus connection ");
-		return VC_ERROR_OPERATION_FAILED; 
+		return VC_ERROR_OPERATION_FAILED;
+	}
+
+	g_conn_listener = dbus_bus_get_private(DBUS_BUS_SYSTEM, &err);
+
+	if (dbus_error_is_set(&err)) {
+		SLOG(LOG_ERROR, TAG_VCC, "Dbus Connection Error (%s)", err.message);
+		dbus_error_free(&err);
+	}
+
+	if (NULL == g_conn_listener) {
+		SLOG(LOG_ERROR, TAG_VCC, "Fail to get dbus connection ");
+		return VC_ERROR_OPERATION_FAILED;
 	}
 
 	int pid = getpid();
 
 	char service_name[64];
 	memset(service_name, '\0', 64);
-	snprintf(service_name, 64, "%s%d", VC_CLIENT_SERVICE_NAME, pid);
+	snprintf(service_name, 64, "%s", VC_CLIENT_SERVICE_NAME);
 
 	SLOG(LOG_DEBUG, TAG_VCC, "service name is %s", service_name);
 
 	/* register our name on the bus, and check for errors */
-	ret = dbus_bus_request_name(g_conn, service_name, DBUS_NAME_FLAG_REPLACE_EXISTING , &err);
+	ret = dbus_bus_request_name(g_conn_listener, service_name, DBUS_NAME_FLAG_REPLACE_EXISTING, &err);
 
 	if (dbus_error_is_set(&err)) {
 		SLOG(LOG_ERROR, TAG_VCC, "Name Error (%s)", err.message); 
@@ -221,11 +230,11 @@ int vc_dbus_open_connection()
 	}
 
 	char rule[128];
-	snprintf(rule, 128, "type='signal',interface='%s%d'", VC_CLIENT_SERVICE_INTERFACE, pid);
+	snprintf(rule, 128, "type='signal',interface='%s'", VC_CLIENT_SERVICE_INTERFACE);
 
 	/* add a rule for which messages we want to see */
-	dbus_bus_add_match(g_conn, rule, &err); 
-	dbus_connection_flush(g_conn);
+	dbus_bus_add_match(g_conn_listener, rule, &err);
+	dbus_connection_flush(g_conn_listener);
 
 	if (dbus_error_is_set(&err)) 
 	{ 
@@ -235,15 +244,14 @@ int vc_dbus_open_connection()
 	}
 
 	int fd = 0;
-	if (1 != dbus_connection_get_unix_fd(g_conn, &fd)) {
+	if (1 != dbus_connection_get_unix_fd(g_conn_listener, &fd)) {
 		SLOG(LOG_ERROR, TAG_VCC, "fail to get fd from dbus ");
 		return VC_ERROR_OPERATION_FAILED;
 	} else {
 		SLOG(LOG_DEBUG, TAG_VCC, "Get fd from dbus : %d", fd);
 	}
 
-	g_fd_handler = ecore_main_fd_handler_add(fd, ECORE_FD_READ, (Ecore_Fd_Cb)listener_event_callback, g_conn, NULL, NULL);
-
+	g_fd_handler = ecore_main_fd_handler_add(fd, ECORE_FD_READ, (Ecore_Fd_Cb)listener_event_callback, g_conn_listener, NULL, NULL);
 	if (NULL == g_fd_handler) {
 		SLOG(LOG_ERROR, TAG_VCC, "fail to get fd handler from ecore ");
 		return VC_ERROR_OPERATION_FAILED;
@@ -257,33 +265,38 @@ int vc_dbus_close_connection()
 	DBusError err;
 	dbus_error_init(&err);
 
+	if (NULL != g_fd_handler) {
+		ecore_main_fd_handler_del(g_fd_handler);
+		g_fd_handler = NULL;
+	}
+
 	int pid = getpid();
 
 	char service_name[64];
 	memset(service_name, '\0', 64);
-	snprintf(service_name, 64, "%s%d", VC_CLIENT_SERVICE_NAME, pid);
+	snprintf(service_name, 64, "%s", VC_CLIENT_SERVICE_NAME);
 
-	dbus_bus_release_name (g_conn, service_name, &err);
+	dbus_bus_release_name(g_conn_listener, service_name, &err);
 
 	if (dbus_error_is_set(&err)) {
 		SLOG(LOG_ERROR, TAG_VCC, "[ERROR] Dbus Error (%s)", err.message);
 		dbus_error_free(&err);
 	}
 
-	dbus_connection_close(g_conn);
-
-	g_fd_handler = NULL;
-	g_conn = NULL;
+	g_conn_sender = NULL;
+	g_conn_listener = NULL;
 
 	return 0;
 }
 
 int vc_dbus_reconnect()
 {
-	bool connected = dbus_connection_get_is_connected(g_conn);
-	SECURE_SLOG(LOG_DEBUG, TAG_VCC, "[DBUS] %s", connected ? "Connected" : "Not connected");
+	bool sender_connected = dbus_connection_get_is_connected(g_conn_sender);
+	bool listener_connected = dbus_connection_get_is_connected(g_conn_listener);
+	SLOG(LOG_DEBUG, TAG_VCC, "[DBUS] Sender(%s) Listener(%s)",
+		 sender_connected ? "Connected" : "Not connected", listener_connected ? "Connected" : "Not connected");
 
-	if (false == connected) {
+	if (false == sender_connected || false == listener_connected) {
 		vc_dbus_close_connection();
 
 		if (0 != vc_dbus_open_connection()) {
@@ -317,8 +330,8 @@ int vc_dbus_request_hello()
 	DBusMessage* result_msg = NULL;
 	int result = 0;
 
-	result_msg = dbus_connection_send_with_reply_and_block(g_conn, msg, 500, &err);
-	
+	result_msg = dbus_connection_send_with_reply_and_block(g_conn_sender, msg, 500, &err);
+
 	if (dbus_error_is_set(&err)) {
 		dbus_error_free(&err);
 	}
@@ -363,7 +376,7 @@ int vc_dbus_request_initialize(int pid, int* mgr_pid)
 	DBusMessage* result_msg;
 	int result = VC_ERROR_OPERATION_FAILED;
 
-	result_msg = dbus_connection_send_with_reply_and_block(g_conn, msg, g_waiting_time, &err);
+	result_msg = dbus_connection_send_with_reply_and_block(g_conn_sender, msg, g_waiting_time, &err);
 	dbus_message_unref(msg);
 
 	if (dbus_error_is_set(&err)) {
@@ -426,7 +439,7 @@ int vc_dbus_request_finalize(int pid)
 	DBusMessage* result_msg;
 	int result = VC_ERROR_OPERATION_FAILED;
 
-	result_msg = dbus_connection_send_with_reply_and_block(g_conn, msg, g_waiting_time, &err);
+	result_msg = dbus_connection_send_with_reply_and_block(g_conn_sender, msg, g_waiting_time, &err);
 	dbus_message_unref(msg);
 
 	if (dbus_error_is_set(&err)) {
@@ -491,7 +504,7 @@ int vc_dbus_request_set_exclusive_command(int pid, bool value)
 	DBusMessage* result_msg;
 	int result = VC_ERROR_OPERATION_FAILED;
 
-	result_msg = dbus_connection_send_with_reply_and_block(g_conn, msg, g_waiting_time, &err);
+	result_msg = dbus_connection_send_with_reply_and_block(g_conn_sender, msg, g_waiting_time, &err);
 	dbus_message_unref(msg);
 
 	if (dbus_error_is_set(&err)) {
@@ -553,7 +566,7 @@ int vc_dbus_request_set_command(int pid, vc_cmd_type_e cmd_type)
 	DBusMessage* result_msg;
 	int result = VC_ERROR_OPERATION_FAILED;
 
-	result_msg = dbus_connection_send_with_reply_and_block(g_conn, msg, g_waiting_time, &err);
+	result_msg = dbus_connection_send_with_reply_and_block(g_conn_sender, msg, g_waiting_time, &err);
 	dbus_message_unref(msg);
 
 	if (dbus_error_is_set(&err)) {
@@ -615,7 +628,7 @@ int vc_dbus_request_unset_command(int pid, vc_cmd_type_e cmd_type)
 	DBusMessage* result_msg;
 	int result = VC_ERROR_OPERATION_FAILED;
 
-	result_msg = dbus_connection_send_with_reply_and_block(g_conn, msg, g_waiting_time, &err);
+	result_msg = dbus_connection_send_with_reply_and_block(g_conn_sender, msg, g_waiting_time, &err);
 	dbus_message_unref(msg);
 
 	if (dbus_error_is_set(&err)) {
@@ -681,7 +694,7 @@ int vc_dbus_request_start(int pid, int silence)
 	DBusMessage* result_msg;
 	int result = VC_ERROR_OPERATION_FAILED;
 
-	result_msg = dbus_connection_send_with_reply_and_block(g_conn, msg, g_waiting_time, &err);
+	result_msg = dbus_connection_send_with_reply_and_block(g_conn_sender, msg, g_waiting_time, &err);
 	dbus_message_unref(msg);
 
 	if (dbus_error_is_set(&err)) {
@@ -743,7 +756,7 @@ int vc_dbus_request_stop(int pid)
 	DBusMessage* result_msg;
 	int result = VC_ERROR_OPERATION_FAILED;
 
-	result_msg = dbus_connection_send_with_reply_and_block(g_conn, msg, g_waiting_time, &err);
+	result_msg = dbus_connection_send_with_reply_and_block(g_conn_sender, msg, g_waiting_time, &err);
 	dbus_message_unref(msg);
 
 	if (dbus_error_is_set(&err)) {
@@ -805,7 +818,7 @@ int vc_dbus_request_cancel(int pid)
 	DBusMessage* result_msg;
 	int result = VC_ERROR_OPERATION_FAILED;
 
-	result_msg = dbus_connection_send_with_reply_and_block(g_conn, msg, g_waiting_time, &err);
+	result_msg = dbus_connection_send_with_reply_and_block(g_conn_sender, msg, g_waiting_time, &err);
 	dbus_message_unref(msg);
 
 	if (dbus_error_is_set(&err)) {
@@ -849,9 +862,9 @@ int vc_dbus_request_auth_enable(int pid, int mgr_pid)
 	char object_path[64] = {0,};
 	char target_if_name[128] = {0,};
 
-	snprintf(service_name, 64, "%s%d", VC_MANAGER_SERVICE_NAME, mgr_pid);
+	snprintf(service_name, 64, "%s", VC_MANAGER_SERVICE_NAME);
 	snprintf(object_path, 64, "%s", VC_MANAGER_SERVICE_OBJECT_PATH);
-	snprintf(target_if_name, 128, "%s%d", VC_MANAGER_SERVICE_INTERFACE, mgr_pid);
+	snprintf(target_if_name, 128, "%s", VC_MANAGER_SERVICE_INTERFACE);
 
 	/* create a signal & check for errors */
 	msg = dbus_message_new_method_call(
@@ -877,7 +890,7 @@ int vc_dbus_request_auth_enable(int pid, int mgr_pid)
 	DBusMessage* result_msg;
 	int result = VC_ERROR_OPERATION_FAILED;
 
-	result_msg = dbus_connection_send_with_reply_and_block(g_conn, msg, g_waiting_time, &err);
+	result_msg = dbus_connection_send_with_reply_and_block(g_conn_sender, msg, g_waiting_time, &err);
 	dbus_message_unref(msg);
 
 	if (dbus_error_is_set(&err)) {
@@ -919,9 +932,9 @@ int vc_dbus_request_auth_disable(int pid, int mgr_pid)
 	char object_path[64] = {0,};
 	char target_if_name[128] = {0,};
 
-	snprintf(service_name, 64, "%s%d", VC_MANAGER_SERVICE_NAME, mgr_pid);
+	snprintf(service_name, 64, "%s", VC_MANAGER_SERVICE_NAME);
 	snprintf(object_path, 64, "%s", VC_MANAGER_SERVICE_OBJECT_PATH);
-	snprintf(target_if_name, 128, "%s%d", VC_MANAGER_SERVICE_INTERFACE, mgr_pid);
+	snprintf(target_if_name, 128, "%s", VC_MANAGER_SERVICE_INTERFACE);
 
 	/* create a signal & check for errors */
 	msg = dbus_message_new_method_call(
@@ -947,7 +960,7 @@ int vc_dbus_request_auth_disable(int pid, int mgr_pid)
 	DBusMessage* result_msg;
 	int result = VC_ERROR_OPERATION_FAILED;
 
-	result_msg = dbus_connection_send_with_reply_and_block(g_conn, msg, g_waiting_time, &err);
+	result_msg = dbus_connection_send_with_reply_and_block(g_conn_sender, msg, g_waiting_time, &err);
 	dbus_message_unref(msg);
 
 	if (dbus_error_is_set(&err)) {
@@ -989,9 +1002,9 @@ int vc_dbus_request_auth_start(int pid, int mgr_pid)
 	char object_path[64] = {0,};
 	char target_if_name[128] = {0,};
 
-	snprintf(service_name, 64, "%s%d", VC_MANAGER_SERVICE_NAME, mgr_pid);
+	snprintf(service_name, 64, "%s", VC_MANAGER_SERVICE_NAME);
 	snprintf(object_path, 64, "%s", VC_MANAGER_SERVICE_OBJECT_PATH);
-	snprintf(target_if_name, 128, "%s%d", VC_MANAGER_SERVICE_INTERFACE, mgr_pid);
+	snprintf(target_if_name, 128, "%s", VC_MANAGER_SERVICE_INTERFACE);
 
 	/* create a signal & check for errors */
 	msg = dbus_message_new_method_call(
@@ -1019,7 +1032,7 @@ int vc_dbus_request_auth_start(int pid, int mgr_pid)
 	DBusMessage* result_msg;
 	int result = VC_ERROR_OPERATION_FAILED;
 
-	result_msg = dbus_connection_send_with_reply_and_block(g_conn, msg, g_waiting_time, &err);
+	result_msg = dbus_connection_send_with_reply_and_block(g_conn_sender, msg, g_waiting_time, &err);
 	dbus_message_unref(msg);
 
 	if (dbus_error_is_set(&err)) {
@@ -1061,9 +1074,9 @@ int vc_dbus_request_auth_stop(int pid, int mgr_pid)
 	char object_path[64] = {0,};
 	char target_if_name[128] = {0,};
 
-	snprintf(service_name, 64, "%s%d", VC_MANAGER_SERVICE_NAME, mgr_pid);
+	snprintf(service_name, 64, "%s", VC_MANAGER_SERVICE_NAME);
 	snprintf(object_path, 64, "%s", VC_MANAGER_SERVICE_OBJECT_PATH);
-	snprintf(target_if_name, 128, "%s%d", VC_MANAGER_SERVICE_INTERFACE, mgr_pid);
+	snprintf(target_if_name, 128, "%s", VC_MANAGER_SERVICE_INTERFACE);
 
 	/* create a signal & check for errors */
 	msg = dbus_message_new_method_call(
@@ -1089,7 +1102,7 @@ int vc_dbus_request_auth_stop(int pid, int mgr_pid)
 	DBusMessage* result_msg;
 	int result = VC_ERROR_OPERATION_FAILED;
 
-	result_msg = dbus_connection_send_with_reply_and_block(g_conn, msg, g_waiting_time, &err);
+	result_msg = dbus_connection_send_with_reply_and_block(g_conn_sender, msg, g_waiting_time, &err);
 	dbus_message_unref(msg);
 
 	if (dbus_error_is_set(&err)) {
@@ -1131,9 +1144,9 @@ int vc_dbus_request_auth_cancel(int pid, int mgr_pid)
 	char object_path[64] = {0,};
 	char target_if_name[128] = {0,};
 
-	snprintf(service_name, 64, "%s%d", VC_MANAGER_SERVICE_NAME, mgr_pid);
+	snprintf(service_name, 64, "%s", VC_MANAGER_SERVICE_NAME);
 	snprintf(object_path, 64, "%s", VC_MANAGER_SERVICE_OBJECT_PATH);
-	snprintf(target_if_name, 128, "%s%d", VC_MANAGER_SERVICE_INTERFACE, mgr_pid);
+	snprintf(target_if_name, 128, "%s", VC_MANAGER_SERVICE_INTERFACE);
 
 	/* create a signal & check for errors */
 	msg = dbus_message_new_method_call(
@@ -1159,7 +1172,7 @@ int vc_dbus_request_auth_cancel(int pid, int mgr_pid)
 	DBusMessage* result_msg;
 	int result = VC_ERROR_OPERATION_FAILED;
 
-	result_msg = dbus_connection_send_with_reply_and_block(g_conn, msg, g_waiting_time, &err);
+	result_msg = dbus_connection_send_with_reply_and_block(g_conn_sender, msg, g_waiting_time, &err);
 	dbus_message_unref(msg);
 
 	if (dbus_error_is_set(&err)) {

@@ -148,16 +148,6 @@
  * <td></td>
  * </tr>
  * <tr>
- * <td>vc_set_app_state()</td>
- * <td>Ready</td>
- * <td></td>
- * </tr>
- * <tr>
- * <td>vc_get_app_state()</td>
- * <td>Ready</td>
- * <td></td>
- * </tr>
- * <tr>
  * <td>vc_set_command_list()</td>
  * <td>Ready</td>
  * <td></td>

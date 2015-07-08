@@ -1049,7 +1049,6 @@ int vcd_client_get_list(int** pids, int* pid_count)
 	return 0;
 }
 
-//int vcd_client_set_command_type(int pid, vcd_client_command_group_type_e type)
 int vcd_client_set_command_type(int pid, int type)
 {
 	vc_client_info_s* client_info = NULL;
@@ -1075,7 +1074,6 @@ int vcd_client_set_command_type(int pid, int type)
 	return 0;
 }
 
-//int vcd_client_unset_command_type(int pid, vcd_client_command_group_type_e type)
 int vcd_client_unset_command_type(int pid, int type)
 {
 	vc_client_info_s* client_info = NULL;

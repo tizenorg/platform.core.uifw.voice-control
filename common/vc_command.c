@@ -534,7 +534,6 @@ int vc_cmd_get_unfixed_command(vc_cmd_h vc_command, char** command)
 	return 0;
 }
 
-//int vc_cmd_set_type(vc_cmd_h vc_command, vc_cmd_type_e type)
 int vc_cmd_set_type(vc_cmd_h vc_command, int type)
 {
 	if (NULL == vc_command) {
@@ -721,7 +720,6 @@ int vc_cmd_set_result_key(vc_cmd_h vc_command, int key, int modifier)
 * @see vc_cmd_add_result_key()
 */
 int vc_cmd_get_result_key(vc_cmd_h vc_command, int* key, int* modifier)
-//int vc_command_get_result_key(vc_cmd_h vc_command, int* key, int* modifier)
 {
 	SLOG(LOG_DEBUG, TAG_VCCMD, "===== Get result key");
 

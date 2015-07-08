@@ -27,7 +27,6 @@
 #include "voice_control_command_expand.h"
 
 
-static bool g_is_daemon_started = false;
 
 static Ecore_Timer* g_connect_timer = NULL;
 
@@ -206,7 +205,6 @@ static void __vc_internal_unprepare()
 		SLOG(LOG_ERROR, TAG_VCC, "[ERROR] Fail to request finalize : %s", __vc_get_error_code(ret));
 	}
 
-	g_is_daemon_started = false;
 
 #if 0
 	ecore_event_handler_del(g_focus_in_hander);
@@ -368,36 +366,10 @@ static Eina_Bool __vc_x_event_window_focus_out(void *data, int type, void *event
 }
 #endif
 
-static void __vc_fork_vc_daemon()
-{
-	int pid, i;
-	pid = fork();
-
-	switch(pid) {
-	case -1:
-		SLOG(LOG_ERROR, TAG_VCC, "Fail to create daemon");
-		break;
-	case 0:
-		setsid();
-		for (i = 0;i < _NSIG;i++)
-			signal(i, SIG_DFL);
-
-		execl(VC_DAEMON_PATH, VC_DAEMON_PATH, NULL);
-		break;
-	default:
-		break;
-	}
-	return;
-}
-	
 static Eina_Bool __vc_connect_daemon(void *data)
 {
 	/* Send hello */
 	if (0 != vc_dbus_request_hello()) {
-		if (false == g_is_daemon_started) {
-			g_is_daemon_started = true;
-			__vc_fork_vc_daemon();
-		}
 		return EINA_TRUE;
 	}
 
@@ -468,7 +440,6 @@ int vc_prepare()
 		return VC_ERROR_INVALID_STATE;
 	}
 
-	g_is_daemon_started = false;
 
 	g_connect_timer = ecore_timer_add(0, __vc_connect_daemon, NULL);
 
@@ -819,7 +790,7 @@ int vc_set_command_list(vc_cmd_list_h vc_cmd_list, int type)
 		SLOG(LOG_ERROR, TAG_VCC, "[ERROR] Invalid command type: input type is %d", type);
 		SLOG(LOG_DEBUG, TAG_VCC, "=====");
 		SLOG(LOG_DEBUG, TAG_VCC, " ");
-		return VC_ERROR_INVALID_STATE;
+		return VC_ERROR_INVALID_PARAMETER;
 	}
 
 	vc_cmd_list_s* list = NULL;

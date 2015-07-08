@@ -5,6 +5,7 @@ includedir=@INCLUDEDIR@
 
 Name: lib@PROJECT_NAME@_setting
 Description: Voice control setting library
+Requires: glib-2.0 capi-base-common
 Version: @VERSION@
 Libs: -L${libdir} -l@PROJECT_NAME@_setting
 Cflags: -I${includedir}

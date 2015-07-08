@@ -666,7 +666,6 @@ int vcd_dbus_server_mgr_result_selection(DBusConnection* conn, DBusMessage* msg)
 	dbus_error_init(&err);
 
 	int pid;
-	//int ret = VCD_ERROR_OPERATION_FAILED;
 	dbus_message_get_args(msg, &err, DBUS_TYPE_INT32, &pid, DBUS_TYPE_INVALID);
 
 	SLOG(LOG_DEBUG, TAG_VCD, ">>>>> VCD Manager result selection");
@@ -674,10 +673,8 @@ int vcd_dbus_server_mgr_result_selection(DBusConnection* conn, DBusMessage* msg)
 	if (dbus_error_is_set(&err)) {
 		SLOG(LOG_ERROR, TAG_VCD, "[IN ERROR] vcd mgr result selection : get arguments error (%s)", err.message);
 		dbus_error_free(&err);
-	//	ret = VCD_ERROR_OPERATION_FAILED;
 	} else {
 		SLOG(LOG_DEBUG, TAG_VCD, "[IN] vcd mgr result selection : pid(%d)", pid);
-		//ret = vcd_server_mgr_result_select();
 		vcd_server_mgr_result_select();
 	}
 	return 0;

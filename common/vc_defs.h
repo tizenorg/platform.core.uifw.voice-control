@@ -27,19 +27,19 @@ extern "C" {
 * Definition for Dbus
 *******************************************************************************************/
 
-#define VC_CLIENT_SERVICE_NAME         "org.tizen.voice.vcclient"
-#define VC_CLIENT_SERVICE_OBJECT_PATH  "/org/tizen/voice/vcclient"
-#define VC_CLIENT_SERVICE_INTERFACE    "org.tizen.voice.vcclient"
+#define VC_CLIENT_SERVICE_NAME         "org.tizen.vc.client"
+#define VC_CLIENT_SERVICE_OBJECT_PATH  "/org/tizen/vc/client"
+#define VC_CLIENT_SERVICE_INTERFACE    "org.tizen.vc.client"
 
-#define VC_WIDGET_SERVICE_NAME        "org.tizen.voice.vcwidget"
-#define VC_WIDGET_SERVICE_OBJECT_PATH "/org/tizen/voice/vcwidget"
-#define VC_WIDGET_SERVICE_INTERFACE   "org.tizen.voice.vcwidget"
+#define VC_WIDGET_SERVICE_NAME        "org.tizen.vc.widget"
+#define VC_WIDGET_SERVICE_OBJECT_PATH "/org/tizen/vc/widget"
+#define VC_WIDGET_SERVICE_INTERFACE   "org.tizen.vc.widget"
 
-#define VC_MANAGER_SERVICE_NAME        "org.tizen.voice.vcmanager"
-#define VC_MANAGER_SERVICE_OBJECT_PATH "/org/tizen/voice/vcmanager"
-#define VC_MANAGER_SERVICE_INTERFACE   "org.tizen.voice.vcmanager"
+#define VC_MANAGER_SERVICE_NAME        "org.tizen.vc.manager"
+#define VC_MANAGER_SERVICE_OBJECT_PATH "/org/tizen/vc/manager"
+#define VC_MANAGER_SERVICE_INTERFACE   "org.tizen.vc.manager"
 
-#define VC_SERVER_SERVICE_NAME         "service.connect.vcserver"
+#define VC_SERVER_SERVICE_NAME         "org.tizen.voice.vcserver"
 #define VC_SERVER_SERVICE_OBJECT_PATH  "/org/tizen/voice/vcserver"
 #define VC_SERVER_SERVICE_INTERFACE    "org.tizen.voice.vcserver"
 

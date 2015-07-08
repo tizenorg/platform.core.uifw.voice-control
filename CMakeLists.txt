@@ -26,7 +26,7 @@ PROJECT(vc)
 
 SET(PREFIX ${CMAKE_INSTALL_PREFIX})
 SET(EXEC_PREFIX "${PREFIX}")
-SET(VERSION 0.2.7)
+SET(VERSION 0.2.8)
 
 # pkg config tool
 INCLUDE(FindPkgConfig)
@@ -53,3 +53,7 @@ ADD_SUBDIRECTORY(server)
 
 ## config ##
 INSTALL(FILES ${CMAKE_SOURCE_DIR}/vc-config.xml DESTINATION /usr/lib/voice/vc/1.0)
+
+INSTALL(FILES ${CMAKE_SOURCE_DIR}/vc-server.conf DESTINATION /etc/dbus-1/system.d)
+
+INSTALL(FILES ${CMAKE_SOURCE_DIR}/org.tizen.voice.vcserver.service DESTINATION /usr/share/dbus-1/system-services)

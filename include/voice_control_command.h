@@ -22,7 +22,10 @@
 
 
 /**
-* @addtogroup Voice_control_command
+* @defgroup CAPI_UIX_VOICE_CONTROL_COMMAND_MODULE Voice control command
+* @ingroup CAPI_UIX_VOICE_CONTROL_MODULE
+*
+* @brief The @ref CAPI_UIX_VOICE_CONTROL_COMMAND_MODULE API provides functions for creating/destroying command list and add/remove/retrieve commands of list.
 * @{
 */
 

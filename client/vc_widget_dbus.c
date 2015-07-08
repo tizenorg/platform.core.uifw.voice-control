@@ -24,8 +24,8 @@ static int g_w_waiting_time = 3000;
 
 static Ecore_Fd_Handler* g_w_fd_handler = NULL;
 
-static DBusConnection* g_w_conn = NULL;
-
+static DBusConnection* g_w_conn_sender = NULL;
+static DBusConnection* g_w_conn_listener = NULL;
 
 extern int __vc_widget_cb_error(int pid, int reason);
 
@@ -36,16 +36,12 @@ extern void __vc_widget_cb_result();
 
 static Eina_Bool widget_listener_event_callback(void* data, Ecore_Fd_Handler *fd_handler)
 {
-	DBusConnection* conn = (DBusConnection*)data;
+	if (NULL == g_w_conn_listener)	return ECORE_CALLBACK_RENEW;
+
+	dbus_connection_read_write_dispatch(g_w_conn_listener, 50);
+
 	DBusMessage* msg = NULL;
-	DBusMessage *reply = NULL;
-
-	if (NULL == conn)
-		return ECORE_CALLBACK_RENEW;
-
-	dbus_connection_read_write_dispatch(conn, 50);
-
-	msg = dbus_connection_pop_message(conn);
+	msg = dbus_connection_pop_message(g_w_conn_listener);
 
 	/* loop again if we haven't read a message */
 	if (NULL == msg) { 
@@ -56,7 +52,7 @@ static Eina_Bool widget_listener_event_callback(void* data, Ecore_Fd_Handler *fd
 	dbus_error_init(&err);
 
 	char if_name[64];
-	snprintf(if_name, 64, "%s%d", VC_WIDGET_SERVICE_INTERFACE, getpid());
+	snprintf(if_name, 64, "%s", VC_WIDGET_SERVICE_INTERFACE);
 
 	if (dbus_message_is_method_call(msg, if_name, VCD_WIDGET_METHOD_HELLO)) {
 		SLOG(LOG_DEBUG, TAG_VCW, "===== Get widget hello");
@@ -77,18 +73,19 @@ static Eina_Bool widget_listener_event_callback(void* data, Ecore_Fd_Handler *fd
 			SLOG(LOG_ERROR, TAG_VCW, "<<<< vc widget get hello : invalid pid ");
 		}
 
+		DBusMessage* reply = NULL;
 		reply = dbus_message_new_method_return(msg);
 		
 		if (NULL != reply) {
 			dbus_message_append_args(reply, DBUS_TYPE_INT32, &response, DBUS_TYPE_INVALID);
 
-			if (!dbus_connection_send(conn, reply, NULL))
+			if (!dbus_connection_send(g_w_conn_listener, reply, NULL))
 				SLOG(LOG_ERROR, TAG_VCW, ">>>> vc widget get hello : fail to send reply");
 			else 
 				SLOG(LOG_DEBUG, TAG_VCW, ">>>> vc widget get hello : result(%d)", response);
 
-			dbus_connection_flush(conn);
-			dbus_message_unref(reply); 
+			dbus_connection_flush(g_w_conn_listener);
+			dbus_message_unref(reply);
 		} else {
 			SLOG(LOG_ERROR, TAG_VCW, ">>>> vc widget get hello : fail to create reply message");
 		}
@@ -120,22 +117,6 @@ static Eina_Bool widget_listener_event_callback(void* data, Ecore_Fd_Handler *fd
 			SLOG(LOG_ERROR, TAG_VCW, "<<<< vc widget show tooltip : invalid pid");
 		}
 
-		/*
-		reply = dbus_message_new_method_return(msg);
-
-		if (NULL != reply) {
-			if (!dbus_connection_send(conn, reply, NULL))
-				SLOG(LOG_ERROR, TAG_VCW, ">>>> vc widget show tooltip : fail to send reply");
-			else 
-				SLOG(LOG_DEBUG, TAG_VCW, ">>>> vc widget show tooltip");
-
-			dbus_connection_flush(conn);
-			dbus_message_unref(reply); 
-		} else {
-			SLOG(LOG_ERROR, TAG_VCW, ">>>> vc widget show tooltip : fail to create reply message");
-		}
-		*/
-
 		SLOG(LOG_DEBUG, TAG_VCW, "=====");
 		SLOG(LOG_DEBUG, TAG_VCW, " ");
 	} /* VCD_WIDGET_METHOD_SHOW_TOOLTIP */
@@ -144,22 +125,6 @@ static Eina_Bool widget_listener_event_callback(void* data, Ecore_Fd_Handler *fd
 		SLOG(LOG_DEBUG, TAG_VCW, "===== Get widget result");
 
 		__vc_widget_cb_result();
-
-		/*
-		reply = dbus_message_new_method_return(msg);
-
-		if (NULL != reply) {
-			if (!dbus_connection_send(conn, reply, NULL))
-				SLOG(LOG_ERROR, TAG_VCW, ">>>> vc widget get result : fail to send reply");
-			else 
-				SLOG(LOG_DEBUG, TAG_VCW, ">>>> vc widget get result");
-
-			dbus_connection_flush(conn);
-			dbus_message_unref(reply); 
-		} else {
-			SLOG(LOG_ERROR, TAG_VCW, ">>>> vc widget get result : fail to create reply message");
-		
-		*/
 
 		SLOG(LOG_DEBUG, TAG_VCW, "=====");
 		SLOG(LOG_DEBUG, TAG_VCW, " ");
@@ -186,22 +151,6 @@ static Eina_Bool widget_listener_event_callback(void* data, Ecore_Fd_Handler *fd
 			__vc_widget_cb_error(pid, reason);
 		}
 
-		/*
-		reply = dbus_message_new_method_return(msg);
-
-		if (NULL != reply) {
-			if (!dbus_connection_send(conn, reply, NULL))
-				SLOG(LOG_ERROR, TAG_VCW, ">>>> vc widget error message : fail to send reply");
-			else 
-				SLOG(LOG_DEBUG, TAG_VCW, ">>>> vc widget error message");
-
-			dbus_connection_flush(conn);
-			dbus_message_unref(reply); 
-		} else {
-			SLOG(LOG_ERROR, TAG_VCW, ">>>> vc widget error message : fail to create reply message");
-		}
-		*/
-
 		SLOG(LOG_DEBUG, TAG_VCW, "=====");
 		SLOG(LOG_DEBUG, TAG_VCW, " ");
 	} /* VCD_WIDGET_METHOD_ERROR */
@@ -214,7 +163,7 @@ static Eina_Bool widget_listener_event_callback(void* data, Ecore_Fd_Handler *fd
 
 int vc_widget_dbus_open_connection()
 {
-	if (NULL != g_w_conn) {
+	if (NULL != g_w_conn_sender && NULL != g_w_conn_listener) {
 		SLOG(LOG_WARN, TAG_VCW, "Already existed connection ");
 		return 0;
 	}
@@ -226,28 +175,40 @@ int vc_widget_dbus_open_connection()
 	dbus_error_init(&err);
 
 	/* connect to the DBUS system bus, and check for errors */
-	g_w_conn = dbus_bus_get_private(DBUS_BUS_SYSTEM, &err);
+	g_w_conn_sender = dbus_bus_get_private(DBUS_BUS_SYSTEM, &err);
 
-	if (dbus_error_is_set(&err)) { 
-		SLOG(LOG_ERROR, TAG_VCW, "Dbus Connection Error (%s)", err.message); 
-		dbus_error_free(&err); 
+	if (dbus_error_is_set(&err)) {
+		SLOG(LOG_ERROR, TAG_VCW, "Dbus Connection Error (%s)", err.message);
+		dbus_error_free(&err);
 	}
 
-	if (NULL == g_w_conn) {
+	if (NULL == g_w_conn_sender) {
 		SLOG(LOG_ERROR, TAG_VCW, "Fail to get dbus connection ");
-		return VC_ERROR_OPERATION_FAILED; 
+		return VC_ERROR_OPERATION_FAILED;
+	}
+
+	g_w_conn_listener = dbus_bus_get_private(DBUS_BUS_SYSTEM, &err);
+
+	if (dbus_error_is_set(&err)) {
+		SLOG(LOG_ERROR, TAG_VCW, "Dbus Connection Error (%s)", err.message);
+		dbus_error_free(&err);
+	}
+
+	if (NULL == g_w_conn_listener) {
+		SLOG(LOG_ERROR, TAG_VCW, "Fail to get dbus connection ");
+		return VC_ERROR_OPERATION_FAILED;
 	}
 
 	int pid = getpid();
 
 	char service_name[64];
 	memset(service_name, '\0', 64);
-	snprintf(service_name, 64, "%s%d", VC_WIDGET_SERVICE_NAME, pid);
+	snprintf(service_name, 64, "%s", VC_WIDGET_SERVICE_NAME);
 
 	SLOG(LOG_DEBUG, TAG_VCW, "service name is %s", service_name);
 
 	/* register our name on the bus, and check for errors */
-	ret = dbus_bus_request_name(g_w_conn, service_name, DBUS_NAME_FLAG_REPLACE_EXISTING , &err);
+	ret = dbus_bus_request_name(g_w_conn_listener, service_name, DBUS_NAME_FLAG_REPLACE_EXISTING , &err);
 
 	if (dbus_error_is_set(&err)) {
 		SLOG(LOG_ERROR, TAG_VCW, "Name Error (%s)", err.message); 
@@ -265,11 +226,11 @@ int vc_widget_dbus_open_connection()
 	}
 
 	char rule[128];
-	snprintf(rule, 128, "type='signal',interface='%s%d'", VC_WIDGET_SERVICE_INTERFACE, pid);
+	snprintf(rule, 128, "type='signal',interface='%s'", VC_WIDGET_SERVICE_INTERFACE);
 
 	/* add a rule for which messages we want to see */
-	dbus_bus_add_match(g_w_conn, rule, &err); 
-	dbus_connection_flush(g_w_conn);
+	dbus_bus_add_match(g_w_conn_listener, rule, &err);
+	dbus_connection_flush(g_w_conn_listener);
 
 	if (dbus_error_is_set(&err)) 
 	{ 
@@ -279,14 +240,14 @@ int vc_widget_dbus_open_connection()
 	}
 
 	int fd = 0;
-	if (1 != dbus_connection_get_unix_fd(g_w_conn, &fd)) {
+	if (1 != dbus_connection_get_unix_fd(g_w_conn_listener, &fd)) {
 		SLOG(LOG_ERROR, TAG_VCW, "fail to get fd from dbus ");
 		return VC_ERROR_OPERATION_FAILED;
 	} else {
 		SLOG(LOG_DEBUG, TAG_VCW, "Get fd from dbus : %d", fd);
 	}
 
-	g_w_fd_handler = ecore_main_fd_handler_add(fd, ECORE_FD_READ, (Ecore_Fd_Cb)widget_listener_event_callback, g_w_conn, NULL, NULL);
+	g_w_fd_handler = ecore_main_fd_handler_add(fd, ECORE_FD_READ, (Ecore_Fd_Cb)widget_listener_event_callback, g_w_conn_listener, NULL, NULL);
 
 	if (NULL == g_w_fd_handler) {
 		SLOG(LOG_ERROR, TAG_VCW, "fail to get fd handler from ecore ");
@@ -301,33 +262,38 @@ int vc_widget_dbus_close_connection()
 	DBusError err;
 	dbus_error_init(&err);
 
+	if (NULL != g_w_fd_handler) {
+		ecore_main_fd_handler_del(g_w_fd_handler);
+		g_w_fd_handler = NULL;
+	}
+
 	int pid = getpid();
 
 	char service_name[64];
 	memset(service_name, '\0', 64);
-	snprintf(service_name, 64, "%s%d", VC_WIDGET_SERVICE_NAME, pid);
+	snprintf(service_name, 64, "%s", VC_WIDGET_SERVICE_NAME);
 
-	dbus_bus_release_name (g_w_conn, service_name, &err);
+	dbus_bus_release_name(g_w_conn_listener, service_name, &err);
 
 	if (dbus_error_is_set(&err)) {
 		SLOG(LOG_ERROR, TAG_VCW, "[ERROR] Dbus Error (%s)", err.message);
 		dbus_error_free(&err);
 	}
 
-	dbus_connection_close(g_w_conn);
-
-	g_w_fd_handler = NULL;
-	g_w_conn = NULL;
+	g_w_conn_sender = NULL;
+	g_w_conn_listener = NULL;
 
 	return 0;
 }
 
 int vc_widget_dbus_reconnect()
 {
-	bool connected = dbus_connection_get_is_connected(g_w_conn);
-	SECURE_SLOG(LOG_DEBUG, TAG_VCW, "[DBUS] %s", connected ? "Connected" : "Not connected");
+	bool sender_connected = dbus_connection_get_is_connected(g_w_conn_sender);
+	bool listener_connected = dbus_connection_get_is_connected(g_w_conn_listener);
+	SLOG(LOG_DEBUG, TAG_VCW, "[DBUS] Sender(%s) Listener(%s)",
+		 sender_connected ? "Connected" : "Not connected", listener_connected ? "Connected" : "Not connected");
 
-	if (false == connected) {
+	if (false == sender_connected || false == listener_connected) {
 		vc_widget_dbus_close_connection();
 
 		if (0 != vc_widget_dbus_open_connection()) {
@@ -337,6 +303,7 @@ int vc_widget_dbus_reconnect()
 
 		SLOG(LOG_DEBUG, TAG_VCW, "[DBUS] Reconnect");
 	}
+
 	return 0;
 }
 
@@ -361,7 +328,7 @@ int vc_widget_dbus_request_hello()
 	DBusMessage* result_msg = NULL;
 	int result = 0;
 
-	result_msg = dbus_connection_send_with_reply_and_block(g_w_conn, msg, 500, &err);
+	result_msg = dbus_connection_send_with_reply_and_block(g_w_conn_sender, msg, 500, &err);
 
 	if (dbus_error_is_set(&err)) {
 		dbus_error_free(&err);
@@ -407,7 +374,7 @@ int vc_widget_dbus_request_initialize(int pid)
 	DBusMessage* result_msg;
 	int result = VC_ERROR_OPERATION_FAILED;
 
-	result_msg = dbus_connection_send_with_reply_and_block(g_w_conn, msg, g_w_waiting_time, &err);
+	result_msg = dbus_connection_send_with_reply_and_block(g_w_conn_sender, msg, g_w_waiting_time, &err);
 	dbus_message_unref(msg);
 
 	if (dbus_error_is_set(&err)) {
@@ -467,7 +434,7 @@ int vc_widget_dbus_request_finalize(int pid)
 	DBusMessage* result_msg;
 	int result = VC_ERROR_OPERATION_FAILED;
 
-	result_msg = dbus_connection_send_with_reply_and_block(g_w_conn, msg, g_w_waiting_time, &err);
+	result_msg = dbus_connection_send_with_reply_and_block(g_w_conn_sender, msg, g_w_waiting_time, &err);
 	dbus_message_unref(msg);
 
 	if (dbus_error_is_set(&err)) {
@@ -532,7 +499,7 @@ int vc_widget_dbus_request_start_recording(int pid, bool command)
 	DBusMessage* result_msg;
 	int result = VC_ERROR_OPERATION_FAILED;
 
-	result_msg = dbus_connection_send_with_reply_and_block(g_w_conn, msg, g_w_waiting_time, &err);
+	result_msg = dbus_connection_send_with_reply_and_block(g_w_conn_sender, msg, g_w_waiting_time, &err);
 	dbus_message_unref(msg);
 
 	if (dbus_error_is_set(&err)) {
@@ -595,7 +562,7 @@ int vc_widget_dbus_request_start(int pid, int silence)
 	DBusMessage* result_msg;
 	int result = VC_ERROR_OPERATION_FAILED;
 
-	result_msg = dbus_connection_send_with_reply_and_block(g_w_conn, msg, g_w_waiting_time, &err);
+	result_msg = dbus_connection_send_with_reply_and_block(g_w_conn_sender, msg, g_w_waiting_time, &err);
 	dbus_message_unref(msg);
 
 	if (dbus_error_is_set(&err)) {
@@ -657,7 +624,7 @@ int vc_widget_dbus_request_stop(int pid)
 	DBusMessage* result_msg;
 	int result = VC_ERROR_OPERATION_FAILED;
 
-	result_msg = dbus_connection_send_with_reply_and_block(g_w_conn, msg, g_w_waiting_time, &err);
+	result_msg = dbus_connection_send_with_reply_and_block(g_w_conn_sender, msg, g_w_waiting_time, &err);
 	dbus_message_unref(msg);
 
 	if (dbus_error_is_set(&err)) {
@@ -719,7 +686,7 @@ int vc_widget_dbus_request_cancel(int pid)
 	DBusMessage* result_msg;
 	int result = VC_ERROR_OPERATION_FAILED;
 
-	result_msg = dbus_connection_send_with_reply_and_block(g_w_conn, msg, g_w_waiting_time, &err);
+	result_msg = dbus_connection_send_with_reply_and_block(g_w_conn_sender, msg, g_w_waiting_time, &err);
 	dbus_message_unref(msg);
 
 	if (dbus_error_is_set(&err)) {

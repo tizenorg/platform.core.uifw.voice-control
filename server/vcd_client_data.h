@@ -74,7 +74,6 @@ int vcd_client_get_length();
 
 int vcd_client_foreach_command(client_foreach_command_cb callback, void* user_data);
 
-//int vcd_client_get_client_info_from_result_id(int* result_id, int** pid, int** cmd_type);
 int vcd_client_get_cmd_from_result_id(int result_id, vc_cmd_s** result);
 
 int vcd_client_get_cmd_info_from_result_id(int result_id, int* pid, int* cmd_type, vc_cmd_s** result);

@@ -1,8 +1,14 @@
+voice-control (0.2.8) -- Thu, 18 Jun 2015
+
+  * Update IPC and remove volume file (Dongyeol Lee <dy3.lee@samsung.com>)
+  * Add daemon activation by dbus (Kwangyoun Kim <ky85.kim@samsung.com>)
+
 vc (0.2.7) -- Wed, 21 Jan 2015
 
   * Add result message from engine (Wonnam Jang <wn.jang@samsung.com>)
   * Change sequence for engine and recorder stop (Kwangyoun Kim <ky85.kim@samsung.com>)
   * Add authority feature (Kwangyoun Kim <ky85.kim@samsung.com>)
+  * Remove unused smack label (Kwangyoun Kim <ky85.kim@samsung.com>)
 
 vc (0.2.6) -- Mon, 08 Dec 2014
   

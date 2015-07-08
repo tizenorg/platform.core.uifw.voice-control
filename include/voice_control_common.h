@@ -21,7 +21,7 @@
 #include <voice_control_command.h>
 
 /**
-* @addtogroup Voice_control_common
+* @addtogroup CAPI_UIX_VOICE_CONTROL_MODULE
 * @{
 */
 

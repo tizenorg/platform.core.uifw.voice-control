@@ -1,6 +1,6 @@
 Name:       voice-control
 Summary:    Voice control client library and daemon
-Version:    0.2.7
+Version:    0.2.8
 Release:    1
 Group:      Graphics & UI Framework/Voice Framework
 License:    Apache-2.0
@@ -97,7 +97,6 @@ install LICENSE %{buildroot}/usr/share/license/%{name}
 /sbin/ldconfig
 
 mkdir -p /usr/share/voice/vc
-chsmack -a '_' /usr/share/voice/vc
 
 mkdir -p /opt/home/app/.voice/vc
 chown 5000:5000 /opt/home/app/.voice/vc
@@ -112,6 +111,8 @@ chown 5000:5000 /opt/home/app/.voice/vc
 %{_libdir}/libvc_widget.so
 %{_libdir}/libvc_manager.so
 %{_bindir}/vc-daemon
+/usr/share/dbus-1/system-services/org.tizen.voice*
+/etc/dbus-1/system.d/vc-server.conf
 /usr/lib/voice/vc/1.0/vc-config.xml
 /usr/share/license/%{name}
 
@@ -147,8 +148,6 @@ chown 5000:5000 /opt/home/app/.voice/vc
 %files setting-devel
 %defattr(-,root,root,-)
 %{_libdir}/pkgconfig/voice-control-setting.pc
-%{_includedir}/voice_control_command.h
-%{_includedir}/voice_control_common.h
 %{_includedir}/voice_control_setting.h
 
 %files engine-devel

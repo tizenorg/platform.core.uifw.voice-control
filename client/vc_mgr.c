@@ -31,14 +31,11 @@
 
 #define VC_MANAGER_CONFIG_HANDLE	100000
 
-static bool g_m_is_daemon_started = false;
-
 static Ecore_Timer* g_m_connect_timer = NULL;
 
 static vc_h g_vc_m = NULL;
 
 static GSList* g_demandable_client_list = NULL;
-
 
 static Eina_Bool __vc_mgr_notify_state_changed(void *data);
 static Eina_Bool __vc_mgr_notify_error(void *data);
@@ -204,7 +201,6 @@ static void __vc_mgr_internal_unprepare()
 		SLOG(LOG_ERROR, TAG_VCM, "[ERROR] Fail to request finalize : %s", __vc_mgr_get_error_code(ret));
 	}
 
-	g_m_is_daemon_started = false;
 
 	vc_cmd_parser_delete_file(getpid(), VC_COMMAND_TYPE_SYSTEM);
 	vc_cmd_parser_delete_file(getpid(), VC_COMMAND_TYPE_EXCLUSIVE);
@@ -263,47 +259,10 @@ int vc_mgr_deinitialize()
 	return VC_ERROR_NONE;
 }
 
-static void* __fork_vc_daemon()
-{
-	int pid, i;
-	pid = fork();
-
-	switch(pid) {
-	case -1:
-		SLOG(LOG_ERROR, TAG_VCM, "Fail to create daemon");
-		break;
-	case 0:
-		setsid();
-		for (i = 0;i < _NSIG;i++)
-			signal(i, SIG_DFL);
-
-		execl(VC_DAEMON_PATH, VC_DAEMON_PATH, NULL);
-		break;
-	default:
-		break;
-	}
-
-	return (void*) 1;
-}
-
 static Eina_Bool __vc_mgr_connect_daemon(void *data)
 {
 	/* Send hello */
 	if (0 != vc_mgr_dbus_request_hello()) {
-		if (false == g_m_is_daemon_started) {
-			g_m_is_daemon_started = true;
-
-			pthread_t thread;
-			int thread_id;
-			thread_id = pthread_create(&thread, NULL, __fork_vc_daemon, NULL);
-			if (thread_id < 0) {
-				SLOG(LOG_ERROR, TAG_VCM, "[ERROR] Fail to make thread");
-				g_m_connect_timer = NULL;
-				return EINA_FALSE;
-			}
-
-			pthread_detach(thread);
-		}
 		return EINA_TRUE;
 	}
 
@@ -380,7 +339,6 @@ int vc_mgr_prepare()
 		return VC_ERROR_INVALID_STATE;
 	}
 
-	g_m_is_daemon_started = false;
 
 	g_m_connect_timer = ecore_timer_add(0, __vc_mgr_connect_daemon, NULL);
 

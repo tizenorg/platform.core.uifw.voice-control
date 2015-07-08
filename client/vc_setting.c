@@ -102,21 +102,6 @@ int vc_setting_initialize(void)
 	return VC_ERROR_NONE;
 }
 
-//int vc_setting_finalize()
-//{
-//	SLOG(LOG_DEBUG, TAG_VCS, "===== Finalize VC Setting");
-//
-//	vc_config_mgr_unset_lang_cb(getpid() + VC_SETTING_CONFIG_HANDLE);
-//	vc_config_mgr_finalize(getpid() + VC_SETTING_CONFIG_HANDLE);
-//
-//	g_state = VC_SETTING_STATE_NONE;
-//	
-//	SLOG(LOG_DEBUG, TAG_VCS, "=====");
-//	SLOG(LOG_DEBUG, TAG_VCS, " ");
-//
-//	return VC_ERROR_NONE;
-//}
-
 int vc_setting_deinitialize()
 {
 	SLOG(LOG_DEBUG, TAG_VCS, "===== Deinitialize VC Setting");
