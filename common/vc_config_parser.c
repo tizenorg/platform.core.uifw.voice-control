@@ -276,6 +276,19 @@ int vc_parser_load_config(vc_config_s** config_info)
 	xmlChar *key;
 	bool is_default_open = false;
 
+	if (0 != access(VC_RUNTIME_INFO_ROOT, F_OK)) {
+		SLOG(LOG_DEBUG, vc_config_tag(), "No info root directory");
+		if (0 != access(VC_CONFIG_ROOT, F_OK)) {
+			SLOG(LOG_DEBUG, vc_config_tag(), "No root directory");
+			if (0 != mkdir(VC_CONFIG_ROOT, 0755)) {
+				SLOG(LOG_ERROR, vc_config_tag(), "[ERROR] Fail to make directory");
+			}
+		}
+		if (0 != mkdir(VC_RUNTIME_INFO_ROOT, 0755)) {
+			SLOG(LOG_ERROR, vc_config_tag(), "[ERROR] Fail to make directory");
+		}
+	}
+
 	if (0 != access(VC_CONFIG, F_OK)) {
 		doc = xmlParseFile(VC_CONFIG_DEFAULT);
 		if (doc == NULL) {

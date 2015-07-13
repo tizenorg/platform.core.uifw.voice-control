@@ -20,6 +20,7 @@ BuildRequires:  pkgconfig(dlog)
 BuildRequires:  pkgconfig(ecore)
 BuildRequires:  pkgconfig(glib-2.0)
 BuildRequires:  pkgconfig(libprivilege-control)
+BuildRequires:  pkgconfig(libtzplatform-config)
 BuildRequires:  pkgconfig(libxml-2.0)
 BuildRequires:  pkgconfig(vconf)
 BuildRequires:  cmake
@@ -97,9 +98,6 @@ install LICENSE %{buildroot}/usr/share/license/%{name}
 /sbin/ldconfig
 
 mkdir -p /usr/share/voice/vc
-
-mkdir -p /opt/home/app/.voice/vc
-chown 5000:5000 /opt/home/app/.voice/vc
 
 %postun -p /sbin/ldconfig
 

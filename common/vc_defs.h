@@ -18,10 +18,11 @@
 #ifndef __VC_DEFS_H__
 #define __VC_DEFS_H__
 
+#include <tzplatform_config.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
 
 /******************************************************************************************
 * Definition for Dbus
@@ -136,7 +137,7 @@ extern "C" {
 
 #define VC_CONFIG_DEFAULT		"/usr/lib/voice/vc/1.0/vc-config.xml"
 
-#define VC_CONFIG			"/opt/home/app/.voice/vc-config.xml"
+#define VC_CONFIG			tzplatform_mkpath(TZ_USER_HOME, ".voice/vc-config.xml")
 
 #define VC_DEFAULT_ENGINE_INFO		"/usr/lib/voice/vc/1.0/engine-info"
 
@@ -146,22 +147,23 @@ extern "C" {
 
 #define VC_RETRY_COUNT		5
 
+#define VC_CONFIG_ROOT			tzplatform_mkpath(TZ_USER_HOME, ".voice")
 
-#define VC_RUNTIME_INFO_ROOT		"/opt/home/app/.voice/vc"
+#define VC_RUNTIME_INFO_ROOT		tzplatform_mkpath(TZ_USER_HOME, ".voice/vc")
 
-#define VC_RUNTIME_INFO_AUDIO_VOLUME	VC_RUNTIME_INFO_ROOT"/vc_vol"
+#define VC_RUNTIME_INFO_AUDIO_VOLUME	tzplatform_mkpath(TZ_USER_HOME, ".voice/vc/vc_vol")
 
-#define VC_RUNTIME_INFO_FOREGROUND	VC_RUNTIME_INFO_ROOT"/vc-info-foreground.xml"
+#define VC_RUNTIME_INFO_FOREGROUND	tzplatform_mkpath(TZ_USER_HOME, ".voice/vc/vc-info-foreground.xml")
 
-#define VC_RUNTIME_INFO_SERVICE_STATE	VC_RUNTIME_INFO_ROOT"/vc-info-state.xml"
+#define VC_RUNTIME_INFO_SERVICE_STATE	tzplatform_mkpath(TZ_USER_HOME, ".voice/vc/vc-info-state.xml")
 
-#define VC_RUNTIME_INFO_DEMANDABLE_LIST	VC_RUNTIME_INFO_ROOT"/vc-demandable-client.xml"
+#define VC_RUNTIME_INFO_DEMANDABLE_LIST	tzplatform_mkpath(TZ_USER_HOME, ".voice/vc/vc-demandable-client.xml")
 
-#define VC_RUNTIME_INFO_RESULT		VC_RUNTIME_INFO_ROOT"/vc-result.xml"
+#define VC_RUNTIME_INFO_RESULT		tzplatform_mkpath(TZ_USER_HOME, ".voice/vc/vc-result.xml")
 
-#define VC_RUNTIME_INFO_EX_RESULT	VC_RUNTIME_INFO_ROOT"/vc-ex-result.xml"
+#define VC_RUNTIME_INFO_EX_RESULT	tzplatform_mkpath(TZ_USER_HOME, ".voice/vc/vc-ex-result.xml")
 
-#define VC_RUNTIME_INFO_CLIENT		VC_RUNTIME_INFO_ROOT"/vc-client-info.xml"
+#define VC_RUNTIME_INFO_CLIENT		tzplatform_mkpath(TZ_USER_HOME, ".voice/vc/vc-client-info.xml")
 
 
 #ifdef __cplusplus
