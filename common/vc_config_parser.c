@@ -287,6 +287,9 @@ int vc_parser_load_config(vc_config_s** config_info)
 		if (0 != mkdir(VC_RUNTIME_INFO_ROOT, 0755)) {
 			SLOG(LOG_ERROR, vc_config_tag(), "[ERROR] Fail to make directory");
 		}
+		if (0 > chmod(VC_RUNTIME_INFO_ROOT, 0777)) {
+			SLOG(LOG_ERROR, vc_config_tag(), "[ERROR] Fail to change directory mode");
+		}
 	}
 
 	if (0 != access(VC_CONFIG, F_OK)) {
