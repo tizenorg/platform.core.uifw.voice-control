@@ -1,6 +1,6 @@
 Name:       voice-control
 Summary:    Voice control client library and daemon
-Version:    0.2.8
+Version:    0.2.9
 Release:    1
 Group:      Graphics & UI Framework/Voice Framework
 License:    Apache-2.0

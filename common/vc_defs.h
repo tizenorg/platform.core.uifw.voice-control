@@ -29,17 +29,17 @@ extern "C" {
 * Definition for Dbus
 *******************************************************************************************/
 
-#define VC_CLIENT_SERVICE_NAME         "org.tizen.vc.client"
-#define VC_CLIENT_SERVICE_OBJECT_PATH  "/org/tizen/vc/client"
-#define VC_CLIENT_SERVICE_INTERFACE    "org.tizen.vc.client"
+#define VC_CLIENT_SERVICE_NAME         "org.tizen.voice.vcclient"
+#define VC_CLIENT_SERVICE_OBJECT_PATH  "/org/tize/voice/vcclient"
+#define VC_CLIENT_SERVICE_INTERFACE    "org.tizen.voice.vcclient"
 
-#define VC_WIDGET_SERVICE_NAME        "org.tizen.vc.widget"
-#define VC_WIDGET_SERVICE_OBJECT_PATH "/org/tizen/vc/widget"
-#define VC_WIDGET_SERVICE_INTERFACE   "org.tizen.vc.widget"
+#define VC_WIDGET_SERVICE_NAME        "org.tizen.voice.vcwidget"
+#define VC_WIDGET_SERVICE_OBJECT_PATH "/org/tize/voice/vcwidget"
+#define VC_WIDGET_SERVICE_INTERFACE   "org.tizen.voice.vcwidget"
 
-#define VC_MANAGER_SERVICE_NAME        "org.tizen.vc.manager"
-#define VC_MANAGER_SERVICE_OBJECT_PATH "/org/tizen/vc/manager"
-#define VC_MANAGER_SERVICE_INTERFACE   "org.tizen.vc.manager"
+#define VC_MANAGER_SERVICE_NAME        "org.tizen.voice.vcmanager"
+#define VC_MANAGER_SERVICE_OBJECT_PATH "/org/tize/voice/vcmanager"
+#define VC_MANAGER_SERVICE_INTERFACE   "org.tizen.voice.vcmanager"
 
 #define VC_SERVER_SERVICE_NAME         "org.tizen.voice.vcserver"
 #define VC_SERVER_SERVICE_OBJECT_PATH  "/org/tizen/voice/vcserver"
@@ -66,6 +66,7 @@ extern "C" {
 #define VCD_METHOD_RESULT		"vcd_method_result"
 #define VCD_METHOD_ERROR		"vcd_method_error"
 #define VCD_METHOD_HELLO		"vcd_method_hello"
+#define VCD_METHOD_SET_SERVICE_STATE	"vcd_method_set_service_state"
 
 /* Authority */
 #if 0
@@ -101,6 +102,7 @@ extern "C" {
 #define VCD_WIDGET_METHOD_ERROR			"vcd_widget_method_error"
 #define VCD_WIDGET_METHOD_HELLO			"vcd_widget_method_hello"
 #define VCD_WIDGET_METHOD_SHOW_TOOLTIP		"vcd_widget_method_show_tooltip"
+#define VCD_WIDGET_METHOD_SET_SERVICE_STATE	"vcd_widget_method_set_service_state"
 
 
 /******************************************************************************************
@@ -126,6 +128,8 @@ extern "C" {
 #define VCD_MANAGER_METHOD_SPEECH_DETECTED	"vcd_manager_method_speech_detected"
 #define VCD_MANAGER_METHOD_ALL_RESULT		"vcd_manager_method_all_result"
 #define VCD_MANAGER_METHOD_RESULT		"vcd_manager_method_result"
+#define VCD_MANAGER_METHOD_SET_VOLUME		"vcd_manager_method_set_volume"
+#define VCD_MANAGER_METHOD_SET_SERVICE_STATE	"vcd_manager_method_set_service_state"
 
 #define VCD_MANAGER_METHOD_ERROR		"vcd_manager_method_error"
 
@@ -166,6 +170,15 @@ extern "C" {
 #define VC_RUNTIME_INFO_EX_RESULT	tzplatform_mkpath(TZ_USER_HOME, ".voice/vc/vc-ex-result.xml")
 
 #define VC_RUNTIME_INFO_CLIENT		tzplatform_mkpath(TZ_USER_HOME, ".voice/vc/vc-client-info.xml")
+
+/******************************************************************************************
+* Defines for common enum
+*******************************************************************************************/
+
+typedef enum {
+	VC_RESULT_TYPE_NORMAL,
+	VC_RESULT_TYPE_NOTIFICATION
+} vc_result_type_e;
 
 
 #ifdef __cplusplus

@@ -65,6 +65,9 @@ typedef struct {
 	/* audio type */
 	char*			audio_id;
 
+	/* recognition mode */
+	vc_recognition_mode_e	recognition_mode;
+
 	/* mutex */
 	int			cb_ref_count;
 
@@ -158,7 +161,7 @@ int vc_mgr_client_create(vc_h* vc)
 	client->result_event = -1;
 	client->result_text = NULL;
 
-	client->service_state = -1;
+	client->service_state = 0;
 
 	client->before_state = VC_STATE_INITIALIZED;
 	client->current_state = VC_STATE_INITIALIZED;
@@ -167,6 +170,7 @@ int vc_mgr_client_create(vc_h* vc)
 	client->current_language = NULL;
 
 	client->audio_id = NULL;
+	client->recognition_mode = VC_RECOGNITION_MODE_STOP_BY_SILENCE;
 
 	client->cb_ref_count = 0;
 
@@ -725,6 +729,35 @@ int vc_mgr_client_get_audio_type(vc_h vc, char** audio_id)
 	else
 		*audio_id = NULL;
 
+	return 0;
+}
+
+int vc_mgr_client_set_recognition_mode(vc_h vc, vc_recognition_mode_e mode)
+{
+	vc_mgr_client_s* client = __mgr_client_get(vc);
+
+	/* check handle */
+	if (NULL == client)
+		return VC_ERROR_INVALID_PARAMETER;
+
+	client->recognition_mode = mode;
+
+	return 0;
+}
+
+int vc_mgr_client_get_recognition_mode(vc_h vc, vc_recognition_mode_e* mode)
+{
+	if (NULL == mode)	{
+		return -1;
+	}
+
+	vc_mgr_client_s* client = __mgr_client_get(vc);
+
+	/* check handle */
+	if (NULL == client)
+		return VC_ERROR_INVALID_PARAMETER;
+
+	*mode = client->recognition_mode;
 	return 0;
 }
 

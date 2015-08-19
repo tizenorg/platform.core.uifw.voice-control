@@ -317,7 +317,7 @@ int __internal_get_engine_info(const char* filepath, vcengine_info_s** info)
 	int (*get_engine_info)(vcpe_engine_info_cb callback, void* user_data);
 
 	get_engine_info = (int (*)(vcpe_engine_info_cb, void*))dlsym(handle, "vcp_get_engine_info");
-	if ((error = dlerror()) != NULL) {
+	if (NULL != (error = dlerror()) || NULL == get_engine_info) {
 		SLOG(LOG_WARN, TAG_VCD, "[Engine Agent WARNING] Invalid engine. Fail to open vcp_get_engine_info : %s", filepath);
 		dlclose(handle);
 		return -1;
@@ -500,8 +500,8 @@ int __load_engine(vcengine_s* engine)
 		return VCD_ERROR_OPERATION_FAILED;
 	}
 
-	engine->vcp_load_engine = (int (*)(vcpd_funcs_s*, vcpe_funcs_s*) )dlsym(engine->handle, "vcp_load_engine");
-	if ((error = dlerror()) != NULL) {
+	engine->vcp_load_engine = (int (*)(vcpd_funcs_s*, vcpe_funcs_s*))dlsym(engine->handle, "vcp_load_engine");
+	if (NULL != (error = dlerror()) || NULL == engine->vcp_load_engine) {
 		SLOG(LOG_ERROR, TAG_VCD, "[Engine Agent ERROR] Fail to link daemon to vcp_load_engine()");
 		dlclose(engine->handle);
 		return VCD_ERROR_OPERATION_FAILED;

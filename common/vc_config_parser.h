@@ -61,14 +61,6 @@ int vc_parser_set_enabled(bool value);
 int vc_parser_find_config_changed(int* auto_lang, char** language, int* enabled);
 
 
-/* Set / Get service state */
-int vc_parser_init_service_state();
-
-int vc_parser_set_service_state(int state);
-
-int vc_parser_get_service_state(int* state);
-
-
 /* Set / Get foreground info */
 int vc_parser_set_foreground(int pid, bool value);
 

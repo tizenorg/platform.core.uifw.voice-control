@@ -88,6 +88,7 @@ int vcd_dbus_server_mgr_initialize(DBusConnection* conn, DBusMessage* msg)
 	dbus_error_init(&err);
 
 	int pid;
+	int service_state;
 	int ret = VCD_ERROR_OPERATION_FAILED;
 
 	dbus_message_get_args(msg, &err,
@@ -103,6 +104,7 @@ int vcd_dbus_server_mgr_initialize(DBusConnection* conn, DBusMessage* msg)
 	} else {
 		SLOG(LOG_DEBUG, TAG_VCD, "[IN] vcd mgr initialize : pid(%d)", pid);
 		ret =  vcd_server_mgr_initialize(pid);
+		service_state = vcd_server_get_service_state();
 	}
 
 	DBusMessage* reply;
@@ -111,6 +113,7 @@ int vcd_dbus_server_mgr_initialize(DBusConnection* conn, DBusMessage* msg)
 	if (NULL != reply) {
 		dbus_message_append_args(reply,
 			DBUS_TYPE_INT32, &ret,
+			DBUS_TYPE_INT32, &service_state,
 			DBUS_TYPE_INVALID);
 
 		if (0 == ret) {
@@ -512,7 +515,7 @@ int vcd_dbus_server_mgr_start(DBusConnection* conn, DBusMessage* msg)
 	dbus_error_init(&err);
 
 	int pid = 0;
-	int silence = 0;
+	int recognition_mode = 0;
 	int exclusive = 0;
 	int start_by_client = 0;
 
@@ -521,19 +524,19 @@ int vcd_dbus_server_mgr_start(DBusConnection* conn, DBusMessage* msg)
 	SLOG(LOG_DEBUG, TAG_VCD, ">>>>> VCD Manager start");
 
 	dbus_message_get_args(msg, &err,
-		DBUS_TYPE_INT32, &pid,
-		DBUS_TYPE_INT32, &silence,
-		DBUS_TYPE_INT32, &exclusive,
-		DBUS_TYPE_INT32, &start_by_client,
-		DBUS_TYPE_INVALID);
+						  DBUS_TYPE_INT32, &pid,
+						  DBUS_TYPE_INT32, &recognition_mode,
+						  DBUS_TYPE_INT32, &exclusive,
+						  DBUS_TYPE_INT32, &start_by_client,
+						  DBUS_TYPE_INVALID);
 
 	if (dbus_error_is_set(&err)) {
 		SLOG(LOG_ERROR, TAG_VCD, "[IN ERROR] vcd mgr start : get arguments error (%s)", err.message);
 		dbus_error_free(&err);
 		ret = VCD_ERROR_OPERATION_FAILED;
 	} else {
-		SLOG(LOG_DEBUG, TAG_VCD, "[IN] vcd mgr start : pid(%d), silence(%d), exclusive(%d), start by client(%d)", pid, silence, exclusive, start_by_client);
-		ret = vcd_server_mgr_start((bool)silence, (bool)exclusive, (bool)start_by_client);
+		SLOG(LOG_DEBUG, TAG_VCD, "[IN] vcd mgr start : pid(%d) recognition_mode(%d) exclusive(%d) start by client(%d)", pid, recognition_mode, exclusive, start_by_client);
+		ret = vcd_server_mgr_start((vcd_recognition_mode_e)recognition_mode, (bool)exclusive, (bool)start_by_client);
 	}
 
 	DBusMessage* reply;
@@ -718,11 +721,12 @@ int vcd_dbus_server_initialize(DBusConnection* conn, DBusMessage* msg)
 	dbus_error_init(&err);
 
 	int pid;
+	int service_state = 0;
 	int ret = VCD_ERROR_OPERATION_FAILED;
 
 	dbus_message_get_args(msg, &err,
-		DBUS_TYPE_INT32, &pid,
-		DBUS_TYPE_INVALID);
+						  DBUS_TYPE_INT32, &pid,
+						  DBUS_TYPE_INVALID);
 
 	SLOG(LOG_DEBUG, TAG_VCD, ">>>>> VCD Initialize");
 
@@ -733,6 +737,7 @@ int vcd_dbus_server_initialize(DBusConnection* conn, DBusMessage* msg)
 	} else {
 		SLOG(LOG_DEBUG, TAG_VCD, "[IN] vcd initialize : pid(%d)", pid);
 		ret =  vcd_server_initialize(pid);
+		service_state = vcd_server_get_service_state();
 	}
 
 	int mgr_pid = vcd_client_manager_get_pid();
@@ -744,6 +749,7 @@ int vcd_dbus_server_initialize(DBusConnection* conn, DBusMessage* msg)
 		dbus_message_append_args(reply,
 			DBUS_TYPE_INT32, &ret,
 			DBUS_TYPE_INT32, &mgr_pid,
+			DBUS_TYPE_INT32, &service_state,
 			DBUS_TYPE_INVALID);
 
 		if (0 == ret) {
@@ -1136,7 +1142,7 @@ int vcd_dbus_server_widget_initialize(DBusConnection* conn, DBusMessage* msg)
 	dbus_error_init(&err);
 
 	int pid;
-
+	int service_state = 0;
 	int ret = VCD_ERROR_OPERATION_FAILED;
 
 	dbus_message_get_args(msg, &err,
@@ -1152,6 +1158,7 @@ int vcd_dbus_server_widget_initialize(DBusConnection* conn, DBusMessage* msg)
 	} else {
 		SLOG(LOG_DEBUG, TAG_VCD, "[IN] vcd widget initialize : pid(%d)", pid);
 		ret =  vcd_server_widget_initialize(pid);
+		service_state = vcd_server_get_service_state();
 	}
 
 	DBusMessage* reply;
@@ -1160,6 +1167,7 @@ int vcd_dbus_server_widget_initialize(DBusConnection* conn, DBusMessage* msg)
 	if (NULL != reply) {
 		dbus_message_append_args(reply,
 			DBUS_TYPE_INT32, &ret,
+			DBUS_TYPE_INT32, &service_state,
 			DBUS_TYPE_INVALID);
 
 		if (0 == ret) {

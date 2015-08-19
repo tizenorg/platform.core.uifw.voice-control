@@ -158,10 +158,41 @@ int vcdc_send_show_tooltip(int pid, bool show)
 		dbus_connection_flush(g_conn_sender);
 	}
 
+	dbus_message_unref(msg);
+
 	return 0;
 }
 
+int vcdc_send_set_volume(int manger_pid, float volume)
+{
+	DBusMessage* msg = NULL;
 
+	/* SLOG(LOG_DEBUG, TAG_VCD, "[Dbus] Set volume (%f)", volume); */
+
+	msg = dbus_message_new_signal(
+		VC_MANAGER_SERVICE_OBJECT_PATH,
+		VC_MANAGER_SERVICE_INTERFACE,
+		VCD_MANAGER_METHOD_SET_VOLUME);
+
+	if (NULL == msg) {
+		SLOG(LOG_ERROR, TAG_VCD, "[Dbus ERROR] Message is NULL");
+		return VCD_ERROR_OUT_OF_MEMORY;
+	}
+
+	dbus_message_append_args(msg, DBUS_TYPE_INT32, &volume, DBUS_TYPE_INVALID);
+
+	if (1 != dbus_connection_send(g_conn_sender, msg, NULL)) {
+		SLOG(LOG_ERROR, TAG_VCD, "[Dbus ERROR] Fail to Send");
+		return -1;
+	} else {
+		SLOG(LOG_DEBUG, TAG_VCD, "<<<< Send set volume : pid(%d), volume(%f)", manger_pid, volume);
+		dbus_connection_flush(g_conn_sender);
+	}
+
+	dbus_message_unref(msg);
+
+	return 0;
+}
 
 int vcdc_send_result(int pid, int cmd_type)
 {
@@ -204,10 +235,12 @@ int vcdc_send_result(int pid, int cmd_type)
 		dbus_connection_flush(g_conn_sender);
 	}
 
+	dbus_message_unref(msg);
+
 	return 0;
 }
 
-int vcdc_send_result_to_manager(int manger_pid)
+int vcdc_send_result_to_manager(int manger_pid, int result_type)
 {
 	DBusError err;
 	dbus_error_init(&err);
@@ -221,6 +254,10 @@ int vcdc_send_result_to_manager(int manger_pid)
 		return VCD_ERROR_OUT_OF_MEMORY;
 	}
 
+	SLOG(LOG_DEBUG, TAG_VCD, "[Dbus] send result : result type(%d)", result_type);
+
+	dbus_message_append_args(msg, DBUS_TYPE_INT32, &result_type, DBUS_TYPE_INVALID);
+
 	dbus_message_set_no_reply(msg, TRUE);
 
 	if (1 != dbus_connection_send(g_conn_sender, msg, NULL)) {
@@ -231,6 +268,8 @@ int vcdc_send_result_to_manager(int manger_pid)
 		dbus_connection_flush(g_conn_sender);
 	}
 
+	dbus_message_unref(msg);
+
 	return 0;
 }
 
@@ -239,6 +278,7 @@ int vcdc_send_speech_detected(int manger_pid)
 	DBusError err;
 	dbus_error_init(&err);
 
+	/* Send to manager */
 	DBusMessage* msg = NULL;
 
 	msg = __get_message(manger_pid, VCD_MANAGER_METHOD_SPEECH_DETECTED, VCD_CLIENT_TYPE_MANAGER);
@@ -258,6 +298,90 @@ int vcdc_send_speech_detected(int manger_pid)
 		dbus_connection_flush(g_conn_sender);
 	}
 
+	dbus_message_unref(msg);
+
+	return 0;
+}
+
+int vcdc_send_service_state(vcd_state_e state)
+{
+	DBusError err;
+	dbus_error_init(&err);
+
+	DBusMessage* msg = NULL;
+
+	msg = dbus_message_new_signal(
+		VC_MANAGER_SERVICE_OBJECT_PATH,
+		VC_MANAGER_SERVICE_INTERFACE,
+		VCD_MANAGER_METHOD_SET_SERVICE_STATE);
+
+	if (NULL == msg) {
+		SLOG(LOG_ERROR, TAG_VCD, "[Dbus ERROR] Message is NULL");
+		return VCD_ERROR_OUT_OF_MEMORY;
+	}
+
+	dbus_message_append_args(msg, DBUS_TYPE_INT32, &state, DBUS_TYPE_INVALID);
+
+	if (1 != dbus_connection_send(g_conn_sender, msg, NULL)) {
+		SLOG(LOG_ERROR, TAG_VCD, "[Dbus ERROR] Fail to Send");
+		return VCD_ERROR_OPERATION_FAILED;
+	} else {
+		SLOG(LOG_DEBUG, TAG_VCD, "<<<< Send serive state message to manager : state(%d)", state);
+		dbus_connection_flush(g_conn_sender);
+	}
+
+	dbus_message_unref(msg);
+
+	/* Send to client */
+	msg = NULL;
+
+	msg = dbus_message_new_signal(
+		VC_CLIENT_SERVICE_OBJECT_PATH,
+		VC_CLIENT_SERVICE_INTERFACE,
+		VCD_METHOD_SET_SERVICE_STATE);
+
+	if (NULL == msg) {
+		SLOG(LOG_ERROR, TAG_VCD, "[Dbus ERROR] Message is NULL");
+		return VCD_ERROR_OUT_OF_MEMORY;
+	}
+
+	dbus_message_append_args(msg, DBUS_TYPE_INT32, &state, DBUS_TYPE_INVALID);
+
+	if (1 != dbus_connection_send(g_conn_sender, msg, NULL)) {
+		SLOG(LOG_ERROR, TAG_VCD, "[Dbus ERROR] Fail to Send");
+		return VCD_ERROR_OPERATION_FAILED;
+	} else {
+		SLOG(LOG_DEBUG, TAG_VCD, "<<<< Send serive state message to client : state(%d)", state);
+		dbus_connection_flush(g_conn_sender);
+	}
+
+	dbus_message_unref(msg);
+
+	msg = NULL;
+
+	/* Send to widget client */
+	msg = dbus_message_new_signal(
+		VC_WIDGET_SERVICE_OBJECT_PATH,
+		VC_WIDGET_SERVICE_INTERFACE,
+		VCD_WIDGET_METHOD_SET_SERVICE_STATE);
+
+	if (NULL == msg) {
+		SLOG(LOG_ERROR, TAG_VCD, "[Dbus ERROR] Message is NULL");
+		return VCD_ERROR_OUT_OF_MEMORY;
+	}
+
+	dbus_message_append_args(msg, DBUS_TYPE_INT32, &state, DBUS_TYPE_INVALID);
+
+	if (1 != dbus_connection_send(g_conn_sender, msg, NULL)) {
+		SLOG(LOG_ERROR, TAG_VCD, "[Dbus ERROR] Fail to Send");
+		return VCD_ERROR_OPERATION_FAILED;
+	} else {
+		SLOG(LOG_DEBUG, TAG_VCD, "<<<< Send serive state message to widget client : state(%d)", state);
+		dbus_connection_flush(g_conn_sender);
+	}
+
+	dbus_message_unref(msg);
+
 	return 0;
 }
 
@@ -271,9 +395,6 @@ int vcdc_send_error_signal(int pid, int reason, char *err_msg)
 	char service_name[64];
 	memset(service_name, 0, 64);
 	snprintf(service_name, 64, "%s", VC_CLIENT_SERVICE_NAME);
-
-	char target_if_name[128];
-	snprintf(target_if_name, sizeof(target_if_name), "%s", VC_CLIENT_SERVICE_INTERFACE);
 
 	DBusMessage* msg;
 	SLOG(LOG_DEBUG, TAG_VCD, "[Dbus] send error signal : reason(%d), Error Msg(%s)", reason, err_msg);
@@ -304,6 +425,8 @@ int vcdc_send_error_signal(int pid, int reason, char *err_msg)
 		SLOG(LOG_DEBUG, TAG_VCD, "[Dbus] SUCCESS Send");
 		dbus_connection_flush(g_conn_sender);
 	}
+
+	dbus_message_unref(msg);
 
 	return 0;
 }

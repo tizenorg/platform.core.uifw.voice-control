@@ -14,6 +14,7 @@
 * limitations under the License.
 */
 
+#include <aul.h>
 
 #include "vc_client.h"
 #include "vc_command.h"
@@ -94,28 +95,28 @@ static void __vc_lang_changed_cb(const char* before_lang, const char* current_la
 	return;
 }
 
-static void __vc_service_state_changed_cb(int before_state, int current_state)
+static Eina_Bool __notify_auth_changed_cb(void *data)
 {
-	SLOG(LOG_DEBUG, TAG_VCC, "Service State changed : Before(%d) Current(%d)", 
-		before_state, current_state);
+	vc_auth_state_changed_cb callback = NULL;
+	void* user_data;
 
-	/* Save service state */
-	vc_client_set_service_state(g_vc, (vc_service_state_e)current_state);
+	vc_client_get_auth_state_changed_cb(g_vc, &callback, &user_data);
 
-	vc_service_state_changed_cb service_callback = NULL;
-	void* service_user_data;
-	vc_client_get_service_state_changed_cb(g_vc, &service_callback, &service_user_data);
+	vc_auth_state_e before = -1;
+	vc_auth_state_e current = -1;
 
-	if (NULL != service_callback) {
+	vc_client_get_before_auth_state(g_vc, &before, &current);
+
+	if (NULL != callback) {
 		vc_client_use_callback(g_vc);
-		service_callback((vc_service_state_e)before_state, (vc_service_state_e)current_state, service_user_data);
+		callback(before, current, user_data);
 		vc_client_not_use_callback(g_vc);
-		SLOG(LOG_DEBUG, TAG_VCC, "Service state changed callback is called");
+		SLOG(LOG_DEBUG, TAG_VCC, "Auth state changed callback is called");
 	} else {
-		SLOG(LOG_WARN, TAG_VCC, "[WARNING] State changed callback is NULL");
+		SLOG(LOG_WARN, TAG_VCC, "[WARNING] Auth state changed callback is null");
 	}
 
-	return;
+	return EINA_FALSE;
 }
 
 
@@ -159,25 +160,6 @@ int vc_initialize(void)
 		vc_client_destroy(g_vc);
 		return __vc_convert_config_error_code(ret);
 	}
-
-	ret = vc_config_mgr_set_service_state_cb(g_vc->handle, __vc_service_state_changed_cb);
-	if (0 != ret) {
-		SLOG(LOG_ERROR, TAG_VCC, "[ERROR] Fail to set service change callback : %d", ret);
-		vc_config_mgr_unset_lang_cb(g_vc->handle);
-		vc_config_mgr_finalize(g_vc->handle);
-		vc_client_destroy(g_vc);
-		return __vc_convert_config_error_code(ret);
-	}
-
-	int service_state = -1;
-	if (0 != vc_config_mgr_get_service_state(&service_state)) {
-		SLOG(LOG_ERROR, TAG_VCC, "[ERROR] Fail to get service state");
-		vc_config_mgr_finalize(g_vc->handle);
-		vc_client_destroy(g_vc);
-		return __vc_convert_config_error_code(ret);
-	}
-
-	vc_client_set_service_state(g_vc, service_state);
 
 	SLOG(LOG_DEBUG, TAG_VCC, "[Success] pid(%d)", g_vc->handle);
 
@@ -243,7 +225,6 @@ int vc_deinitialize(void)
 			ecore_timer_del(g_connect_timer);
 		}
 
-		vc_config_mgr_unset_service_state_cb(g_vc->handle);
 		vc_config_mgr_unset_lang_cb(g_vc->handle);
 		vc_config_mgr_finalize(g_vc->handle);
 
@@ -267,32 +248,6 @@ int vc_deinitialize(void)
 	SLOG(LOG_DEBUG, TAG_VCC, " ");
 
 	return VC_ERROR_NONE;
-}
-
-static Eina_Bool __notify_auth_changed_cb(void *data)
-{
-	vc_auth_state_changed_cb callback = NULL;
-	void* user_data;
-
-	vc_client_get_auth_state_changed_cb(g_vc, &callback, &user_data);
-
-	vc_auth_state_e before = -1;
-	vc_auth_state_e current = -1;
-	
-	vc_client_get_before_auth_state(g_vc, &before, &current);
-
-	if (NULL != callback) {
-		vc_client_use_callback(g_vc);
-		callback(before, current, user_data);
-		vc_client_not_use_callback(g_vc);
-		SLOG(LOG_DEBUG, TAG_VCC, "Auth state changed callback is called");
-	} else {
-		SLOG(LOG_WARN, TAG_VCC, "[WARNING] Auth state changed callback is null");
-	}
-
-	return EINA_FALSE;
-
-
 }
 
 #if 0
@@ -379,7 +334,8 @@ static Eina_Bool __vc_connect_daemon(void *data)
 	/* request initialization */
 	int ret = -1;
 	int mgr_pid = -1;
-	ret = vc_dbus_request_initialize(g_vc->handle, &mgr_pid);
+	int service_state = 0;
+	ret = vc_dbus_request_initialize(g_vc->handle, &mgr_pid, &service_state);
 	if (VC_ERROR_ENGINE_NOT_FOUND == ret) {
 		SLOG(LOG_ERROR, TAG_VCC, "[ERROR] Fail to initialize : %s", __vc_get_error_code(ret));
 
@@ -403,8 +359,10 @@ static Eina_Bool __vc_connect_daemon(void *data)
 		/* Success to connect */
 	}
 
-	g_connect_timer = NULL;
+	/* Set service state */
+	vc_client_set_service_state(g_vc, (vc_service_state_e)service_state);
 
+	g_connect_timer = NULL;
 #if 0
 	g_focus_in_hander = ecore_event_handler_add(ECORE_X_EVENT_WINDOW_FOCUS_IN, __vc_x_event_window_focus_in, NULL);
 	g_focus_out_hander = ecore_event_handler_add(ECORE_X_EVENT_WINDOW_FOCUS_OUT, __vc_x_event_window_focus_out, NULL);
@@ -1297,6 +1255,38 @@ int vc_unset_result_cb(void)
 	}
 
 	vc_client_set_result_cb(g_vc, NULL, NULL);
+
+	return 0;
+}
+
+int __vc_cb_service_state(int state)
+{
+	vc_service_state_e current_state = (vc_service_state_e)state;
+	vc_service_state_e before_state;
+	vc_client_get_service_state(g_vc, &before_state);
+
+	if (current_state == before_state) {
+		return 0;
+	}
+
+	SLOG(LOG_DEBUG, TAG_VCC, "Service State changed : Before(%d) Current(%d)",
+		before_state, current_state);
+
+	/* Save service state */
+	vc_client_set_service_state(g_vc, current_state);
+
+	vc_service_state_changed_cb callback = NULL;
+	void* service_user_data;
+	vc_client_get_service_state_changed_cb(g_vc, &callback, &service_user_data);
+
+	if (NULL != callback) {
+		vc_client_use_callback(g_vc);
+		callback((vc_service_state_e)before_state, (vc_service_state_e)current_state, service_user_data);
+		vc_client_not_use_callback(g_vc);
+		SLOG(LOG_DEBUG, TAG_VCC, "Service state changed callback is called");
+	} else {
+		SLOG(LOG_WARN, TAG_VCC, "[WARNING] Service state changed callback is null");
+	}
 
 	return 0;
 }

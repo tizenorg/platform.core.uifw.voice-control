@@ -1,8 +1,15 @@
+voice-control (0.2.9) -- Mon, 6 Jul 2015
+
+  * Update daemon start by dbus activation (Dongyeol Lee <dy3.lee@samsung.com>)
+  * Add audio header and Fix volume data (Kwangyoun Kim <ky85.kim@samsung.com>)
+  * Update file IPC for service state to dbus IPC (Dongyeol Lee <dy3.lee@samsung.com>)
+
 voice-control (0.2.8) -- Thu, 18 Jun 2015
 
   * Update IPC and remove volume file (Dongyeol Lee <dy3.lee@samsung.com>)
-  * Add daemon activation by dbus (Kwangyoun Kim <ky85.kim@samsung.com>)
-  * Change config directory for multi-client (Kwnagyoun Kim <ky85.kim@samsung.com>)
+  * Add to check app state using APP FW api (Dongyeol Lee <dy3.lee@samsung.com>)
+  * Add recognition mode (Dongyeol Lee <dy3.lee@samsung.com>)
+  * Clean up code by coding rule (Dongyeol Lee <dy3.lee@samsung.com>)
 
 vc (0.2.7) -- Wed, 21 Jan 2015
 

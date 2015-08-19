@@ -62,6 +62,13 @@ typedef struct {
 	bool	widget_cmd;
 } widget_info_s;
 
+typedef enum {
+	VCD_RECOGNITION_MODE_STOP_BY_SILENCE,		/**< Default mode */
+	VCD_RECOGNITION_MODE_RESTART_AFTER_REJECT,	/**< Restart recognition after rejected result */
+	VCD_RECOGNITION_MODE_RESTART_CONTINUOUSLY,	/**< Continuously restart recognition - not support yet*/
+	VCD_RECOGNITION_MODE_MANUAL			/**< Start and stop manually without silence */
+} vcd_recognition_mode_e;
+
 
 /*
 * Command API
@@ -81,6 +88,10 @@ int vcd_client_get_cmd_info_from_result_id(int result_id, int* pid, int* cmd_typ
 int vcd_client_set_slience_detection(bool value);
 
 bool vcd_client_get_slience_detection();
+
+int vcd_client_set_recognition_mode(vcd_recognition_mode_e mode);
+
+vcd_recognition_mode_e vcd_client_get_recognition_mode();
 
 /*
 * Manager API

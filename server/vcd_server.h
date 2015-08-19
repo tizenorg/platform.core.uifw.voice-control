@@ -34,6 +34,8 @@ void vcd_finalize();
 
 Eina_Bool vcd_cleanup_client(void *data);
 
+int vcd_server_get_service_state();
+
 
 /*
 * For manager
@@ -54,7 +56,7 @@ int vcd_server_mgr_get_audio_type(int pid, char** audio_type);
 
 int vcd_server_mgr_set_client_info(int pid);
 
-int vcd_server_mgr_start(bool stop_by_silence, bool exclusive_cmd, bool start_by_client);
+int vcd_server_mgr_start(vcd_recognition_mode_e recognition_mode, bool exclusive_cmd, bool start_by_client);
 
 int vcd_server_mgr_stop();
 

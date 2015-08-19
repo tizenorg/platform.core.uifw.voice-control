@@ -20,6 +20,8 @@
 #include <math.h>
 #include <sound_manager.h>
 
+#include "vcd_client_data.h"
+#include "vcd_dbus.h"
 #include "vcd_recorder.h"
 #include "vcd_main.h"
 #include "voice_control_plugin_engine.h"
@@ -45,11 +47,9 @@ static audio_in_h	g_audio_h;
 
 static vcp_audio_type_e g_audio_type;
 
-static int		g_audio_rate;
+static unsigned int	g_audio_rate;
 
 static int		g_audio_channel;
-
-static FILE*	g_pFile_vol;
 
 static char	g_normal_buffer[BUFFER_LENGTH + 10];
 
@@ -102,23 +102,24 @@ static void _bt_hid_audio_data_receive_cb(bt_hid_voice_data_s *voice_data, void 
 			SLOG(LOG_ERROR, TAG_VCD, "[Recorder ERROR] Fail to read audio");
 			vcd_recorder_stop();
 		}
+	}
 
-		float vol_db = get_volume_decibel((char*)voice_data->audio_buf, (int)voice_data->length);
-
-		rewind(g_pFile_vol);
-
-		fwrite((void*)(&vol_db), sizeof(vol_db), 1, g_pFile_vol);
+	/* Set volume */
+	if (0 == g_buffer_count % 30) {
+		float vol_db = get_volume_decibel((char*)voice_data->audio_buf, (unsigned int)voice_data->length);
+		if (0 != vcdc_send_set_volume(vcd_client_manager_get_pid(), vol_db)) {
+			SLOG(LOG_ERROR, TAG_VCD, "[Recorder] Fail to send recording volume(%f)", vol_db);
+		}
 	}
 
 	if (0 == g_buffer_count || 0 == g_buffer_count % 50) {
 		SLOG(LOG_WARN, TAG_VCD, "[Recorder][%d] Recording... : read_size(%d)", g_buffer_count, voice_data->length);
-		
+
 		if (0 == g_bt_extend_count % 5) {
 			const unsigned char input_data[2] = {SMART_CONTROL_EXTEND_CMD, 0x00 };
 			if (BT_ERROR_NONE != bt_hid_send_rc_command(NULL, input_data, sizeof(input_data))) {
 				SLOG(LOG_ERROR, TAG_VCD, "[Recorder ERROR] Fail bt_hid_send_rc_command(NULL, %s, %d)", input_data, sizeof(input_data));
-			}
-			else {
+			} else {
 				SLOG(LOG_DEBUG, TAG_VCD, "[Recorder] Extend bt audio recorder");
 			}
 		}
@@ -229,6 +230,7 @@ int vcd_recorder_create(vcd_recoder_audio_cb audio_cb, vcd_recorder_interrupt_cb
 		}
 		*/
 	} else {
+		SLOG(LOG_ERROR, TAG_VCD, "[Recorder ERROR] Rate(%d) Channel(%d) Type(%d)", g_audio_rate, audio_ch, audio_type);
 		SLOG(LOG_ERROR, TAG_VCD, "[Recorder ERROR] Fail to create audio handle : %d", ret);
 		g_is_valid_audio_in = false;
 	}
@@ -297,18 +299,12 @@ int vcd_recorder_destroy()
 #ifdef TV_BT_MODE
 	bt_hid_unset_audio_data_receive_cb();
 
-	bt_hid_host_deinitialize ();
+	bt_hid_host_deinitialize();
 
 	bt_deinitialize();
 #endif
 
 	g_audio_cb = NULL;
-
-	if (0 == access(VC_RUNTIME_INFO_AUDIO_VOLUME, R_OK)) {
-		if (0 != remove(VC_RUNTIME_INFO_AUDIO_VOLUME)) {
-			SLOG(LOG_WARN, TAG_VCD, "[Recorder WARN] Fail to remove volume file");
-		}
-	}
 
 	if (NULL != g_current_audio_type) {
 		free(g_current_audio_type);
@@ -439,7 +435,7 @@ int vcd_recorder_get(char** audio_type)
 
 static float get_volume_decibel(char* data, int size)
 {
-	#define MAX_AMPLITUDE_MEAN_16 32768
+#define MAX_AMPLITUDE_MEAN_16 32768
 
 	int i, depthByte;
 	int count = 0;
@@ -447,11 +443,12 @@ static float get_volume_decibel(char* data, int size)
 	float db = 0.0;
 	float rms = 0.0;
 	unsigned long long square_sum = 0;
+	short pcm16 = 0;
 
 	depthByte = 2;
 
-	for (i = 0;i < size;i += (depthByte<<1)) {
-		short pcm16 = 0;
+	for (i = 0; i < size; i += (depthByte<<1)) {
+		pcm16 = 0;
 		memcpy(&pcm16, data + i, sizeof(short));
 		square_sum += pcm16 * pcm16;
 		count++;
@@ -492,6 +489,14 @@ Eina_Bool __read_normal_func(void *data)
 		}
 	}
 
+	/* Set volume */
+	if (0 == g_buffer_count % 30) {
+		float vol_db = get_volume_decibel(g_normal_buffer, BUFFER_LENGTH);
+		if (0 != vcdc_send_set_volume(vcd_client_manager_get_pid(), vol_db)) {
+			SLOG(LOG_ERROR, TAG_VCD, "[Recorder] Fail to send recording volume(%f)", vol_db);
+		}
+	}
+
 	if (0 == g_buffer_count || 0 == g_buffer_count % 50) {
 		SLOG(LOG_WARN, TAG_VCD, "[Recorder][%d] Recording... : read_size(%d)", g_buffer_count, ret);
 
@@ -502,15 +507,7 @@ Eina_Bool __read_normal_func(void *data)
 
 	g_buffer_count++;
 
-	float vol_db = get_volume_decibel(g_normal_buffer, BUFFER_LENGTH);
-
-	rewind(g_pFile_vol);
-
-	fwrite((void*)(&vol_db), sizeof(vol_db), 1, g_pFile_vol);
-
 #ifdef BUF_SAVE_MODE
-	SLOG(LOG_DEBUG, TAG_VCD, "[Recorder] read normal buffer : size(%d)", ret);
-
 	/* write pcm buffer */
 	fwrite(g_normal_buffer, 1, BUFFER_LENGTH, g_normal_file);
 #endif
@@ -574,11 +571,6 @@ int vcd_recorder_start()
 		SLOG(LOG_DEBUG, TAG_VCD, "[Recorder] Start audio in recorder");
 	}
 
-	g_pFile_vol = fopen(VC_RUNTIME_INFO_AUDIO_VOLUME, "wb+");
-	if (!g_pFile_vol) {
-		SLOG(LOG_ERROR, TAG_VCD, "[Recorder ERROR] Fail to create Volume File");
-	}
-
 	g_recorder_state = VCD_RECORDER_STATE_RECORDING;
 
 #ifdef BUF_SAVE_MODE
@@ -605,8 +597,6 @@ int vcd_recorder_stop()
 		return 0;
 
 	g_recorder_state = VCD_RECORDER_STATE_READY;
-
-	fclose(g_pFile_vol);
 
 #ifdef BUF_SAVE_MODE
 	fclose(g_normal_file);

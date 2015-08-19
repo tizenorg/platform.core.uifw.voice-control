@@ -35,6 +35,7 @@ static GSList* g_demandable_client = NULL;
 
 /* Runtime info */
 static bool g_silence_detection;
+static vcd_recognition_mode_e g_recognition_mode;
 
 
 /* Function definitions */
@@ -786,6 +787,17 @@ int vcd_client_set_slience_detection(bool value)
 bool vcd_client_get_slience_detection()
 {
 	return g_silence_detection;
+}
+
+int vcd_client_set_recognition_mode(vcd_recognition_mode_e mode)
+{
+	g_recognition_mode = mode;
+	return 0;
+}
+
+vcd_recognition_mode_e vcd_client_get_recognition_mode()
+{
+	return g_recognition_mode;
 }
 
 int __show_client_list()

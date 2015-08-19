@@ -106,6 +106,10 @@ int vc_mgr_client_set_audio_type(vc_h vc, const char* audio_id);
 
 int vc_mgr_client_get_audio_type(vc_h vc, char** audio_id);
 
+int vc_mgr_client_set_recognition_mode(vc_h vc, vc_recognition_mode_e mode);
+
+int vc_mgr_client_get_recognition_mode(vc_h vc, vc_recognition_mode_e* mode);
+
 
 /* utils */
 int vc_mgr_client_get_count();
