@@ -14,7 +14,7 @@
 * limitations under the License.
 */
 
- 
+
 #ifndef __VC_CMD_PARSER_H_
 #define __VC_CMD_PARSER_H_
 
@@ -28,16 +28,16 @@ extern "C" {
 #endif
 
 
-typedef struct _demandable_client_s{
+typedef struct _demandable_client_s {
 	char*	appid;
-}vc_demandable_client_s;
+} vc_demandable_client_s;
 
-typedef struct _client_s{
+typedef struct _client_s {
 	int	pid;
 	bool	fg_cmd;
 	bool	bg_cmd;
 	bool	exclusive_cmd;
-}vc_client_info_s;
+} vc_client_info_s;
 
 
 int vc_cmd_parser_save_file(int pid, vc_cmd_type_e type, GSList* cmd_list);

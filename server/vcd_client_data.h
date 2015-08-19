@@ -29,9 +29,9 @@ extern "C" {
 typedef struct {
 	int	pid;
 	int	cmd_count;
-	
+
 	GSList*	cmds;
-}background_command_s;
+} background_command_s;
 
 typedef struct {
 	int total_cmd_count;
@@ -48,19 +48,19 @@ typedef struct {
 	/* Other applications */
 	int	bg_cmd_count;
 	GSList*	background_cmds;
-}current_commands_list_s;
+} current_commands_list_s;
 
 
 typedef struct {
 	int	pid;
 	bool	manager_cmd;
 	bool	exclusive_cmd_option;
-}manager_info_s;
+} manager_info_s;
 
 typedef struct {
 	int	pid;
 	bool	widget_cmd;
-}widget_info_s;
+} widget_info_s;
 
 
 /*

@@ -51,9 +51,9 @@ extern "C" {
 #define ENGINE_DIRECTORY_DOWNLOAD_SETTING	"/opt/usr/voice/vc/setting"
 
 /* for debug message */
-// #define RECORDER_DEBUG
+/* #define RECORDER_DEBUG */
 #define CLIENT_DATA_DEBUG
-// #define COMMAND_DATA_DEBUG
+/* #define COMMAND_DATA_DEBUG */
 
 typedef enum {
 	VCD_ERROR_NONE			= TIZEN_ERROR_NONE,			/**< Successful */
@@ -69,14 +69,14 @@ typedef enum {
 	VCD_ERROR_ENGINE_NOT_FOUND	= TIZEN_ERROR_VOICE_CONTROL | 0x013,	/**< No available engine */
 	VCD_ERROR_OPERATION_FAILED	= TIZEN_ERROR_VOICE_CONTROL | 0x014,	/**< Operation failed */
 	VCD_ERROR_OPERATION_REJECTED	= TIZEN_ERROR_VOICE_CONTROL | 0x015	/**< Operation rejected */
-}vcd_error_e;
+} vcd_error_e;
 
 typedef enum {
 	VCD_STATE_NONE = 0,
 	VCD_STATE_READY = 1,
 	VCD_STATE_RECORDING = 2,
 	VCD_STATE_PROCESSING = 3
-}vcd_state_e;
+} vcd_state_e;
 
 
 #ifdef __cplusplus

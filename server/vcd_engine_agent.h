@@ -26,13 +26,13 @@ extern "C" {
 #endif
 
 /*
-* Constants & Structures	
+* Constants & Structures
 */
 
 #define	ENGINE_PATH_SIZE 256
 
-typedef void (*result_callback)(vcp_result_event_e event, int* result_id, int count, 
-				const char* all_result, const char* non_fixed_result, const char* msg, void *user_data);
+typedef void (*result_callback)(vcp_result_event_e event, int* result_id, int count, const char* all_result,
+								const char* non_fixed_result, const char* msg, void *user_data);
 
 typedef void (*silence_dectection_callback)(void *user_data);
 

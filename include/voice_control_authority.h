@@ -26,7 +26,7 @@
 */
 
 #ifdef __cplusplus
-extern "C" 
+extern "C"
 {
 #endif
 
@@ -36,7 +36,7 @@ typedef enum {
 	VC_AUTH_STATE_NONE	= 0,
 	VC_AUTH_STATE_VALID	= 1,
 	VC_AUTH_STATE_INVALID	= 2
-}vc_auth_state_e;
+} vc_auth_state_e;
 
 
 /**

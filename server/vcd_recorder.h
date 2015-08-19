@@ -28,7 +28,7 @@ extern "C" {
 typedef enum {
 	VCD_RECORDER_STATE_READY,	/**< Recorder is ready to start */
 	VCD_RECORDER_STATE_RECORDING,	/**< In the middle of recording */
-}vcd_recorder_state_e;
+} vcd_recorder_state_e;
 
 
 typedef int (*vcd_recoder_audio_cb)(const void* data, const unsigned int length);

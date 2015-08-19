@@ -59,7 +59,7 @@ typedef struct {
 
 	/* error data */
 	int	reason;
-}vc_widget_s;
+} vc_widget_s;
 
 
 /* widget list */
@@ -77,7 +77,7 @@ static vc_widget_s* __widget_get(vc_h vc)
 	int count = g_slist_length(g_widget_list);
 	int i;
 
-	for (i = 0;i < count;i++) {
+	for (i = 0; i < count; i++) {
 		data = g_slist_nth_data(g_widget_list, i);
 
 		if (NULL != data) {
@@ -109,11 +109,11 @@ int vc_widget_client_create(vc_h* vc)
 		return VC_ERROR_OUT_OF_MEMORY;
 	}
 
-	temp->handle = getpid(); 
+	temp->handle = getpid();
 
 	/* initialize widget data */
 	widget->vc = temp;
-	widget->pid = getpid(); 
+	widget->pid = getpid();
 	widget->uid = temp->handle;
 	widget->xid = -1;
 
@@ -128,8 +128,8 @@ int vc_widget_client_create(vc_h* vc)
 	widget->error_cb = NULL;
 	widget->error_user_data = NULL;
 
-	widget->before_state = VC_STATE_INITIALIZED; 
-	widget->current_state = VC_STATE_INITIALIZED; 
+	widget->before_state = VC_STATE_INITIALIZED;
+	widget->current_state = VC_STATE_INITIALIZED;
 
 	widget->cb_ref_count = 0;
 
@@ -145,22 +145,21 @@ int vc_widget_client_destroy(vc_h vc)
 	if (vc == NULL) {
 		SLOG(LOG_ERROR, TAG_VCW, "Input parameter is NULL");
 		return 0;
-	}	
+	}
 
 	vc_widget_s *data = NULL;
 
 	int count = g_slist_length(g_widget_list);
 	int i;
 
-	for (i = 0;i < count;i++) {
+	for (i = 0; i < count; i++) {
 		data = g_slist_nth_data(g_widget_list, i);
 
 		if (NULL != data) {
 			if (vc->handle == data->vc->handle) {
 				g_widget_list =  g_slist_remove(g_widget_list, data);
 
-				while (0 != data->cb_ref_count)
-				{
+				while (0 != data->cb_ref_count) {
 					/* wait for release callback function */
 				}
 				free(data);
@@ -196,11 +195,11 @@ bool vc_widget_client_is_valid_by_uid(int uid)
 	int count = g_slist_length(g_widget_list);
 	int i;
 
-	for (i = 0;i < count;i++) {
+	for (i = 0; i < count; i++) {
 		data = g_slist_nth_data(g_widget_list, i);
 
 		if (NULL != data) {
-			if (uid == data->vc->handle) 
+			if (uid == data->vc->handle)
 				return true;
 		}
 	}
@@ -217,7 +216,7 @@ int vc_widget_client_get_handle(int uid, vc_h* vc)
 	int count = g_slist_length(g_widget_list);
 	int i;
 
-	for (i = 0;i < count;i++) {
+	for (i = 0; i < count; i++) {
 		data = g_slist_nth_data(g_widget_list, i);
 
 		if (NULL != data) {
@@ -227,7 +226,7 @@ int vc_widget_client_get_handle(int uid, vc_h* vc)
 			}
 		}
 	}
-	
+
 	return -1;
 }
 
@@ -237,7 +236,7 @@ int vc_widget_client_set_result_cb(vc_h vc, vc_result_cb callback, void* user_da
 	vc_widget_s* widget = __widget_get(vc);
 
 	/* check handle */
-	if (NULL == widget) 
+	if (NULL == widget)
 		return VC_ERROR_INVALID_PARAMETER;
 
 	widget->result_cb = callback;
@@ -251,13 +250,13 @@ int vc_widget_client_get_result_cb(vc_h vc, vc_result_cb* callback, void** user_
 	vc_widget_s* widget = __widget_get(vc);
 
 	/* check handle */
-	if (NULL == widget) 
+	if (NULL == widget)
 		return VC_ERROR_INVALID_PARAMETER;
 
 	*callback = widget->result_cb;
 	*user_data = widget->result_user_data;
 
-	return 0;	
+	return 0;
 }
 
 int vc_widget_client_set_service_state_changed_cb(vc_h vc, vc_service_state_changed_cb callback, void* user_data)
@@ -265,7 +264,7 @@ int vc_widget_client_set_service_state_changed_cb(vc_h vc, vc_service_state_chan
 	vc_widget_s* widget = __widget_get(vc);
 
 	/* check handle */
-	if (NULL == widget) 
+	if (NULL == widget)
 		return VC_ERROR_INVALID_PARAMETER;
 
 	widget->service_state_changed_cb = callback;
@@ -279,7 +278,7 @@ int vc_widget_client_get_service_state_changed_cb(vc_h vc, vc_service_state_chan
 	vc_widget_s* widget = __widget_get(vc);
 
 	/* check handle */
-	if (NULL == widget) 
+	if (NULL == widget)
 		return VC_ERROR_INVALID_PARAMETER;
 
 	*callback = widget->service_state_changed_cb;
@@ -293,7 +292,7 @@ int vc_widget_client_set_state_changed_cb(vc_h vc, vc_state_changed_cb callback,
 	vc_widget_s* widget = __widget_get(vc);
 
 	/* check handle */
-	if (NULL == widget) 
+	if (NULL == widget)
 		return VC_ERROR_INVALID_PARAMETER;
 
 	widget->state_changed_cb = callback;
@@ -307,7 +306,7 @@ int vc_widget_client_get_state_changed_cb(vc_h vc, vc_state_changed_cb* callback
 	vc_widget_s* widget = __widget_get(vc);
 
 	/* check handle */
-	if (NULL == widget) 
+	if (NULL == widget)
 		return VC_ERROR_INVALID_PARAMETER;
 
 	*callback = widget->state_changed_cb;
@@ -321,7 +320,7 @@ int vc_widget_client_set_show_tooltip_cb(vc_h vc, vc_widget_show_tooltip_cb call
 	vc_widget_s* widget = __widget_get(vc);
 
 	/* check handle */
-	if (NULL == widget) 
+	if (NULL == widget)
 		return VC_ERROR_INVALID_PARAMETER;
 
 	widget->show_tooltip_cb = callback;
@@ -335,7 +334,7 @@ int vc_widget_client_get_show_tooltip_cb(vc_h vc, vc_widget_show_tooltip_cb* cal
 	vc_widget_s* widget = __widget_get(vc);
 
 	/* check handle */
-	if (NULL == widget) 
+	if (NULL == widget)
 		return VC_ERROR_INVALID_PARAMETER;
 
 	*callback = widget->show_tooltip_cb;
@@ -349,7 +348,7 @@ int vc_widget_client_set_current_lang_changed_cb(vc_h vc, vc_current_language_ch
 	vc_widget_s* widget = __widget_get(vc);
 
 	/* check handle */
-	if (NULL == widget) 
+	if (NULL == widget)
 		return VC_ERROR_INVALID_PARAMETER;
 
 	widget->current_lang_changed_cb = callback;
@@ -363,7 +362,7 @@ int vc_widget_client_get_current_lang_changed_cb(vc_h vc, vc_current_language_ch
 	vc_widget_s* widget = __widget_get(vc);
 
 	/* check handle */
-	if (NULL == widget) 
+	if (NULL == widget)
 		return VC_ERROR_INVALID_PARAMETER;
 
 	*callback = widget->current_lang_changed_cb;
@@ -377,7 +376,7 @@ int vc_widget_client_set_error_cb(vc_h vc, vc_error_cb callback, void* user_data
 	vc_widget_s* widget = __widget_get(vc);
 
 	/* check handle */
-	if (NULL == widget) 
+	if (NULL == widget)
 		return VC_ERROR_INVALID_PARAMETER;
 
 	widget->error_cb = callback;
@@ -391,7 +390,7 @@ int vc_widget_client_get_error_cb(vc_h vc, vc_error_cb* callback, void** user_da
 	vc_widget_s* widget = __widget_get(vc);
 
 	/* check handle */
-	if (NULL == widget) 
+	if (NULL == widget)
 		return VC_ERROR_INVALID_PARAMETER;
 
 	*callback = widget->error_cb;
@@ -405,7 +404,7 @@ int vc_widget_client_set_send_command_list_cb(vc_h vc, vc_widget_send_current_co
 	vc_widget_s* widget = __widget_get(vc);
 
 	/* check handle */
-	if (NULL == widget) 
+	if (NULL == widget)
 		return VC_ERROR_INVALID_PARAMETER;
 
 	widget->send_command_list_cb = callback;
@@ -419,7 +418,7 @@ int vc_widget_client_get_send_command_list_cb(vc_h vc, vc_widget_send_current_co
 	vc_widget_s* widget = __widget_get(vc);
 
 	/* check handle */
-	if (NULL == widget) 
+	if (NULL == widget)
 		return VC_ERROR_INVALID_PARAMETER;
 
 	*callback = widget->send_command_list_cb;
@@ -435,7 +434,7 @@ int vc_widget_client_set_service_state(vc_h vc, vc_service_state_e state)
 	vc_widget_s* widget = __widget_get(vc);
 
 	/* check handle */
-	if (NULL == widget) 
+	if (NULL == widget)
 		return VC_ERROR_INVALID_PARAMETER;
 
 	widget->service_state = state;
@@ -448,7 +447,7 @@ int vc_widget_client_get_service_state(vc_h vc, vc_service_state_e* state)
 	vc_widget_s* widget = __widget_get(vc);
 
 	/* check handle */
-	if (NULL == widget) 
+	if (NULL == widget)
 		return VC_ERROR_INVALID_PARAMETER;
 
 	*state = widget->service_state;
@@ -462,7 +461,7 @@ int vc_widget_client_set_state(vc_h vc, vc_state_e state)
 	vc_widget_s* widget = __widget_get(vc);
 
 	/* check handle */
-	if (NULL == widget) 
+	if (NULL == widget)
 		return VC_ERROR_INVALID_PARAMETER;
 
 	widget->before_state = widget->current_state;
@@ -476,7 +475,7 @@ int vc_widget_client_get_state(vc_h vc, vc_state_e* state)
 	vc_widget_s* widget = __widget_get(vc);
 
 	/* check handle */
-	if (NULL == widget) 
+	if (NULL == widget)
 		return VC_ERROR_INVALID_PARAMETER;
 
 	*state = widget->current_state;
@@ -491,7 +490,7 @@ int vc_widget_client_get_state_by_uid(int uid, vc_state_e* state)
 	int count = g_slist_length(g_widget_list);
 	int i;
 
-	for (i = 0;i < count;i++) {
+	for (i = 0; i < count; i++) {
 		data = g_slist_nth_data(g_widget_list, i);
 
 		if (NULL != data) {
@@ -510,7 +509,7 @@ int vc_widget_client_get_before_state(vc_h vc, vc_state_e* state, vc_state_e* be
 	vc_widget_s* widget = __widget_get(vc);
 
 	/* check handle */
-	if (NULL == widget) 
+	if (NULL == widget)
 		return VC_ERROR_INVALID_PARAMETER;
 
 	*before_state = widget->before_state;
@@ -524,7 +523,7 @@ int vc_widget_client_set_xid(vc_h vc, int xid)
 	vc_widget_s* widget = __widget_get(vc);
 
 	/* check handle */
-	if (NULL == widget) 
+	if (NULL == widget)
 		return VC_ERROR_INVALID_PARAMETER;
 
 	widget->xid = xid;
@@ -537,7 +536,7 @@ int vc_widget_cilent_get_xid(vc_h vc, int* xid)
 	vc_widget_s* widget = __widget_get(vc);
 
 	/* check handle */
-	if (NULL == widget) 
+	if (NULL == widget)
 		return VC_ERROR_INVALID_PARAMETER;
 
 	*xid = widget->xid;
@@ -550,7 +549,7 @@ int vc_widget_client_set_error(vc_h vc, int reason)
 	vc_widget_s* widget = __widget_get(vc);
 
 	/* check handle */
-	if (NULL == widget) 
+	if (NULL == widget)
 		return VC_ERROR_INVALID_PARAMETER;
 
 	widget->reason = reason;
@@ -563,7 +562,7 @@ int vc_widget_client_get_error(vc_h vc, int* reason)
 	vc_widget_s* widget = __widget_get(vc);
 
 	/* check handle */
-	if (NULL == widget) 
+	if (NULL == widget)
 		return VC_ERROR_INVALID_PARAMETER;
 
 	*reason = widget->reason;
@@ -576,11 +575,11 @@ int vc_widget_client_set_show_tooltip(vc_h vc, bool show)
 	vc_widget_s* widget = __widget_get(vc);
 
 	/* check handle */
-	if (NULL == widget) 
+	if (NULL == widget)
 		return VC_ERROR_INVALID_PARAMETER;
 
 	widget->show_tooltip = show;
-	
+
 	return 0;
 }
 
@@ -589,11 +588,11 @@ int vc_widget_client_get_show_tooltip(vc_h vc, bool* show)
 	vc_widget_s* widget = __widget_get(vc);
 
 	/* check handle */
-	if (NULL == widget) 
+	if (NULL == widget)
 		return VC_ERROR_INVALID_PARAMETER;
 
 	*show = widget->show_tooltip;
-	
+
 	return 0;
 }
 
@@ -607,7 +606,7 @@ int vc_widget_client_use_callback(vc_h vc)
 	vc_widget_s* widget = __widget_get(vc);
 
 	/* check handle */
-	if (NULL == widget) 
+	if (NULL == widget)
 		return VC_ERROR_INVALID_PARAMETER;
 
 	widget->cb_ref_count++;
@@ -619,7 +618,7 @@ int vc_widget_client_not_use_callback(vc_h vc)
 	vc_widget_s* widget = __widget_get(vc);
 
 	/* check handle */
-	if (NULL == widget) 
+	if (NULL == widget)
 		return VC_ERROR_INVALID_PARAMETER;
 
 	widget->cb_ref_count--;

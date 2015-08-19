@@ -28,7 +28,7 @@ typedef enum {
 	VCD_CLIENT_TYPE_NORMAL,
 	VCD_CLIENT_TYPE_WIDGET,
 	VCD_CLIENT_TYPE_MANAGER
-}vcd_client_type_e;
+} vcd_client_type_e;
 
 int vcd_dbus_open_connection();
 

@@ -20,13 +20,13 @@
 #include "voice_control_common.h"
 #include "voice_control_setting.h"
 
-/** 
+/**
 * @brief Enumerations of mode.
 */
 typedef enum {
 	VC_SETTING_STATE_NONE = 0,
 	VC_SETTING_STATE_READY
-}vc_setting_state_e;
+} vc_setting_state_e;
 
 #define VC_SETTING_CONFIG_HANDLE	300000
 
@@ -49,8 +49,8 @@ void __config_lang_changed_cb(const char* before_lang, const char* current_lang)
 
 void __vc_setting_state_changed_cb(int before_state, int current_state, void* user_data)
 {
-	SLOG(LOG_DEBUG, TAG_VCS, "Service State changed : Before(%d) Current(%d)", 
-		before_state, current_state);
+	SLOG(LOG_DEBUG, TAG_VCS, "Service State changed : Before(%d) Current(%d)",
+		 before_state, current_state);
 	return;
 }
 
@@ -83,7 +83,7 @@ int vc_setting_initialize(void)
 		SLOG(LOG_DEBUG, TAG_VCS, " ");
 		return VC_ERROR_OPERATION_FAILED;
 	}
-	
+
 	ret = vc_config_mgr_set_lang_cb(getpid() + VC_SETTING_CONFIG_HANDLE, __config_lang_changed_cb);
 	if (0 != ret) {
 		SLOG(LOG_ERROR, TAG_VCS, "[ERROR] Fail to initialize config manager");
@@ -93,7 +93,7 @@ int vc_setting_initialize(void)
 	}
 
 	ret = vc_config_mgr_set_enabled_cb(getpid() + VC_SETTING_CONFIG_HANDLE, __vc_setting_enabled_changed_cb);
-	
+
 	g_state = VC_SETTING_STATE_READY;
 
 	SLOG(LOG_DEBUG, TAG_VCS, "=====");
@@ -110,7 +110,7 @@ int vc_setting_deinitialize()
 	vc_config_mgr_finalize(getpid() + VC_SETTING_CONFIG_HANDLE);
 
 	g_state = VC_SETTING_STATE_NONE;
-	
+
 	SLOG(LOG_DEBUG, TAG_VCS, "=====");
 	SLOG(LOG_DEBUG, TAG_VCS, " ");
 
@@ -206,7 +206,7 @@ int vc_setting_set_language(const char* language)
 
 	SLOG(LOG_DEBUG, TAG_VCS, "=====");
 	SLOG(LOG_DEBUG, TAG_VCS, " ");
-    
+
 	return ret;
 }
 
@@ -263,7 +263,7 @@ int vc_setting_get_auto_language(bool* value)
 	if (0 != ret) {
 		SLOG(LOG_ERROR, TAG_VCS, "[ERROR] Result : %d", ret);
 	} else {
-		SLOG(LOG_DEBUG, TAG_VCS, "[SUCCESS] Get auto language (%s)", *value ? "true":"false");
+		SLOG(LOG_DEBUG, TAG_VCS, "[SUCCESS] Get auto language (%s)", *value ? "true" : "false");
 	}
 
 	SLOG(LOG_DEBUG, TAG_VCS, "=====");

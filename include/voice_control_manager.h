@@ -28,12 +28,12 @@
 */
 
 #ifdef __cplusplus
-extern "C" 
+extern "C"
 {
 #endif
 
 
-/** 
+/**
  * @brief Defines of audio-in type.
 */
 #define VC_AUDIO_TYPE_BLUETOOTH		"VC_AUDIO_ID_BLUETOOTH"		/**< Bluetooth audio type */
@@ -77,8 +77,8 @@ extern "C"
 * @see vc_mgr_set_all_result_cb()
 * @see vc_mgr_unset_all_result_cb()
 */
-typedef bool (*vc_mgr_all_result_cb)(vc_result_event_e event, vc_cmd_list_h vc_cmd_list, 
-				  const char* result, const char* msg, void *user_data);
+typedef bool (*vc_mgr_all_result_cb)(vc_result_event_e event, vc_cmd_list_h vc_cmd_list,
+									 const char* result, const char* msg, void *user_data);
 
 /**
 * @brief Called when user speaking is detected.
@@ -124,7 +124,7 @@ int vc_mgr_initialize();
 int vc_mgr_deinitialize();
 
 /**
-* @brief Connects the vc-daemon. 
+* @brief Connects the voice control service.
 *
 * @return 0 on success, otherwise a negative error value
 * @retval #VC_ERROR_NONE Successful
@@ -164,7 +164,7 @@ int vc_mgr_unprepare();
 * @retval #VC_ERROR_INVALID_STATE Invalid state
 *
 * @pre The state should NOT be #VC_SERVICE_STATE_NONE.
-* @post	This function invokes vc_supported_language_cb() repeatedly for getting languages. 
+* @post	This function invokes vc_supported_language_cb() repeatedly for getting languages.
 *
 * @see vc_supported_language_cb()
 * @see vc_mgr_get_current_language()
@@ -204,7 +204,7 @@ int vc_mgr_get_current_language(char** language);
 *
 * @pre The state should NOT be #VC_SERVICE_STATE_NONE.
 *
-* @see vc_state_changed_cb() 
+* @see vc_state_changed_cb()
 * @see vc_set_state_changed_cb()
 */
 int vc_mgr_get_state(vc_state_e* state);
@@ -223,7 +223,7 @@ int vc_mgr_get_state(vc_state_e* state);
 * @see vc_mgr_start()
 * @see vc_mgr_stop()
 * @see vc_mgr_cancel()
-* @see vc_set_service_state_changed_cb() 
+* @see vc_set_service_state_changed_cb()
 * @see vc_unset_service_state_changed_cb()
 */
 int vc_mgr_get_service_state(vc_service_state_e* state);
@@ -240,7 +240,7 @@ int vc_mgr_get_service_state(vc_service_state_e* state);
 *
 * @pre The state should be #VC_STATE_READY.
 *
-* @see vc_mgr_get_demandable_client_rule() 
+* @see vc_mgr_get_demandable_client_rule()
 */
 int vc_mgr_set_demandable_client_rule(const char* rule);
 
@@ -254,7 +254,7 @@ int vc_mgr_set_demandable_client_rule(const char* rule);
 *
 * @pre The state should be #VC_STATE_READY.
 *
-* @see vc_mgr_set_demandable_client_rule() 
+* @see vc_mgr_set_demandable_client_rule()
 */
 int vc_mgr_unset_demandable_client_rule();
 
@@ -289,7 +289,7 @@ int vc_mgr_is_command_format_supported(vc_cmd_format_e format, bool* support);
 *
 * @pre The state should be #VC_STATE_READY.
 *
-* @see vc_mgr_unset_command_list() 
+* @see vc_mgr_unset_command_list()
 */
 int vc_mgr_set_command_list(vc_cmd_list_h vc_cmd_list);
 
@@ -337,7 +337,7 @@ int vc_mgr_get_current_commands(vc_cmd_list_h* vc_cmd_list);
 *
 * @pre The state should be #VC_STATE_READY and the service state should be #VC_SERVICE_STATE_READY.
 *
-* @see vc_mgr_get_audio_type() 
+* @see vc_mgr_get_audio_type()
 */
 int vc_mgr_set_audio_type(const char* audio_id);
 
@@ -422,7 +422,7 @@ int vc_mgr_cancel();
 
 /**
 * @brief Gets the microphone volume during recording.
-*	
+*
 * @param[out] volume Recording volume
 *
 * @return 0 on success, otherwise a negative error value
@@ -432,14 +432,14 @@ int vc_mgr_cancel();
 * @retval #VC_ERROR_OPERATION_FAILED Operation failure
 *
 * @pre The service state should be #VC_SERVICE_STATE_RECORDING.
-* 
+*
 * @see vc_mgr_start()
 */
 int vc_mgr_get_recording_volume(float* volume);
 
 /**
 * @brief Select valid result from all results.
-*	
+*
 * @param[in] vc_cmd_list The valid result list
 *
 * @return 0 on success, otherwise a negative error value
@@ -449,7 +449,7 @@ int vc_mgr_get_recording_volume(float* volume);
 * @retval #VC_ERROR_OPERATION_FAILED Operation failure
 *
 * @pre vc_mgr_all_result_cb() should be called
-* 
+*
 * @see vc_mgr_all_result_cb()
 */
 int vc_mgr_set_selected_results(vc_cmd_list_h vc_cmd_list);

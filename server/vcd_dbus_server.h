@@ -81,7 +81,7 @@ int vcd_dbus_server_cancel_request(DBusConnection* conn, DBusMessage* msg);
 
 /*
 * Dbus Server functions for widget
-*/ 
+*/
 int vcd_dbus_server_widget_initialize(DBusConnection* conn, DBusMessage* msg);
 
 int vcd_dbus_server_widget_finalize(DBusConnection* conn, DBusMessage* msg);

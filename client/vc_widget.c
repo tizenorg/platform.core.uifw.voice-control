@@ -45,7 +45,7 @@ const char* vc_tag()
 
 static const char* __vc_widget_get_error_code(vc_error_e err)
 {
-	switch(err) {
+	switch (err) {
 		case VC_ERROR_NONE:		return "VC_ERROR_NONE";			break;
 		case VC_ERROR_OUT_OF_MEMORY:	return "VC_ERROR_OUT_OF_MEMORY";	break;
 		case VC_ERROR_IO_ERROR:		return "VC_ERROR_IO_ERROR";		break;
@@ -75,8 +75,8 @@ static int __vc_widget_convert_config_error_code(vc_config_error_e code)
 
 static void __vc_widget_lang_changed_cb(const char* before_lang, const char* current_lang)
 {
-	SECURE_SLOG(LOG_DEBUG, TAG_VCW, "Lang changed : Before lang(%s) Current lang(%s)", 
-		before_lang, current_lang);
+	SLOG(LOG_DEBUG, TAG_VCW, "Lang changed : Before lang(%s) Current lang(%s)",
+		 before_lang, current_lang);
 
 	vc_current_language_changed_cb callback;
 	void* lang_user_data;
@@ -145,8 +145,8 @@ int vc_widget_initialize()
 
 	int ret = vc_config_mgr_initialize(g_vc_w->handle + VC_WIDGET_CONFIG_HANDLE);
 	if (0 != ret) {
-		SLOG(LOG_ERROR, TAG_VCW, "[ERROR] Fail to init config manager : %s", 
-			__vc_widget_get_error_code(__vc_widget_convert_config_error_code(ret)));
+		SLOG(LOG_ERROR, TAG_VCW, "[ERROR] Fail to init config manager : %s",
+			 __vc_widget_get_error_code(__vc_widget_convert_config_error_code(ret)));
 		vc_widget_client_destroy(g_vc_w);
 		return __vc_widget_convert_config_error_code(ret);
 	}
@@ -281,7 +281,7 @@ static Eina_Bool __vc_widget_connect_daemon(void *data)
 		SLOG(LOG_DEBUG, TAG_VCW, "=====");
 		SLOG(LOG_DEBUG, TAG_VCW, "  ");
 		return EINA_FALSE;
-	} 
+	}
 
 	vc_widget_client_set_state(g_vc_w, VC_STATE_READY);
 	ecore_timer_add(0, __vc_widget_notify_state_changed, g_vc_w);
@@ -378,7 +378,7 @@ int vc_widget_foreach_supported_languages(vc_supported_language_cb callback, voi
 		ret = vc_config_convert_error_code((vc_config_error_e)ret);
 		SLOG(LOG_ERROR, TAG_VCW, "[ERROR] Fail to get languages : %s", __vc_widget_get_error_code(ret));
 	}
-	
+
 	SLOG(LOG_DEBUG, TAG_VCW, "=====");
 	SLOG(LOG_DEBUG, TAG_VCW, " ");
 
@@ -436,7 +436,7 @@ int vc_widget_get_state(vc_state_e* state)
 
 	*state = temp;
 
-	switch(*state) {
+	switch (*state) {
 		case VC_STATE_NONE:		SLOG(LOG_DEBUG, TAG_VCW, "Current state is 'None'");		break;
 		case VC_STATE_INITIALIZED:	SLOG(LOG_DEBUG, TAG_VCW, "Current state is 'Created'");		break;
 		case VC_STATE_READY:		SLOG(LOG_DEBUG, TAG_VCW, "Current state is 'Ready'");		break;
@@ -482,12 +482,12 @@ int vc_widget_get_service_state(vc_service_state_e* state)
 
 	*state = service_state;
 
-	switch(*state) {
-	case VC_SERVICE_STATE_NONE:		SLOG(LOG_DEBUG, TAG_VCW, "Current service state is 'None'");		break;
-	case VC_SERVICE_STATE_READY:		SLOG(LOG_DEBUG, TAG_VCW, "Current service state is 'Ready'");		break;
-	case VC_SERVICE_STATE_RECORDING:	SLOG(LOG_DEBUG, TAG_VCW, "Current service state is 'Recording'");	break;
-	case VC_SERVICE_STATE_PROCESSING:	SLOG(LOG_DEBUG, TAG_VCW, "Current service state is 'Processing'");	break;
-	default:				SLOG(LOG_ERROR, TAG_VCW, "Invalid service state");			break;
+	switch (*state) {
+		case VC_SERVICE_STATE_NONE:		SLOG(LOG_DEBUG, TAG_VCW, "Current service state is 'None'");		break;
+		case VC_SERVICE_STATE_READY:		SLOG(LOG_DEBUG, TAG_VCW, "Current service state is 'Ready'");		break;
+		case VC_SERVICE_STATE_RECORDING:	SLOG(LOG_DEBUG, TAG_VCW, "Current service state is 'Recording'");	break;
+		case VC_SERVICE_STATE_PROCESSING:	SLOG(LOG_DEBUG, TAG_VCW, "Current service state is 'Processing'");	break;
+		default:				SLOG(LOG_ERROR, TAG_VCW, "Invalid service state");			break;
 	}
 
 	SLOG(LOG_DEBUG, TAG_VCW, "=====");
@@ -646,7 +646,7 @@ int vc_widget_start(bool stop_by_silence, vc_cmd_group_h vc_group)
 					}
 				}
 			}
-		} while(0 != ret);
+		} while (0 != ret);
 	}
 
 	SLOG(LOG_DEBUG, TAG_VCW, "=====");
@@ -732,7 +732,7 @@ int vc_widget_stop()
 				}
 			}
 		}
-	} while(0 != ret);
+	} while (0 != ret);
 
 	return 0;
 }
@@ -798,7 +798,9 @@ int vc_widget_cancel()
 				}
 			}
 		}
-	} while(0 != ret);
+	} while (0 != ret);
+
+	SLOG(LOG_DEBUG, TAG_VCW, "=====");
 
 	return 0;
 }
@@ -820,7 +822,7 @@ static Eina_Bool __vc_widget_notify_error(void *data)
 		SLOG(LOG_DEBUG, TAG_VCW, "[Error] callback is called");
 	} else {
 		SLOG(LOG_WARN, TAG_VCW, "[WARNING] Error callback is null");
-	}  
+	}
 
 	return EINA_FALSE;
 }
@@ -1033,7 +1035,7 @@ int vc_widget_set_result_cb(vc_result_cb callback, void* user_data)
 	}
 
 	vc_widget_client_set_result_cb(g_vc_w, callback, user_data);
-	
+
 	return 0;
 }
 

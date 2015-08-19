@@ -176,14 +176,14 @@ int vc_cmd_list_remove_all(vc_cmd_list_h vc_cmd_list, bool release_command)
 	list = (vc_cmd_list_s*)vc_cmd_list;
 
 	SLOG(LOG_DEBUG, TAG_VCCMD, "[List] list (%p), release command (%s)"
-		, list, release_command ? "true" : "false");
+		 , list, release_command ? "true" : "false");
 
 	int count = g_slist_length(list->list);
 
 	int i ;
 	vc_cmd_s *temp_cmd;
 
-	for (i = 0;i < count ;i++) {
+	for (i = 0; i < count ; i++) {
 		temp_cmd = g_slist_nth_data(list->list, 0);
 
 		if (NULL != temp_cmd) {
@@ -196,7 +196,7 @@ int vc_cmd_list_remove_all(vc_cmd_list_h vc_cmd_list, bool release_command)
 				free(temp_cmd);
 				temp_cmd = NULL;
 			}
-		} 
+		}
 	}
 
 	list->index = -1;
@@ -225,7 +225,7 @@ int vc_cmd_list_foreach_commands(vc_cmd_list_h vc_cmd_list, vc_cmd_list_cb callb
 
 	iter = g_slist_nth(list->list, 0);
 
-	for (i = 0;i < count;i++) {
+	for (i = 0; i < count; i++) {
 		temp_cmd = iter->data;
 
 		if (NULL != temp_cmd) {
@@ -233,7 +233,7 @@ int vc_cmd_list_foreach_commands(vc_cmd_list_h vc_cmd_list, vc_cmd_list_cb callb
 				break;
 			}
 
-		} 
+		}
 		iter = g_slist_next(iter);
 	}
 
@@ -427,7 +427,7 @@ int vc_cmd_set_id(vc_cmd_h vc_command, int id)
 		SLOG(LOG_DEBUG, TAG_VCCMD, "[Set id][%p] id(%d)", vc_command, cmd->id);
 	}
 
-	return 0;	
+	return 0;
 }
 
 int vc_cmd_get_id(vc_cmd_h vc_command, int* id)
@@ -757,13 +757,13 @@ int vc_cmd_print_list(vc_cmd_list_h vc_cmd_list)
 	int i;
 	vc_cmd_s *temp_cmd = NULL;
 
-	for (i = 0;i < count ;i++) {
+	for (i = 0; i < count ; i++) {
 		temp_cmd = g_slist_nth_data(list->list, i);
 
 		if (NULL != temp_cmd) {
-			SLOG(LOG_DEBUG, TAG_VCCMD, "  [%d][%p] PID(%d) ID(%d) Type(%d) Format(%d) Domain(%d) Command(%s) Param(%s)", 
-				i, temp_cmd, temp_cmd->pid, temp_cmd->index, temp_cmd->type, temp_cmd->format, temp_cmd->domain, temp_cmd->command, temp_cmd->parameter);
-		} 
+			SLOG(LOG_DEBUG, TAG_VCCMD, "  [%d][%p] PID(%d) ID(%d) Type(%d) Format(%d) Domain(%d) Command(%s) Param(%s)",
+				 i, temp_cmd, temp_cmd->pid, temp_cmd->index, temp_cmd->type, temp_cmd->format, temp_cmd->domain, temp_cmd->command, temp_cmd->parameter);
+		}
 	}
 
 	SLOG(LOG_DEBUG, TAG_VCCMD, "==================");

@@ -28,8 +28,8 @@
 extern "C" {
 #endif
 
-/* 
-* Common function 
+/*
+* Common function
 */
 int vc_client_create(vc_h* vc);
 
@@ -41,8 +41,8 @@ bool vc_client_is_valid_by_uid(int uid);
 
 int vc_client_get_handle(int uid, vc_h* vc);
 
-/* 
-* set/get callback function 
+/*
+* set/get callback function
 */
 int vc_client_set_result_cb(vc_h vc, vc_result_cb callback, void* user_data);
 
@@ -65,8 +65,8 @@ int vc_client_set_error_cb(vc_h vc, vc_error_cb callback, void* user_data);
 int vc_client_get_error_cb(vc_h vc, vc_error_cb* callback, void** user_data);
 
 
-/* 
-* set/get option 
+/*
+* set/get option
 */
 int vc_client_set_service_state(vc_h vc, vc_service_state_e state);
 

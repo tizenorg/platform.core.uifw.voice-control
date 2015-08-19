@@ -50,7 +50,7 @@ typedef enum {
 	VC_ERROR_OPERATION_REJECTED	= TIZEN_ERROR_VOICE_CONTROL | 0x015,	/**< Operation rejected */
 	VC_ERROR_ITERATION_END		= TIZEN_ERROR_VOICE_CONTROL | 0x016,	/**< List reached end */
 	VC_ERROR_EMPTY			= TIZEN_ERROR_VOICE_CONTROL | 0x017	/**< List empty */
-}vc_error_e;
+} vc_error_e;
 
 /**
 * @brief Enumerations of result event.
@@ -59,7 +59,7 @@ typedef enum {
 typedef enum {
 	VC_RESULT_EVENT_RESULT_SUCCESS	= 0,	/**< Normal result */
 	VC_RESULT_EVENT_REJECTED	= 1	/**< Rejected result */
-}vc_result_event_e;
+} vc_result_event_e;
 
 /**
 * @brief Enumerations of service state.
@@ -70,7 +70,7 @@ typedef enum {
 	VC_SERVICE_STATE_READY		= 1,	/**< 'Ready' state */
 	VC_SERVICE_STATE_RECORDING	= 2,	/**< 'Recording' state */
 	VC_SERVICE_STATE_PROCESSING	= 3	/**< 'Processing' state */
-}vc_service_state_e;
+} vc_service_state_e;
 
 /**
 * @brief Enumerations of client state.
@@ -80,7 +80,7 @@ typedef enum {
 	VC_STATE_NONE			= 0,	/**< 'None' state */
 	VC_STATE_INITIALIZED		= 1,	/**< 'Initialized' state */
 	VC_STATE_READY			= 2	/**< 'Ready' state */
-}vc_state_e;
+} vc_state_e;
 
 
 /**
@@ -88,8 +88,8 @@ typedef enum {
 * @since_tizen 2.4
 *
 * @remarks If the duplicated commands are recognized, the event(e.g. #VC_RESULT_EVENT_REJECTED) of command may be rejected \n
-*	for selecting command as priority. If you set similar or same commands or the recognized results are multi-results, 
-*	vc_cmd_list has the multi commands. 
+*	for selecting command as priority. If you set similar or same commands or the recognized results are multi-results,
+*	vc_cmd_list has the multi commands.
 *
 * @param[in] event The result event (e.g. #VC_RESULT_EVENT_RESULT_SUCCESS, #VC_RESULT_EVENT_REJECTED)
 * @param[in] vc_cmd_list The recognized command list

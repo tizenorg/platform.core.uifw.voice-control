@@ -181,9 +181,9 @@ int vc_dbus_open_connection()
 	/* connect to the DBUS system bus, and check for errors */
 	g_conn_sender = dbus_bus_get_private(DBUS_BUS_SYSTEM, &err);
 
-	if (dbus_error_is_set(&err)) { 
-		SLOG(LOG_ERROR, TAG_VCC, "Dbus Connection Error (%s)", err.message); 
-		dbus_error_free(&err); 
+	if (dbus_error_is_set(&err)) {
+		SLOG(LOG_ERROR, TAG_VCC, "Dbus Connection Error (%s)", err.message);
+		dbus_error_free(&err);
 	}
 
 	if (NULL == g_conn_sender) {
@@ -215,8 +215,8 @@ int vc_dbus_open_connection()
 	ret = dbus_bus_request_name(g_conn_listener, service_name, DBUS_NAME_FLAG_REPLACE_EXISTING, &err);
 
 	if (dbus_error_is_set(&err)) {
-		SLOG(LOG_ERROR, TAG_VCC, "Name Error (%s)", err.message); 
-		dbus_error_free(&err); 
+		SLOG(LOG_ERROR, TAG_VCC, "Name Error (%s)", err.message);
+		dbus_error_free(&err);
 	}
 
 	if (DBUS_REQUEST_NAME_REPLY_PRIMARY_OWNER != ret) {
@@ -224,23 +224,22 @@ int vc_dbus_open_connection()
 		return -2;
 	}
 
-	if( NULL != g_fd_handler ) {
+	if (NULL != g_fd_handler) {
 		SLOG(LOG_WARN, TAG_VCC, "The handler already exists.");
 		return 0;
 	}
 
-	char rule[128];
+	char rule[128] = {0, };
 	snprintf(rule, 128, "type='signal',interface='%s'", VC_CLIENT_SERVICE_INTERFACE);
 
 	/* add a rule for which messages we want to see */
 	dbus_bus_add_match(g_conn_listener, rule, &err);
 	dbus_connection_flush(g_conn_listener);
 
-	if (dbus_error_is_set(&err)) 
-	{ 
+	if (dbus_error_is_set(&err)) {
 		SLOG(LOG_ERROR, TAG_VCC, "Match Error (%s)", err.message);
 		dbus_error_free(&err);
-		return VC_ERROR_OPERATION_FAILED; 
+		return VC_ERROR_OPERATION_FAILED;
 	}
 
 	int fd = 0;
@@ -306,6 +305,7 @@ int vc_dbus_reconnect()
 
 		SLOG(LOG_DEBUG, TAG_VCC, "[DBUS] Reconnect");
 	}
+
 	return 0;
 }
 
@@ -314,15 +314,15 @@ int vc_dbus_request_hello()
 	DBusMessage* msg;
 
 	msg = dbus_message_new_method_call(
-		VC_SERVER_SERVICE_NAME, 
-		VC_SERVER_SERVICE_OBJECT_PATH, 
-		VC_SERVER_SERVICE_INTERFACE, 
-		VC_METHOD_HELLO);
+			  VC_SERVER_SERVICE_NAME,
+			  VC_SERVER_SERVICE_OBJECT_PATH,
+			  VC_SERVER_SERVICE_INTERFACE,
+			  VC_METHOD_HELLO);
 
-	if (NULL == msg) { 
-		SLOG(LOG_ERROR, TAG_VCC, ">>>> Request vc hello : Fail to make message"); 
+	if (NULL == msg) {
+		SLOG(LOG_ERROR, TAG_VCC, ">>>> Request vc hello : Fail to make message");
 		return VC_ERROR_OPERATION_FAILED;
-	} 
+	}
 
 	DBusError err;
 	dbus_error_init(&err);
@@ -354,21 +354,21 @@ int vc_dbus_request_initialize(int pid, int* mgr_pid)
 	DBusMessage* msg;
 
 	msg = dbus_message_new_method_call(
-		VC_SERVER_SERVICE_NAME, 
-		VC_SERVER_SERVICE_OBJECT_PATH, 
-		VC_SERVER_SERVICE_INTERFACE, 
-		VC_METHOD_INITIALIZE);
+			  VC_SERVER_SERVICE_NAME,
+			  VC_SERVER_SERVICE_OBJECT_PATH,
+			  VC_SERVER_SERVICE_INTERFACE,
+			  VC_METHOD_INITIALIZE);
 
-	if (NULL == msg) { 
-		SLOG(LOG_ERROR, TAG_VCC, ">>>> vc initialize : Fail to make message "); 
+	if (NULL == msg) {
+		SLOG(LOG_ERROR, TAG_VCC, ">>>> vc initialize : Fail to make message ");
 		return VC_ERROR_OPERATION_FAILED;
 	} else {
 		SLOG(LOG_DEBUG, TAG_VCC, ">>>> vc initialize : pid(%d)", pid);
 	}
 
-	dbus_message_append_args( msg, 
-		DBUS_TYPE_INT32, &pid,
-		DBUS_TYPE_INVALID);
+	dbus_message_append_args(msg,
+			DBUS_TYPE_INT32, &pid,
+			DBUS_TYPE_INVALID);
 
 	DBusError err;
 	dbus_error_init(&err);
@@ -391,9 +391,9 @@ int vc_dbus_request_initialize(int pid, int* mgr_pid)
 			DBUS_TYPE_INT32, &tmp,
 			DBUS_TYPE_INVALID);
 
-		if (dbus_error_is_set(&err)) { 
+		if (dbus_error_is_set(&err)) {
 			SLOG(LOG_ERROR, TAG_VCC, "<<<< Get arguments error (%s)", err.message);
-			dbus_error_free(&err); 
+			dbus_error_free(&err);
 			result = VC_ERROR_OPERATION_FAILED;
 		}
 
@@ -419,13 +419,13 @@ int vc_dbus_request_finalize(int pid)
 	DBusMessage* msg;
 
 	msg = dbus_message_new_method_call(
-		VC_SERVER_SERVICE_NAME, 
-		VC_SERVER_SERVICE_OBJECT_PATH, 
-		VC_SERVER_SERVICE_INTERFACE, 
-		VC_METHOD_FINALIZE);
+			  VC_SERVER_SERVICE_NAME,
+			  VC_SERVER_SERVICE_OBJECT_PATH,
+			  VC_SERVER_SERVICE_INTERFACE,
+			  VC_METHOD_FINALIZE);
 
-	if (NULL == msg) { 
-		SLOG(LOG_ERROR, TAG_VCC, ">>>> vc finalize : Fail to make message "); 
+	if (NULL == msg) {
+		SLOG(LOG_ERROR, TAG_VCC, ">>>> vc finalize : Fail to make message ");
 		return VC_ERROR_OPERATION_FAILED;
 	} else {
 		SLOG(LOG_DEBUG, TAG_VCC, ">>>> vc finalize : pid(%d)", pid);
@@ -448,13 +448,13 @@ int vc_dbus_request_finalize(int pid)
 	}
 
 	if (NULL != result_msg) {
-		dbus_message_get_args(result_msg, &err, 
-				DBUS_TYPE_INT32, &result,
-				DBUS_TYPE_INVALID);
+		dbus_message_get_args(result_msg, &err,
+							  DBUS_TYPE_INT32, &result,
+							  DBUS_TYPE_INVALID);
 
-		if (dbus_error_is_set(&err)) { 
+		if (dbus_error_is_set(&err)) {
 			SLOG(LOG_ERROR, TAG_VCC, "<<<< Get arguments error (%s)", err.message);
-			dbus_error_free(&err); 
+			dbus_error_free(&err);
 			result = VC_ERROR_OPERATION_FAILED;
 		}
 
@@ -479,13 +479,13 @@ int vc_dbus_request_set_exclusive_command(int pid, bool value)
 	DBusMessage* msg;
 
 	msg = dbus_message_new_method_call(
-		VC_SERVER_SERVICE_NAME, 
-		VC_SERVER_SERVICE_OBJECT_PATH, 
-		VC_SERVER_SERVICE_INTERFACE, 
-		VC_METHOD_SET_EXCLUSIVE_CMD);
+			  VC_SERVER_SERVICE_NAME,
+			  VC_SERVER_SERVICE_OBJECT_PATH,
+			  VC_SERVER_SERVICE_INTERFACE,
+			  VC_METHOD_SET_EXCLUSIVE_CMD);
 
-	if (NULL == msg) { 
-		SLOG(LOG_ERROR, TAG_VCC, ">>>> vc set exclusive command : Fail to make message"); 
+	if (NULL == msg) {
+		SLOG(LOG_ERROR, TAG_VCC, ">>>> vc set exclusive command : Fail to make message");
 		return VC_ERROR_OPERATION_FAILED;
 	} else {
 		SLOG(LOG_DEBUG, TAG_VCC, ">>>> vc set exclusive command : pid(%d)", pid);
@@ -493,10 +493,10 @@ int vc_dbus_request_set_exclusive_command(int pid, bool value)
 
 	int temp = value;
 
-	dbus_message_append_args( msg, 
-		DBUS_TYPE_INT32, &pid,
-		DBUS_TYPE_INT32, &temp,
-		DBUS_TYPE_INVALID);
+	dbus_message_append_args(msg,
+							 DBUS_TYPE_INT32, &pid,
+							 DBUS_TYPE_INT32, &temp,
+							 DBUS_TYPE_INVALID);
 
 	DBusError err;
 	dbus_error_init(&err);
@@ -514,12 +514,12 @@ int vc_dbus_request_set_exclusive_command(int pid, bool value)
 
 	if (NULL != result_msg) {
 		dbus_message_get_args(result_msg, &err,
-			DBUS_TYPE_INT32, &result,
-			DBUS_TYPE_INVALID);
+							  DBUS_TYPE_INT32, &result,
+							  DBUS_TYPE_INVALID);
 
-		if (dbus_error_is_set(&err)) { 
+		if (dbus_error_is_set(&err)) {
 			SLOG(LOG_ERROR, TAG_VCC, "<<<< Get arguments error (%s)", err.message);
-			dbus_error_free(&err); 
+			dbus_error_free(&err);
 			result = VC_ERROR_OPERATION_FAILED;
 		}
 		dbus_message_unref(result_msg);
@@ -543,22 +543,22 @@ int vc_dbus_request_set_command(int pid, vc_cmd_type_e cmd_type)
 	DBusMessage* msg;
 
 	msg = dbus_message_new_method_call(
-		VC_SERVER_SERVICE_NAME, 
-		VC_SERVER_SERVICE_OBJECT_PATH, 
-		VC_SERVER_SERVICE_INTERFACE, 
-		VC_METHOD_SET_COMMAND);
+			  VC_SERVER_SERVICE_NAME,
+			  VC_SERVER_SERVICE_OBJECT_PATH,
+			  VC_SERVER_SERVICE_INTERFACE,
+			  VC_METHOD_SET_COMMAND);
 
-	if (NULL == msg) { 
-		SLOG(LOG_ERROR, TAG_VCC, ">>>> vc set command : Fail to make message"); 
+	if (NULL == msg) {
+		SLOG(LOG_ERROR, TAG_VCC, ">>>> vc set command : Fail to make message");
 		return VC_ERROR_OPERATION_FAILED;
 	} else {
 		SLOG(LOG_DEBUG, TAG_VCC, ">>>> vc set command : pid(%d)", pid);
 	}
 
-	dbus_message_append_args( msg, 
-		DBUS_TYPE_INT32, &pid,
-		DBUS_TYPE_INT32, &cmd_type,
-		DBUS_TYPE_INVALID);
+	dbus_message_append_args(msg,
+							 DBUS_TYPE_INT32, &pid,
+							 DBUS_TYPE_INT32, &cmd_type,
+							 DBUS_TYPE_INVALID);
 
 	DBusError err;
 	dbus_error_init(&err);
@@ -576,12 +576,12 @@ int vc_dbus_request_set_command(int pid, vc_cmd_type_e cmd_type)
 
 	if (NULL != result_msg) {
 		dbus_message_get_args(result_msg, &err,
-			DBUS_TYPE_INT32, &result,
-			DBUS_TYPE_INVALID);
+							  DBUS_TYPE_INT32, &result,
+							  DBUS_TYPE_INVALID);
 
-		if (dbus_error_is_set(&err)) { 
+		if (dbus_error_is_set(&err)) {
 			SLOG(LOG_ERROR, TAG_VCC, "<<<< Get arguments error (%s)", err.message);
-			dbus_error_free(&err); 
+			dbus_error_free(&err);
 			result = VC_ERROR_OPERATION_FAILED;
 		}
 		dbus_message_unref(result_msg);
@@ -597,7 +597,7 @@ int vc_dbus_request_set_command(int pid, vc_cmd_type_e cmd_type)
 		result = VC_ERROR_TIMED_OUT;
 	}
 
-	return result;	
+	return result;
 }
 
 int vc_dbus_request_unset_command(int pid, vc_cmd_type_e cmd_type)
@@ -605,22 +605,22 @@ int vc_dbus_request_unset_command(int pid, vc_cmd_type_e cmd_type)
 	DBusMessage* msg;
 
 	msg = dbus_message_new_method_call(
-		VC_SERVER_SERVICE_NAME, 
-		VC_SERVER_SERVICE_OBJECT_PATH, 
-		VC_SERVER_SERVICE_INTERFACE, 
-		VC_METHOD_UNSET_COMMAND);
+			  VC_SERVER_SERVICE_NAME,
+			  VC_SERVER_SERVICE_OBJECT_PATH,
+			  VC_SERVER_SERVICE_INTERFACE,
+			  VC_METHOD_UNSET_COMMAND);
 
-	if (NULL == msg) { 
-		SLOG(LOG_ERROR, TAG_VCC, ">>>> vc unset command : Fail to make message"); 
+	if (NULL == msg) {
+		SLOG(LOG_ERROR, TAG_VCC, ">>>> vc unset command : Fail to make message");
 		return VC_ERROR_OPERATION_FAILED;
 	} else {
 		SLOG(LOG_DEBUG, TAG_VCC, ">>>> vc unset command : pid(%d), type(%d)", pid, cmd_type);
 	}
 
-	dbus_message_append_args( msg, 
-		DBUS_TYPE_INT32, &pid,
-		DBUS_TYPE_INT32, &cmd_type,
-		DBUS_TYPE_INVALID);
+	dbus_message_append_args(msg,
+							 DBUS_TYPE_INT32, &pid,
+							 DBUS_TYPE_INT32, &cmd_type,
+							 DBUS_TYPE_INVALID);
 
 	DBusError err;
 	dbus_error_init(&err);
@@ -638,12 +638,12 @@ int vc_dbus_request_unset_command(int pid, vc_cmd_type_e cmd_type)
 
 	if (NULL != result_msg) {
 		dbus_message_get_args(result_msg, &err,
-			DBUS_TYPE_INT32, &result,
-			DBUS_TYPE_INVALID);
+							  DBUS_TYPE_INT32, &result,
+							  DBUS_TYPE_INVALID);
 
-		if (dbus_error_is_set(&err)) { 
+		if (dbus_error_is_set(&err)) {
 			SLOG(LOG_ERROR, TAG_VCC, "<<<< Get arguments error (%s)", err.message);
-			dbus_error_free(&err); 
+			dbus_error_free(&err);
 			result = VC_ERROR_OPERATION_FAILED;
 		}
 		dbus_message_unref(result_msg);
@@ -669,13 +669,13 @@ int vc_dbus_request_start(int pid, int silence)
 
 	/* create a signal & check for errors */
 	msg = dbus_message_new_method_call(
-		VC_SERVER_SERVICE_NAME,
-		VC_SERVER_SERVICE_OBJECT_PATH,	
-		VC_SERVER_SERVICE_INTERFACE,	
-		VC_METHOD_REQUEST_START);		
+			  VC_SERVER_SERVICE_NAME,
+			  VC_SERVER_SERVICE_OBJECT_PATH,
+			  VC_SERVER_SERVICE_INTERFACE,
+			  VC_METHOD_REQUEST_START);
 
-	if (NULL == msg) { 
-		SLOG(LOG_ERROR, TAG_VCC, ">>>> vc start : Fail to make message "); 
+	if (NULL == msg) {
+		SLOG(LOG_ERROR, TAG_VCC, ">>>> vc start : Fail to make message ");
 		return VC_ERROR_OPERATION_FAILED;
 	} else {
 		SLOG(LOG_DEBUG, TAG_VCC, ">>>> vc start : pid(%d), silence(%d)", pid, silence);
@@ -704,12 +704,12 @@ int vc_dbus_request_start(int pid, int silence)
 
 	if (NULL != result_msg) {
 		dbus_message_get_args(result_msg, &err,
-			DBUS_TYPE_INT32, &result,
-			DBUS_TYPE_INVALID);
+							  DBUS_TYPE_INT32, &result,
+							  DBUS_TYPE_INVALID);
 
-		if (dbus_error_is_set(&err)) { 
+		if (dbus_error_is_set(&err)) {
 			SLOG(LOG_ERROR, TAG_VCC, "<<<< Get arguments error (%s)", err.message);
-			dbus_error_free(&err); 
+			dbus_error_free(&err);
 			result = VC_ERROR_OPERATION_FAILED;
 		}
 		dbus_message_unref(result_msg);
@@ -734,21 +734,21 @@ int vc_dbus_request_stop(int pid)
 
 	/* create a signal & check for errors */
 	msg = dbus_message_new_method_call(
-		VC_SERVER_SERVICE_NAME,
-		VC_SERVER_SERVICE_OBJECT_PATH,	
-		VC_SERVER_SERVICE_INTERFACE,	
-		VC_METHOD_REQUEST_STOP);
+			  VC_SERVER_SERVICE_NAME,
+			  VC_SERVER_SERVICE_OBJECT_PATH,
+			  VC_SERVER_SERVICE_INTERFACE,
+			  VC_METHOD_REQUEST_STOP);
 
-	if (NULL == msg) { 
-		SLOG(LOG_ERROR, TAG_VCC, ">>>> vc stop : Fail to make message "); 
+	if (NULL == msg) {
+		SLOG(LOG_ERROR, TAG_VCC, ">>>> vc stop : Fail to make message ");
 		return VC_ERROR_OPERATION_FAILED;
 	} else {
 		SLOG(LOG_DEBUG, TAG_VCC, ">>>> vc stop : pid(%d)", pid);
 	}
 
-	dbus_message_append_args(msg, 
-		DBUS_TYPE_INT32, &pid, 
-		DBUS_TYPE_INVALID);
+	dbus_message_append_args(msg,
+							 DBUS_TYPE_INT32, &pid,
+							 DBUS_TYPE_INVALID);
 
 	DBusError err;
 	dbus_error_init(&err);
@@ -766,12 +766,12 @@ int vc_dbus_request_stop(int pid)
 
 	if (NULL != result_msg) {
 		dbus_message_get_args(result_msg, &err,
-			DBUS_TYPE_INT32, &result,
-			DBUS_TYPE_INVALID);
+							  DBUS_TYPE_INT32, &result,
+							  DBUS_TYPE_INVALID);
 
-		if (dbus_error_is_set(&err)) { 
+		if (dbus_error_is_set(&err)) {
 			SLOG(LOG_ERROR, TAG_VCC, "<<<< Get arguments error (%s)", err.message);
-			dbus_error_free(&err); 
+			dbus_error_free(&err);
 			result = VC_ERROR_OPERATION_FAILED;
 		}
 		dbus_message_unref(result_msg);
@@ -796,21 +796,21 @@ int vc_dbus_request_cancel(int pid)
 
 	/* create a signal & check for errors */
 	msg = dbus_message_new_method_call(
-		VC_SERVER_SERVICE_NAME,
-		VC_SERVER_SERVICE_OBJECT_PATH,	/* object name of the signal */
-		VC_SERVER_SERVICE_INTERFACE,	/* interface name of the signal */
-		VC_METHOD_REQUEST_CANCEL);	/* name of the signal */
+			  VC_SERVER_SERVICE_NAME,
+			  VC_SERVER_SERVICE_OBJECT_PATH,	/* object name of the signal */
+			  VC_SERVER_SERVICE_INTERFACE,	/* interface name of the signal */
+			  VC_METHOD_REQUEST_CANCEL);	/* name of the signal */
 
-	if (NULL == msg) { 
-		SLOG(LOG_ERROR, TAG_VCC, ">>>> vc cancel : Fail to make message "); 
+	if (NULL == msg) {
+		SLOG(LOG_ERROR, TAG_VCC, ">>>> vc cancel : Fail to make message ");
 		return VC_ERROR_OPERATION_FAILED;
 	} else {
 		SLOG(LOG_DEBUG, TAG_VCC, ">>>> vc cancel : pid(%d)", pid);
 	}
 
-	dbus_message_append_args(msg, 
-		DBUS_TYPE_INT32, &pid, 
-		DBUS_TYPE_INVALID);
+	dbus_message_append_args(msg,
+							 DBUS_TYPE_INT32, &pid,
+							 DBUS_TYPE_INVALID);
 
 	DBusError err;
 	dbus_error_init(&err);
@@ -828,12 +828,12 @@ int vc_dbus_request_cancel(int pid)
 
 	if (NULL != result_msg) {
 		dbus_message_get_args(result_msg, &err,
-			DBUS_TYPE_INT32, &result,
-			DBUS_TYPE_INVALID);
+							  DBUS_TYPE_INT32, &result,
+							  DBUS_TYPE_INVALID);
 
-		if (dbus_error_is_set(&err)) { 
+		if (dbus_error_is_set(&err)) {
 			SLOG(LOG_ERROR, TAG_VCC, "<<<< Get arguments error (%s)", err.message);
-			dbus_error_free(&err); 
+			dbus_error_free(&err);
 			result = VC_ERROR_OPERATION_FAILED;
 		}
 		dbus_message_unref(result_msg);
@@ -868,21 +868,21 @@ int vc_dbus_request_auth_enable(int pid, int mgr_pid)
 
 	/* create a signal & check for errors */
 	msg = dbus_message_new_method_call(
-		service_name,
-		object_path,	/* object name of the signal */
-		target_if_name,	/* interface name of the signal */
-		VC_METHOD_AUTH_ENABLE);	/* name of the signal */
+			  service_name,
+			  object_path,	/* object name of the signal */
+			  target_if_name,	/* interface name of the signal */
+			  VC_METHOD_AUTH_ENABLE);	/* name of the signal */
 
-	if (NULL == msg) { 
-		SLOG(LOG_ERROR, TAG_VCC, ">>>> vc auth enable : Fail to make message "); 
+	if (NULL == msg) {
+		SLOG(LOG_ERROR, TAG_VCC, ">>>> vc auth enable : Fail to make message ");
 		return VC_ERROR_OPERATION_FAILED;
 	} else {
 		SLOG(LOG_DEBUG, TAG_VCC, ">>>> vc auth enable : pid(%d)", pid);
 	}
 
-	dbus_message_append_args(msg, 
-		DBUS_TYPE_INT32, &pid, 
-		DBUS_TYPE_INVALID);
+	dbus_message_append_args(msg,
+							 DBUS_TYPE_INT32, &pid,
+							 DBUS_TYPE_INVALID);
 
 	DBusError err;
 	dbus_error_init(&err);
@@ -900,12 +900,12 @@ int vc_dbus_request_auth_enable(int pid, int mgr_pid)
 
 	if (NULL != result_msg) {
 		dbus_message_get_args(result_msg, &err,
-			DBUS_TYPE_INT32, &result,
-			DBUS_TYPE_INVALID);
+							  DBUS_TYPE_INT32, &result,
+							  DBUS_TYPE_INVALID);
 
-		if (dbus_error_is_set(&err)) { 
+		if (dbus_error_is_set(&err)) {
 			SLOG(LOG_ERROR, TAG_VCC, "<<<< Get arguments error (%s)", err.message);
-			dbus_error_free(&err); 
+			dbus_error_free(&err);
 			result = VC_ERROR_OPERATION_FAILED;
 		}
 		dbus_message_unref(result_msg);
@@ -938,21 +938,21 @@ int vc_dbus_request_auth_disable(int pid, int mgr_pid)
 
 	/* create a signal & check for errors */
 	msg = dbus_message_new_method_call(
-		service_name,
-		object_path,	/* object name of the signal */
-		target_if_name,	/* interface name of the signal */
-		VC_METHOD_AUTH_DISABLE);	/* name of the signal */
+			  service_name,
+			  object_path,	/* object name of the signal */
+			  target_if_name,	/* interface name of the signal */
+			  VC_METHOD_AUTH_DISABLE);	/* name of the signal */
 
-	if (NULL == msg) { 
-		SLOG(LOG_ERROR, TAG_VCC, ">>>> vc auth disable : Fail to make message "); 
+	if (NULL == msg) {
+		SLOG(LOG_ERROR, TAG_VCC, ">>>> vc auth disable : Fail to make message ");
 		return VC_ERROR_OPERATION_FAILED;
 	} else {
 		SLOG(LOG_DEBUG, TAG_VCC, ">>>> vc auth disable : pid(%d)", pid);
 	}
 
-	dbus_message_append_args(msg, 
-		DBUS_TYPE_INT32, &pid, 
-		DBUS_TYPE_INVALID);
+	dbus_message_append_args(msg,
+							 DBUS_TYPE_INT32, &pid,
+							 DBUS_TYPE_INVALID);
 
 	DBusError err;
 	dbus_error_init(&err);
@@ -970,12 +970,12 @@ int vc_dbus_request_auth_disable(int pid, int mgr_pid)
 
 	if (NULL != result_msg) {
 		dbus_message_get_args(result_msg, &err,
-			DBUS_TYPE_INT32, &result,
-			DBUS_TYPE_INVALID);
+							  DBUS_TYPE_INT32, &result,
+							  DBUS_TYPE_INVALID);
 
-		if (dbus_error_is_set(&err)) { 
+		if (dbus_error_is_set(&err)) {
 			SLOG(LOG_ERROR, TAG_VCC, "<<<< Get arguments error (%s)", err.message);
-			dbus_error_free(&err); 
+			dbus_error_free(&err);
 			result = VC_ERROR_OPERATION_FAILED;
 		}
 		dbus_message_unref(result_msg);
@@ -1008,13 +1008,13 @@ int vc_dbus_request_auth_start(int pid, int mgr_pid)
 
 	/* create a signal & check for errors */
 	msg = dbus_message_new_method_call(
-		service_name,
-		object_path,	
-		target_if_name,	
-		VC_METHOD_AUTH_START);		
+			  service_name,
+			  object_path,
+			  target_if_name,
+			  VC_METHOD_AUTH_START);
 
-	if (NULL == msg) { 
-		SLOG(LOG_ERROR, TAG_VCC, ">>>> vc auth start : Fail to make message "); 
+	if (NULL == msg) {
+		SLOG(LOG_ERROR, TAG_VCC, ">>>> vc auth start : Fail to make message ");
 		return VC_ERROR_OPERATION_FAILED;
 	} else {
 		SLOG(LOG_DEBUG, TAG_VCC, ">>>> vc auth start : pid(%d)", pid);
@@ -1025,7 +1025,7 @@ int vc_dbus_request_auth_start(int pid, int mgr_pid)
 
 	/* Append result*/
 	dbus_message_iter_append_basic(&args, DBUS_TYPE_INT32, &(pid));
-	
+
 	DBusError err;
 	dbus_error_init(&err);
 
@@ -1042,12 +1042,12 @@ int vc_dbus_request_auth_start(int pid, int mgr_pid)
 
 	if (NULL != result_msg) {
 		dbus_message_get_args(result_msg, &err,
-			DBUS_TYPE_INT32, &result,
-			DBUS_TYPE_INVALID);
+							  DBUS_TYPE_INT32, &result,
+							  DBUS_TYPE_INVALID);
 
-		if (dbus_error_is_set(&err)) { 
+		if (dbus_error_is_set(&err)) {
 			SLOG(LOG_ERROR, TAG_VCC, "<<<< Get arguments error (%s)", err.message);
-			dbus_error_free(&err); 
+			dbus_error_free(&err);
 			result = VC_ERROR_OPERATION_FAILED;
 		}
 		dbus_message_unref(result_msg);
@@ -1080,21 +1080,21 @@ int vc_dbus_request_auth_stop(int pid, int mgr_pid)
 
 	/* create a signal & check for errors */
 	msg = dbus_message_new_method_call(
-		service_name,
-		object_path,	
-		target_if_name,	
-		VC_METHOD_AUTH_STOP);
+			  service_name,
+			  object_path,
+			  target_if_name,
+			  VC_METHOD_AUTH_STOP);
 
-	if (NULL == msg) { 
-		SLOG(LOG_ERROR, TAG_VCC, ">>>> vc auth stop : Fail to make message "); 
+	if (NULL == msg) {
+		SLOG(LOG_ERROR, TAG_VCC, ">>>> vc auth stop : Fail to make message ");
 		return VC_ERROR_OPERATION_FAILED;
 	} else {
 		SLOG(LOG_DEBUG, TAG_VCC, ">>>> vc auth stop : pid(%d)", pid);
 	}
 
-	dbus_message_append_args(msg, 
-		DBUS_TYPE_INT32, &pid, 
-		DBUS_TYPE_INVALID);
+	dbus_message_append_args(msg,
+							 DBUS_TYPE_INT32, &pid,
+							 DBUS_TYPE_INVALID);
 
 	DBusError err;
 	dbus_error_init(&err);
@@ -1112,12 +1112,12 @@ int vc_dbus_request_auth_stop(int pid, int mgr_pid)
 
 	if (NULL != result_msg) {
 		dbus_message_get_args(result_msg, &err,
-			DBUS_TYPE_INT32, &result,
-			DBUS_TYPE_INVALID);
+							  DBUS_TYPE_INT32, &result,
+							  DBUS_TYPE_INVALID);
 
-		if (dbus_error_is_set(&err)) { 
+		if (dbus_error_is_set(&err)) {
 			SLOG(LOG_ERROR, TAG_VCC, "<<<< Get arguments error (%s)", err.message);
-			dbus_error_free(&err); 
+			dbus_error_free(&err);
 			result = VC_ERROR_OPERATION_FAILED;
 		}
 		dbus_message_unref(result_msg);
@@ -1150,21 +1150,21 @@ int vc_dbus_request_auth_cancel(int pid, int mgr_pid)
 
 	/* create a signal & check for errors */
 	msg = dbus_message_new_method_call(
-		service_name,
-		object_path,	/* object name of the signal */
-		target_if_name,	/* interface name of the signal */
-		VC_METHOD_AUTH_CANCEL);	/* name of the signal */
+			  service_name,
+			  object_path,	/* object name of the signal */
+			  target_if_name,	/* interface name of the signal */
+			  VC_METHOD_AUTH_CANCEL);	/* name of the signal */
 
-	if (NULL == msg) { 
-		SLOG(LOG_ERROR, TAG_VCC, ">>>> vc auth cancel : Fail to make message "); 
+	if (NULL == msg) {
+		SLOG(LOG_ERROR, TAG_VCC, ">>>> vc auth cancel : Fail to make message ");
 		return VC_ERROR_OPERATION_FAILED;
 	} else {
 		SLOG(LOG_DEBUG, TAG_VCC, ">>>> vc auth cancel : pid(%d)", pid);
 	}
 
-	dbus_message_append_args(msg, 
-		DBUS_TYPE_INT32, &pid, 
-		DBUS_TYPE_INVALID);
+	dbus_message_append_args(msg,
+							 DBUS_TYPE_INT32, &pid,
+							 DBUS_TYPE_INVALID);
 
 	DBusError err;
 	dbus_error_init(&err);
@@ -1182,12 +1182,12 @@ int vc_dbus_request_auth_cancel(int pid, int mgr_pid)
 
 	if (NULL != result_msg) {
 		dbus_message_get_args(result_msg, &err,
-			DBUS_TYPE_INT32, &result,
-			DBUS_TYPE_INVALID);
+							  DBUS_TYPE_INT32, &result,
+							  DBUS_TYPE_INVALID);
 
-		if (dbus_error_is_set(&err)) { 
+		if (dbus_error_is_set(&err)) {
 			SLOG(LOG_ERROR, TAG_VCC, "<<<< Get arguments error (%s)", err.message);
-			dbus_error_free(&err); 
+			dbus_error_free(&err);
 			result = VC_ERROR_OPERATION_FAILED;
 		}
 		dbus_message_unref(result_msg);

@@ -64,13 +64,13 @@ typedef bool(*vc_setting_supported_language_cb)(const char* language, void* user
 
 
 /**
-* @brief Initialize voice control setting 
+* @brief Initialize voice control setting
 *
 * @remarks If the function succeeds, @a vc mgr must be released with vc_setting_finalize().
 *
 * @return 0 on success, otherwise a negative error value.
 * @retval #VC_ERROR_NONE Success.
-* @retval #VC_ERROR_INVALID_STATE VC setting has Already been initialized. 
+* @retval #VC_ERROR_INVALID_STATE VC setting has Already been initialized.
 * @retval #VC_ERROR_OPERATION_FAILED Operation failure.
 *
 * @see vc_setting_finalize()
@@ -82,7 +82,7 @@ int vc_setting_initialize(void);
 *
 * @return 0 on success, otherwise a negative error value.
 * @retval #VC_ERROR_NONE Success.
-* @retval #VC_ERROR_INVALID_STATE VC Not initialized. 
+* @retval #VC_ERROR_INVALID_STATE VC Not initialized.
 * @retval #VC_ERROR_OPERATION_FAILED Operation failure.
 *
 * @see vc_setting_initialize()
@@ -98,10 +98,10 @@ int vc_setting_deinitialize(void);
 * @return 0 on success, otherwise a negative error value.
 * @retval #VC_ERROR_NONE Success.
 * @retval #VC_ERROR_INVALID_PARAMETER Invalid parameter.
-* @retval #VC_ERROR_INVALID_STATE VC Not initialized. 
+* @retval #VC_ERROR_INVALID_STATE VC Not initialized.
 * @retval #VC_ERROR_OPERATION_FAILED Operation failure.
 *
-* @post	This function invokes vc_setting_supported_language_cb() repeatedly for getting supported languages. 
+* @post	This function invokes vc_setting_supported_language_cb() repeatedly for getting supported languages.
 *
 * @see vc_setting_supported_language_cb()
 */
@@ -118,7 +118,7 @@ int vc_setting_foreach_supported_languages(vc_setting_supported_language_cb call
 * @retval #VC_ERROR_NONE Success.
 * @retval #VC_ERROR_OUT_OF_MEMORY Out of memory.
 * @retval #VC_ERROR_INVALID_PARAMETER Invalid parameter.
-* @retval #VC_ERROR_INVALID_STATE VC Not initialized. 
+* @retval #VC_ERROR_INVALID_STATE VC Not initialized.
 * @retval #VC_ERROR_OPERATION_FAILED Operation failure.
 *
 * @see vc_setting_set_language()
@@ -133,7 +133,7 @@ int vc_setting_get_language(char** language);
 * @return 0 on success, otherwise a negative error value.
 * @retval #VC_ERROR_NONE Success.
 * @retval #VC_ERROR_INVALID_PARAMETER Invalid parameter.
-* @retval #VC_ERROR_INVALID_STATE VC Not initialized. 
+* @retval #VC_ERROR_INVALID_STATE VC Not initialized.
 * @retval #VC_ERROR_OPERATION_FAILED Operation failure.
 *
 * @see vc_setting_get_language()
@@ -148,7 +148,7 @@ int vc_setting_set_language(const char* language);
 * @return 0 on success, otherwise a negative error value.
 * @retval #VC_ERROR_NONE Success.
 * @retval #VC_ERROR_INVALID_PARAMETER Invalid parameter.
-* @retval #VC_ERROR_INVALID_STATE VC Not initialized. 
+* @retval #VC_ERROR_INVALID_STATE VC Not initialized.
 * @retval #VC_ERROR_OPERATION_FAILED Operation failure.
 *
 * @see vc_setting_get_auto_language()
@@ -163,7 +163,7 @@ int vc_setting_set_auto_language(bool value);
 * @return 0 on success, otherwise a negative error value.
 * @retval #VC_ERROR_NONE Success.
 * @retval #VC_ERROR_INVALID_PARAMETER Invalid parameter.
-* @retval #VC_ERROR_INVALID_STATE VC Not initialized. 
+* @retval #VC_ERROR_INVALID_STATE VC Not initialized.
 * @retval #VC_ERROR_OPERATION_FAILED Operation failure.
 *
 * @see vc_setting_set_auto_language()

@@ -14,7 +14,7 @@
 * limitations under the License.
 */
 
- 
+
 #ifndef __VC_CONFIG_MANAGER_H_
 #define __VC_CONFIG_MANAGER_H_
 
@@ -34,7 +34,7 @@ typedef enum {
 	VC_CONFIG_ERROR_INVALID_LANGUAGE	= TIZEN_ERROR_VOICE_CONTROL | 0x012,	/**< Invalid voice */
 	VC_CONFIG_ERROR_ENGINE_NOT_FOUND	= TIZEN_ERROR_VOICE_CONTROL | 0x013,	/**< No available VC-engine  */
 	VC_CONFIG_ERROR_OPERATION_FAILED	= TIZEN_ERROR_VOICE_CONTROL | 0x014	/**< Operation failed  */
-}vc_config_error_e;
+} vc_config_error_e;
 
 
 typedef void (*vc_config_lang_changed_cb)(const char* before_lang, const char* current_lang);

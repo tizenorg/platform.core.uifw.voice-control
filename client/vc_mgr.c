@@ -43,7 +43,7 @@ static Eina_Bool __vc_mgr_notify_result(void *data);
 
 static const char* __vc_mgr_get_error_code(vc_error_e err)
 {
-	switch(err) {
+	switch (err) {
 		case VC_ERROR_NONE:			return "VC_ERROR_NONE";			break;
 		case VC_ERROR_OUT_OF_MEMORY:		return "VC_ERROR_OUT_OF_MEMORY";	break;
 		case VC_ERROR_IO_ERROR:			return "VC_ERROR_IO_ERROR";		break;
@@ -61,8 +61,8 @@ static const char* __vc_mgr_get_error_code(vc_error_e err)
 
 static void __vc_mgr_lang_changed_cb(const char* before_lang, const char* current_lang)
 {
-	SECURE_SLOG(LOG_DEBUG, TAG_VCM, "Lang changed : Before lang(%s) Current lang(%s)", 
-		before_lang, current_lang);
+	SLOG(LOG_DEBUG, TAG_VCM, "Lang changed : Before lang(%s) Current lang(%s)",
+				before_lang, current_lang);
 
 	vc_current_language_changed_cb callback = NULL;
 	void* lang_user_data;
@@ -201,7 +201,6 @@ static void __vc_mgr_internal_unprepare()
 		SLOG(LOG_ERROR, TAG_VCM, "[ERROR] Fail to request finalize : %s", __vc_mgr_get_error_code(ret));
 	}
 
-
 	vc_cmd_parser_delete_file(getpid(), VC_COMMAND_TYPE_SYSTEM);
 	vc_cmd_parser_delete_file(getpid(), VC_COMMAND_TYPE_EXCLUSIVE);
 
@@ -339,7 +338,6 @@ int vc_mgr_prepare()
 		return VC_ERROR_INVALID_STATE;
 	}
 
-
 	g_m_connect_timer = ecore_timer_add(0, __vc_mgr_connect_daemon, NULL);
 
 	SLOG(LOG_DEBUG, TAG_VCM, "=====");
@@ -455,7 +453,7 @@ int vc_mgr_get_state(vc_state_e* state)
 
 	*state = temp;
 
-	switch(*state) {
+	switch (*state) {
 		case VC_STATE_NONE:		SLOG(LOG_DEBUG, TAG_VCM, "Current state is 'None'");		break;
 		case VC_STATE_INITIALIZED:	SLOG(LOG_DEBUG, TAG_VCM, "Current state is 'Created'");		break;
 		case VC_STATE_READY:		SLOG(LOG_DEBUG, TAG_VCM, "Current state is 'Ready'");		break;
@@ -498,7 +496,7 @@ int vc_mgr_get_service_state(vc_service_state_e* state)
 
 	*state = service_state;
 
-	switch(*state) {
+	switch (*state) {
 		case VC_SERVICE_STATE_NONE:		SLOG(LOG_DEBUG, TAG_VCM, "Current service state is 'None'");		break;
 		case VC_SERVICE_STATE_READY:		SLOG(LOG_DEBUG, TAG_VCM, "Current service state is 'Ready'");		break;
 		case VC_SERVICE_STATE_RECORDING:	SLOG(LOG_DEBUG, TAG_VCM, "Current service state is 'Recording'");	break;
@@ -548,7 +546,7 @@ int vc_mgr_set_demandable_client_rule(const char* rule)
 
 	SLOG(LOG_DEBUG, TAG_VCM, "=====");
 	SLOG(LOG_DEBUG, TAG_VCM, " ");
-	
+
 	return 0;
 
 	/*
@@ -640,7 +638,7 @@ int vc_mgr_is_command_format_supported(vc_cmd_format_e format, bool* support)
 }
 
 int vc_mgr_set_command_list(vc_cmd_list_h vc_cmd_list)
-{ 
+{
 	SLOG(LOG_DEBUG, TAG_VCM, "===== [Manager] Set Command list");
 
 	vc_state_e state;
@@ -697,7 +695,7 @@ int vc_mgr_set_command_list(vc_cmd_list_h vc_cmd_list)
 					}
 				}
 			}
-		} while(0 != ret);
+		} while (0 != ret);
 	}
 
 	SLOG(LOG_DEBUG, TAG_VCM, "=====");
@@ -998,7 +996,7 @@ int vc_mgr_get_current_commands(vc_cmd_list_h* vc_cmd_list)
 		SLOG(LOG_DEBUG, TAG_VCM, "[DEBUG] No client");
 		return 0;
 	}
-	
+
 	if (VC_NO_FOREGROUND_PID != fg_pid) {
 		iter = g_slist_nth(client_info_list, 0);
 		while (NULL != iter) {
@@ -1075,7 +1073,7 @@ int vc_mgr_get_current_commands(vc_cmd_list_h* vc_cmd_list)
 					ret = vc_cmd_parser_append_commands(client_info->pid, VC_COMMAND_TYPE_BACKGROUND, temp_list);
 					if (0 != ret) {
 						SLOG(LOG_ERROR, TAG_VCM, "[Client Data ERROR] Fail to get the bg command list : pid(%d)", client_info->pid);
-					} 
+					}
 				}
 				free(client_info);
 			}
@@ -1338,7 +1336,7 @@ int vc_mgr_set_selected_results(vc_cmd_list_h vc_cmd_list)
 		char* result_text = NULL;
 
 		vc_mgr_client_get_all_result(g_vc_m, &event, &result_text);
-		
+
 		vc_info_parser_set_result(result_text, event, NULL, vc_cmd_list, false);
 
 		if (NULL != result_text) {
@@ -1346,7 +1344,7 @@ int vc_mgr_set_selected_results(vc_cmd_list_h vc_cmd_list)
 			result_text = NULL;
 		}
 	}
-	
+
 	int ret;
 	int count = 0;
 
@@ -1576,7 +1574,7 @@ int vc_mgr_set_all_result_cb(vc_mgr_all_result_cb callback, void* user_data)
 	vc_mgr_client_set_all_result_cb(g_vc_m, callback, user_data);
 
 	SLOG(LOG_DEBUG, TAG_VCM, "[SUCCESS] Set all result callback");
-	
+
 	return 0;
 }
 
@@ -1617,7 +1615,7 @@ int vc_mgr_set_result_cb(vc_result_cb callback, void* user_data)
 	}
 
 	vc_mgr_client_set_result_cb(g_vc_m, callback, user_data);
-	
+
 	return 0;
 }
 
@@ -1658,7 +1656,7 @@ static Eina_Bool __vc_mgr_notify_error(void *data)
 		SLOG(LOG_DEBUG, TAG_VCM, "Error callback is called");
 	} else {
 		SLOG(LOG_WARN, TAG_VCM, "[WARNING] Error callback is null");
-	}  
+	}
 
 	return EINA_FALSE;
 }
@@ -1971,7 +1969,7 @@ int __vc_mgr_request_auth_enable(int pid)
 	if (pid == fore_pid) {
 		vc_mgr_client_set_valid_authorized_client(g_vc_m, pid);
 	}
-	
+
 	return 0;
 }
 
@@ -2032,7 +2030,7 @@ int __vc_mgr_request_auth_start(int pid)
 
 	/* add timer for start recording */
 	ecore_timer_add(0, __request_auth_start, NULL);
-	
+
 	return 0;
 }
 

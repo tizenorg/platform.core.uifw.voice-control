@@ -30,7 +30,7 @@
 */
 
 #ifdef __cplusplus
-extern "C" 
+extern "C"
 {
 #endif
 
@@ -86,7 +86,7 @@ int vc_cmd_list_create(vc_cmd_list_h* vc_cmd_list);
 * @since_tizen 2.4
 *
 * @param[in] vc_cmd_list The command list handle
-* @param[in] free_command The command free option @c true = release each commands in list, 
+* @param[in] free_command The command free option @c true = release each commands in list,
 *			@c false = remove command from list
 *
 * @return 0 on success, otherwise a negative error value
@@ -264,7 +264,7 @@ int vc_cmd_list_get_current(vc_cmd_list_h vc_cmd_list, vc_cmd_h* vc_command);
 * @brief Creates a handle for command.
 * @since_tizen 2.4
 *
-* @remarks If the function succeeds, @a The command handle must be released 
+* @remarks If the function succeeds, @a The command handle must be released
 *	with vc_cmd_destroy() or vc_cmd_list_destroy().
 *	You should set command and type if command is valid
 *

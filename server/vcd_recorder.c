@@ -25,10 +25,10 @@
 #include "voice_control_plugin_engine.h"
 
 /* Multi session enable */
-//#define AUDIO_MULTI_SESSION
+/*#define AUDIO_MULTI_SESSION */
 
 /* TV BT enable */
-//#define TV_BT_MODE
+/*#define TV_BT_MODE */
 
 #define FRAME_LENGTH 160
 #define BUFFER_LENGTH FRAME_LENGTH * 2
@@ -194,7 +194,7 @@ int vcd_recorder_create(vcd_recoder_audio_cb audio_cb, vcd_recorder_interrupt_cb
 	g_audio_type = VCP_AUDIO_TYPE_PCM_S16_LE;
 	g_audio_rate = 16000;
 	g_audio_channel = 1;
-	
+
 	audio_channel_e audio_ch;
 	audio_sample_type_e audio_type;
 
@@ -443,7 +443,7 @@ static float get_volume_decibel(char* data, int size)
 
 	int i, depthByte;
 	int count = 0;
-	
+
 	float db = 0.0;
 	float rms = 0.0;
 	unsigned long long square_sum = 0;
@@ -463,7 +463,6 @@ static float get_volume_decibel(char* data, int size)
 		rms = sqrt(square_sum/count);
 
 	db = 20 * log10(rms/MAX_AMPLITUDE_MEAN_16);
-
 	return db;
 }
 
@@ -483,7 +482,7 @@ Eina_Bool __read_normal_func(void *data)
 		SLOG(LOG_WARN, TAG_VCD, "[Recorder WARNING] Fail to read audio : %d", ret);
 		g_recorder_state = VCD_RECORDER_STATE_READY;
 		return EINA_FALSE;
-	} 
+	}
 
 	if (NULL != g_audio_cb) {
 		if (0 != g_audio_cb(g_normal_buffer, BUFFER_LENGTH)) {
@@ -495,7 +494,7 @@ Eina_Bool __read_normal_func(void *data)
 
 	if (0 == g_buffer_count || 0 == g_buffer_count % 50) {
 		SLOG(LOG_WARN, TAG_VCD, "[Recorder][%d] Recording... : read_size(%d)", g_buffer_count, ret);
-		
+
 		if (100000 == g_buffer_count) {
 			g_buffer_count = 0;
 		}
@@ -593,7 +592,7 @@ int vcd_recorder_start()
 	g_normal_file = fopen(normal_file_name, "wb+");
 	if (!g_normal_file) {
 		SLOG(LOG_ERROR, TAG_VCD, "[Recorder ERROR] File not found!");
-	}	
+	}
 #endif
 	return 0;
 }

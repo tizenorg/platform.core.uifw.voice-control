@@ -24,6 +24,7 @@
 extern "C" {
 #endif
 
+
 /******************************************************************************************
 * Definition for Dbus
 *******************************************************************************************/
@@ -46,7 +47,7 @@ extern "C" {
 
 
 /******************************************************************************************
-* Message Definition for all 
+* Message Definition for all
 *******************************************************************************************/
 
 #define VC_METHOD_HELLO			"vc_method_hello"
@@ -145,7 +146,8 @@ extern "C" {
 
 #define VC_BASE_LANGUAGE		"en_US"
 
-#define VC_RETRY_COUNT		5
+#define VC_RETRY_COUNT			5
+
 
 #define VC_CONFIG_ROOT			tzplatform_mkpath(TZ_USER_HOME, ".voice")
 

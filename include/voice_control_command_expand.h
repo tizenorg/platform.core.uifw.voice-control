@@ -23,7 +23,7 @@
 
 
 #ifdef __cplusplus
-extern "C" 
+extern "C"
 {
 #endif
 
@@ -37,7 +37,7 @@ typedef enum {
 	VC_CMD_FORMAT_FIXED_AND_EXTRA,	/**< Fixed + extra unfixed command */
 	VC_CMD_FORMAT_EXTRA_AND_FIXED,	/**< Extra unfixed + fixed command */
 	VC_CMD_FORMAT_UNFIXED_ONLY	/**< Unfixed command */
-}vc_cmd_format_e;
+} vc_cmd_format_e;
 
 
 /**
@@ -45,7 +45,7 @@ typedef enum {
 * @since_tizen 2.4
 *
 * @remark If the function succeeds, @a The command must be released with free() by you if they are not NULL.
-*	If you get the result command list in result callback and the command type of commands has non-fixed format, 
+*	If you get the result command list in result callback and the command type of commands has non-fixed format,
 *	you should check non-fixed result using this function.
 *
 * @param[in] vc_command The command handle

@@ -14,7 +14,7 @@
 * limitations under the License.
 */
 
- 
+
 #ifndef __VC_DBUS_H_
 #define __VC_DBUS_H_
 

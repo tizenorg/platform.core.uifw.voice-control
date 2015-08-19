@@ -29,7 +29,7 @@
 */
 
 #ifdef __cplusplus
-extern "C" 
+extern "C"
 {
 #endif
 
@@ -69,7 +69,7 @@ typedef void (*vc_widget_send_current_command_list_cb)(vc_cmd_list_h* vc_cmd_lis
 
 
 /**
-* @brief Initialize voice control for widget. 
+* @brief Initialize voice control for widget.
 *
 * @param[in] vc_widget The voice control handle
 *
@@ -151,7 +151,7 @@ int vc_widget_unprepare();
 * @retval #VC_ERROR_INVALID_STATE Invalid state
 *
 * @pre The state should be #VC_STATE_READY.
-* @post	This function invokes vc_supported_language_cb() repeatedly for getting languages. 
+* @post	This function invokes vc_supported_language_cb() repeatedly for getting languages.
 *
 * @see vc_supported_language_cb()
 * @see vc_widget_get_current_language()
@@ -195,7 +195,7 @@ int vc_widget_get_current_language(char** language);
 * @see vc_widget_deinitialize()
 * @see vc_widget_prepare()
 * @see vc_widget_unprepare()
-* @see vc_widget_set_state_changed_cb() 
+* @see vc_widget_set_state_changed_cb()
 * @see vc_widget_unset_state_changed_cb()
 */
 int vc_widget_get_state(vc_state_e* state);

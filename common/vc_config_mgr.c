@@ -41,7 +41,7 @@ typedef struct {
 	vc_config_foreground_changed_cb foreground_cb;
 	vc_config_state_changed_cb	state_cb;
 	vc_config_enabled_cb		enabled_cb;
-}vc_config_client_s;
+} vc_config_client_s;
 
 
 const char* vc_config_tag()
@@ -153,7 +153,7 @@ int __vc_config_mgr_check_engine_is_valid(const char* engine_id)
 		free(g_config_info->engine_id);
 
 	g_config_info->engine_id = strdup(engine_info->uuid);
-	
+
 	SLOG(LOG_DEBUG, vc_config_tag(), "Default engine is changed : %s", g_config_info->engine_id);
 	if (0 != vc_parser_set_engine(g_config_info->engine_id)) {
 		SLOG(LOG_ERROR, vc_config_tag(), " Fail to save config");
@@ -200,7 +200,7 @@ bool __vc_config_mgr_check_lang_is_valid(const char* engine_id, const char* lang
 			/* Get a first item */
 			iter_lang = g_slist_nth(engine_info->languages, 0);
 
-			int i = 1;	
+			int i = 1;
 			while (NULL != iter_lang) {
 				/*Get handle data from list*/
 				engine_lang = iter_lang->data;
@@ -252,13 +252,13 @@ int __vc_config_mgr_select_lang(const char* engine_id, char** language)
 			iter = g_slist_next(iter);
 			continue;
 		}
-		
+
 		GSList *iter_lang = NULL;
 		char* engine_lang = NULL;
 		if (g_slist_length(engine_info->languages) > 0) {
 			/* Get a first item */
 			iter_lang = g_slist_nth(engine_info->languages, 0);
-			
+
 			while (NULL != iter_lang) {
 				engine_lang = iter_lang->data;
 				if (NULL != engine_lang) {
@@ -415,8 +415,8 @@ int __vc_config_set_auto_language()
 		free(g_config_info->language);
 		g_config_info->language = strdup(candidate_lang);
 
-		SLOG(LOG_DEBUG, vc_config_tag(), "[Config] Default language change : before(%s) current(%s)", 
-			before_lang, g_config_info->language);
+		SLOG(LOG_DEBUG, vc_config_tag(), "[Config] Default language change : before(%s) current(%s)",
+			 before_lang, g_config_info->language);
 
 		/* Call all callbacks of client*/
 		GSList *iter = NULL;
@@ -465,8 +465,8 @@ int __vc_config_set_auto_language()
 		}
 		free(tmp_language);
 
-		SLOG(LOG_DEBUG, vc_config_tag(), "[Config] Default language change : before(%s) current(%s)", 
-			before_lang, g_config_info->language);
+		SLOG(LOG_DEBUG, vc_config_tag(), "[Config] Default language change : before(%s) current(%s)",
+			 before_lang, g_config_info->language);
 
 		/* Call all callbacks of client*/
 		GSList *iter = NULL;
@@ -530,7 +530,7 @@ int vc_config_mgr_initialize(int uid)
 		}
 
 		temp_client->uid = uid;
-		
+
 		/* Add uid */
 		g_config_client_list = g_slist_append(g_config_client_list, temp_client);
 
@@ -668,7 +668,7 @@ int vc_config_mgr_initialize(int uid)
 	}
 
 	temp_client->uid = uid;
-	
+
 	SLOG(LOG_DEBUG, vc_config_tag(), "uid(%d) temp_uid(%d)", uid, temp_client->uid);
 
 	/* Add uid */
@@ -822,7 +822,7 @@ int vc_config_mgr_set_lang_cb(int uid, vc_config_lang_changed_cb lang_cb)
 }
 
 int vc_config_mgr_unset_lang_cb(int uid)
-{	
+{
 	GSList *iter = NULL;
 	vc_config_client_s* temp_client = NULL;
 
@@ -1075,15 +1075,15 @@ int __vc_config_mgr_register_foreground_event()
 		wd = inotify_add_watch(g_fd_fore, VC_RUNTIME_INFO_FOREGROUND, IN_CLOSE_WRITE);
 		g_wd_fore = wd;
 
-		g_fd_handler_fore = ecore_main_fd_handler_add(g_fd_fore, ECORE_FD_READ, 
-			(Ecore_Fd_Cb)vc_config_mgr_inotify_foreground_cb, NULL, NULL, NULL);		
+		g_fd_handler_fore = ecore_main_fd_handler_add(g_fd_fore, ECORE_FD_READ, (Ecore_Fd_Cb)vc_config_mgr_inotify_foreground_cb, 
+													  NULL, NULL, NULL);
 		if (NULL == g_fd_handler_fore) {
 			SLOG(LOG_ERROR, vc_config_tag(), "[ERROR] Fail to get handler for foreground");
 			return -1;
 		}
 	}
 	g_fore_ref_count++;
-	
+
 	return 0;
 }
 
@@ -1255,7 +1255,7 @@ int vc_config_mgr_get_language_list(vc_supported_language_cb callback, void* use
 		SLOG(LOG_ERROR, vc_config_tag(), "Not initialized");
 		return -1;
 	}
-	
+
 	if (0 >= g_slist_length(g_engine_list)) {
 		SLOG(LOG_ERROR, vc_config_tag(), "There is no engine");
 		return -1;
@@ -1282,7 +1282,7 @@ int vc_config_mgr_get_language_list(vc_supported_language_cb callback, void* use
 
 		GSList *iter_lang = NULL;
 		char* lang;
-		
+
 		/* Get a first item */
 		iter_lang = g_slist_nth(engine_info->languages, 0);
 
@@ -1295,7 +1295,7 @@ int vc_config_mgr_get_language_list(vc_supported_language_cb callback, void* use
 				if (false == callback(lang, user_data))
 					break;
 			}
-			
+
 			/*Get next item*/
 			iter_lang = g_slist_next(iter_lang);
 		}
@@ -1441,7 +1441,7 @@ bool vc_config_check_default_engine_is_valid(const char* engine)
 		return false;
 	}
 
-	if (0 >= g_slist_length(g_engine_list)) 
+	if (0 >= g_slist_length(g_engine_list))
 		return false;
 
 	GSList *iter = NULL;
@@ -1480,7 +1480,7 @@ bool vc_config_check_default_language_is_valid(const char* language)
 		return false;
 	}
 
-	if (0 >= g_slist_length(g_engine_list)) 
+	if (0 >= g_slist_length(g_engine_list))
 		return false;
 
 	GSList *iter = NULL;
@@ -1497,7 +1497,7 @@ bool vc_config_check_default_language_is_valid(const char* language)
 			iter = g_slist_next(iter);
 			continue;
 		}
-		
+
 		if (0 == strcmp(g_config_info->engine_id, engine_info->uuid)) {
 			iter = g_slist_next(iter);
 			continue;
@@ -1511,7 +1511,7 @@ bool vc_config_check_default_language_is_valid(const char* language)
 
 		while (NULL != iter_lang) {
 			lang = iter_lang->data;
-			
+
 			if (0 == strcmp(language, lang))
 				return true;
 
@@ -1583,14 +1583,14 @@ int __vc_config_mgr_print_engine_info()
 
 	SLOG(LOG_DEBUG, vc_config_tag(), "--------------- engine list -----------------");
 
-	int i = 1;	
+	int i = 1;
 	while (NULL != iter) {
 		engine_info = iter->data;
 
 		SLOG(LOG_DEBUG, vc_config_tag(), "[%dth]", i);
 		SLOG(LOG_DEBUG, vc_config_tag(), " name : %s", engine_info->name);
 		SLOG(LOG_DEBUG, vc_config_tag(), " id   : %s", engine_info->uuid);
-		
+
 
 		SLOG(LOG_DEBUG, vc_config_tag(), " languages");
 		GSList *iter_lang = NULL;
@@ -1599,7 +1599,7 @@ int __vc_config_mgr_print_engine_info()
 			/* Get a first item */
 			iter_lang = g_slist_nth(engine_info->languages, 0);
 
-			int j = 1;	
+			int j = 1;
 			while (NULL != iter_lang) {
 				/*Get handle data from list*/
 				lang = iter_lang->data;
@@ -1639,12 +1639,12 @@ int __vc_config_mgr_print_client_info()
 
 	SLOG(LOG_DEBUG, vc_config_tag(), "--------------- Client list -----------------");
 
-	int i = 1;	
+	int i = 1;
 	while (NULL != iter) {
 		temp_client = iter->data;
 
 		SLOG(LOG_DEBUG, vc_config_tag(), "[%dth] uid(%d)", i, temp_client->uid);
-		
+
 		iter = g_slist_next(iter);
 		i++;
 	}

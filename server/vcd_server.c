@@ -131,7 +131,7 @@ static void __config_foreground_changed_cb(int previous, int current, void* user
 	SLOG(LOG_DEBUG, TAG_VCD, "===== Change foreground");
 
 	SLOG(LOG_DEBUG, TAG_VCD, "Foreground pid(%d)", current);
-	
+
 	if (VC_NO_FOREGROUND_PID != current) {
 		/* Foreground app is changed */
 		vcd_state_e state = vcd_config_get_service_state();
@@ -152,9 +152,8 @@ static Eina_Bool __vcd_send_selected_result(void *data)
 	GSList* pid_list = NULL;
 	if (0 != vc_info_parser_get_result_pid_list(&pid_list)) {
 		SLOG(LOG_WARN, TAG_VCD, "[Server WARNING] Fail to get pid list. No result");
-	}
-	else {
-		if (0 < g_slist_length(pid_list)){
+	} else {
+		if (0 < g_slist_length(pid_list)) {
 			GSList* iter = NULL;
 			vc_cmd_s* temp_cmd = NULL;
 			int ret = 0;
@@ -256,7 +255,7 @@ static void __vcd_server_result_cb(vcp_result_event_e event, int* result_id, int
 	}
 
 	int i = 0;
-	for (i = 0;i < count;i++) {
+	for (i = 0; i < count; i++) {
 		SLOG(LOG_DEBUG, TAG_VCD, "[Server]   [%d] Result ID(%d)", i, result_id[i]);
 
 		if (result_id[i] < 0) {
@@ -496,7 +495,7 @@ Eina_Bool vcd_cleanup_client(void *data)
 	if (0 == vcd_client_get_list(&client_list, &client_count)) {
 		SLOG(LOG_DEBUG, TAG_VCD, "===== Clean up client ");
 		if (NULL != client_list && client_count > 0) {
-			for (i = 0;i < client_count;i++) {
+			for (i = 0; i < client_count; i++) {
 				result = vcdc_send_hello(client_list[i], VCD_CLIENT_TYPE_NORMAL);
 
 				if (0 == result) {
@@ -518,7 +517,7 @@ Eina_Bool vcd_cleanup_client(void *data)
 	if (0 == vcd_client_widget_get_list(&client_list, &client_count)) {
 		SLOG(LOG_DEBUG, TAG_VCD, "===== Clean up widget");
 		if (NULL != client_list && client_count > 0) {
-			for (i = 0;i < client_count;i++) {
+			for (i = 0; i < client_count; i++) {
 				result = vcdc_send_hello(client_list[i], VCD_CLIENT_TYPE_WIDGET);
 
 				if (0 == result) {
@@ -532,6 +531,7 @@ Eina_Bool vcd_cleanup_client(void *data)
 		SLOG(LOG_DEBUG, TAG_VCD, "=====");
 		SLOG(LOG_DEBUG, TAG_VCD, "  ");
 	}
+
 	if (NULL != client_list) {
 		free(client_list);
 		client_list = NULL;
@@ -645,7 +645,7 @@ int vcd_server_mgr_set_audio_type(int pid, const char* audio_type)
 		SLOG(LOG_ERROR, TAG_VCD, "[Server ERROR] The manager pid(%d) is NOT valid", pid);
 		return VCD_ERROR_INVALID_PARAMETER;
 	}
-	
+
 	int ret = 0;
 	vcp_audio_type_e type = VCP_AUDIO_TYPE_PCM_S16_LE;
 	int rate = 16000;
@@ -673,7 +673,7 @@ int vcd_server_mgr_get_audio_type(int pid, char** audio_type)
 		SLOG(LOG_ERROR, TAG_VCD, "[Server ERROR] The manager pid(%d) is NOT valid", pid);
 		return VCD_ERROR_INVALID_PARAMETER;
 	}
-	
+
 	int ret = vcd_recorder_get(audio_type);
 	if (0 != ret) {
 		SLOG(LOG_ERROR, TAG_VCD, "[Server ERROR] Fail to get audio in type : %d", ret);
@@ -765,7 +765,7 @@ int vcd_server_mgr_start(bool stop_by_silence, bool exclusive_cmd, bool start_by
 {
 	/* 1. check current state */
 	vcd_state_e state = vcd_config_get_service_state();
-	
+
 	if (VCD_STATE_READY != state) {
 		SLOG(LOG_ERROR, TAG_VCD, "[Server ERROR] Current state is not ready");
 		return VCD_ERROR_INVALID_STATE;
@@ -791,7 +791,7 @@ int vcd_server_mgr_start(bool stop_by_silence, bool exclusive_cmd, bool start_by
 		if (0 != vcd_config_get_foreground(&fg_pid)) {
 			SLOG(LOG_ERROR, TAG_VCD, "[Server ERROR] Fail to get foreground");
 		}
-		
+
 		/* Set client exclusive option */
 		if (0 != vcd_client_set_exclusive_command(fg_pid)) {
 			SLOG(LOG_ERROR, TAG_VCD, "[Server ERROR] Fail to set exclusive command");
@@ -965,7 +965,7 @@ int vcd_server_unset_command(int pid, vc_cmd_type_e cmd_type)
 		SLOG(LOG_ERROR, TAG_VCD, "[Server ERROR] Fail to unset command type : pid(%d), cmd_type(%d)", pid, cmd_type);
 		return VCD_ERROR_OPERATION_FAILED;
 	}
-	
+
 	return 0;
 }
 
@@ -989,7 +989,7 @@ int vcd_server_set_exclusive_command(int pid, bool value)
 			return VCD_ERROR_OPERATION_FAILED;
 		}
 	}
-	
+
 	return 0;
 }
 

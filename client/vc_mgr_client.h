@@ -26,8 +26,8 @@
 extern "C" {
 #endif
 
-/* 
-* Common function 
+/*
+* Common function
 */
 int vc_mgr_client_create(vc_h* vc);
 
@@ -41,8 +41,8 @@ int vc_mgr_client_get_handle(int uid, vc_h* vc);
 
 int vc_mgr_client_get_pid(vc_h vc, int* pid);
 
-/* 
-* set/get callback function 
+/*
+* set/get callback function
 */
 int vc_mgr_client_set_all_result_cb(vc_h vc, vc_mgr_all_result_cb callback, void* user_data);
 
@@ -73,8 +73,8 @@ int vc_mgr_client_set_error_cb(vc_h vc, vc_error_cb callback, void* user_data);
 int vc_mgr_client_get_error_cb(vc_h vc, vc_error_cb* callback, void** user_data);
 
 
-/* 
-* set/get option 
+/*
+* set/get option
 */
 int vc_mgr_client_set_service_state(vc_h vc, vc_service_state_e state);
 

@@ -100,7 +100,7 @@ int vcd_client_manager_set_demandable_client(int pid, GSList* client_list)
 		GSList *iter = NULL;
 		vc_demandable_client_s* temp_client;
 		iter = g_slist_nth(g_demandable_client, 0);
-		
+
 		while (NULL != iter) {
 			temp_client = iter->data;
 
@@ -129,7 +129,7 @@ bool vcd_client_manager_check_demandable_client(int pid)
 	/* Check demandable appid */
 	char appid[128] = {0, };
 	aul_app_get_appid_bypid(pid, appid, sizeof(appid));
-	
+
 	if (0 < strlen(appid)) {
 		SLOG(LOG_DEBUG, TAG_VCD, "[Client Data] %s(%d) requests start", appid, pid);
 	} else {
@@ -140,7 +140,7 @@ bool vcd_client_manager_check_demandable_client(int pid)
 	GSList *iter = NULL;
 	vc_demandable_client_s* temp_client;
 	iter = g_slist_nth(g_demandable_client, 0);
-	
+
 	while (NULL != iter) {
 		temp_client = iter->data;
 
@@ -409,7 +409,6 @@ int vcd_client_command_collect_command()
 						g_cur_cmd_list.background_cmds = g_slist_append(g_cur_cmd_list.background_cmds, bg_cmd);
 					}
 				}
-
 				return 0;
 			}
 		} else {
@@ -514,7 +513,7 @@ int vcd_client_foreach_command(client_foreach_command_cb callback, void* user_da
 			id_count++;
 
 			SLOG(LOG_DEBUG, TAG_VCD, "[Client Data] Widget : id(%d) index(%d) format(%d) command(%s) param(%s) domain(%d)"
-				, temp_cmd->id, temp_cmd->index, temp_cmd->format, temp_cmd->command, temp_cmd->parameter, temp_cmd->domain);
+				 , temp_cmd->id, temp_cmd->index, temp_cmd->format, temp_cmd->command, temp_cmd->parameter, temp_cmd->domain);
 
 			callback(temp_cmd->id, temp_cmd->format, temp_cmd->command, temp_cmd->parameter, temp_cmd->domain, user_data);
 
@@ -533,7 +532,7 @@ int vcd_client_foreach_command(client_foreach_command_cb callback, void* user_da
 			id_count++;
 
 			SLOG(LOG_DEBUG, TAG_VCD, "[Client Data] Foreground : id(%d) index(%d) format(%d) command(%s) param(%s) domain(%d)"
-				, temp_cmd->id, temp_cmd->index, temp_cmd->format, temp_cmd->command, temp_cmd->parameter, temp_cmd->domain);
+				 , temp_cmd->id, temp_cmd->index, temp_cmd->format, temp_cmd->command, temp_cmd->parameter, temp_cmd->domain);
 
 			callback(temp_cmd->id, temp_cmd->format, temp_cmd->command, temp_cmd->parameter, temp_cmd->domain, user_data);
 
@@ -552,7 +551,7 @@ int vcd_client_foreach_command(client_foreach_command_cb callback, void* user_da
 			id_count++;
 
 			SLOG(LOG_DEBUG, TAG_VCD, "[Client Data] System : id(%d) index(%d) format(%d) domain(%d) command(%s) param(%s)"
-				, temp_cmd->id, temp_cmd->index, temp_cmd->format, temp_cmd->domain, temp_cmd->command, temp_cmd->parameter);
+				 , temp_cmd->id, temp_cmd->index, temp_cmd->format, temp_cmd->domain, temp_cmd->command, temp_cmd->parameter);
 
 			callback(temp_cmd->id, temp_cmd->format, temp_cmd->command, temp_cmd->parameter, temp_cmd->domain, user_data);
 
@@ -571,7 +570,7 @@ int vcd_client_foreach_command(client_foreach_command_cb callback, void* user_da
 			id_count++;
 
 			SLOG(LOG_DEBUG, TAG_VCD, "[Client Data] Exclusive system : id(%d) index(%d) format(%d) command(%s) param(%s) domain(%d)"
-				, temp_cmd->id, temp_cmd->index, temp_cmd->format, temp_cmd->command, temp_cmd->parameter, temp_cmd->domain);
+				 , temp_cmd->id, temp_cmd->index, temp_cmd->format, temp_cmd->command, temp_cmd->parameter, temp_cmd->domain);
 
 			callback(temp_cmd->id, temp_cmd->type, temp_cmd->command, temp_cmd->parameter, temp_cmd->domain, user_data);
 
@@ -600,7 +599,7 @@ int vcd_client_foreach_command(client_foreach_command_cb callback, void* user_da
 				id_count++;
 
 				SLOG(LOG_DEBUG, TAG_VCD, "[Client Data] Background : id(%d) index(%d) format(%d) command(%s) param(%s) domain(%d)"
-					, temp_cmd->id, temp_cmd->index, temp_cmd->format, temp_cmd->command, temp_cmd->parameter, temp_cmd->domain);
+					 , temp_cmd->id, temp_cmd->index, temp_cmd->format, temp_cmd->command, temp_cmd->parameter, temp_cmd->domain);
 
 				callback(temp_cmd->id, temp_cmd->format, temp_cmd->command, temp_cmd->parameter, temp_cmd->domain, user_data);
 
@@ -644,14 +643,13 @@ static vc_cmd_s* __command_copy(vc_cmd_s* src_cmd)
 	if (NULL != src_cmd->parameter) {
 		temp_cmd->parameter = strdup(src_cmd->parameter);
 	}
-	
+
 	temp_cmd->key = src_cmd->key;
 	temp_cmd->modifier = src_cmd->modifier;
 
 	return temp_cmd;
 }
 
-//int vcd_client_get_cmd_info_from_result_id(int result_id, int* pid, int* cmd_type, vc_cmd_s** result)
 int vcd_client_get_cmd_from_result_id(int result_id, vc_cmd_s** result)
 {
 	GSList *iter = NULL;
@@ -665,9 +663,9 @@ int vcd_client_get_cmd_from_result_id(int result_id, vc_cmd_s** result)
 			temp_cmd = iter->data;
 
 			if (result_id == temp_cmd->id) {
-				//*pid = g_cur_cmd_list.foreground;
-				//*cmd_type = VCD_CLIENT_COMMAND_GROUP_TYPE_UI_CONTROL;
-				//SLOG(LOG_DEBUG, TAG_VCD, "[Client Data] Find result pid(%d) type(%d)", *pid, *cmd_type);
+				/**pid = g_cur_cmd_list.foreground; */
+				/**cmd_type = VCD_CLIENT_COMMAND_GROUP_TYPE_UI_CONTROL; */
+				/*SLOG(LOG_DEBUG, TAG_VCD, "[Client Data] Find result pid(%d) type(%d)", *pid, *cmd_type); */
 
 				*result = __command_copy(temp_cmd);
 
@@ -689,9 +687,9 @@ int vcd_client_get_cmd_from_result_id(int result_id, vc_cmd_s** result)
 			SLOG(LOG_DEBUG, TAG_VCD, "[Client Data] command id (%d)", temp_cmd->id);
 
 			if (result_id == temp_cmd->id) {
-				//*pid = g_cur_cmd_list.foreground;
-				//*cmd_type = VCD_CLIENT_COMMAND_GROUP_TYPE_FOREGROUND;
-				//SLOG(LOG_DEBUG, TAG_VCD, "[Client Data] Find result pid(%d) type(%d)", *pid, *cmd_type);
+				/**pid = g_cur_cmd_list.foreground; */
+				/**cmd_type = VCD_CLIENT_COMMAND_GROUP_TYPE_FOREGROUND; */
+				/*SLOG(LOG_DEBUG, TAG_VCD, "[Client Data] Find result pid(%d) type(%d)", *pid, *cmd_type); */
 
 				*result = __command_copy(temp_cmd);
 				return 0;
@@ -709,9 +707,9 @@ int vcd_client_get_cmd_from_result_id(int result_id, vc_cmd_s** result)
 			temp_cmd = iter->data;
 
 			if (result_id == temp_cmd->id) {
-				//*pid = g_manager.pid;
-				//*cmd_type = VCD_CLIENT_COMMAND_GROUP_TYPE_SYSTEM;
-				//SLOG(LOG_DEBUG, TAG_VCD, "[Client Data] Find result pid(%d) type(%d)", *pid, *cmd_type);
+				/**pid = g_manager.pid; */
+				/**cmd_type = VCD_CLIENT_COMMAND_GROUP_TYPE_SYSTEM; */
+				/*SLOG(LOG_DEBUG, TAG_VCD, "[Client Data] Find result pid(%d) type(%d)", *pid, *cmd_type); */
 
 				*result = __command_copy(temp_cmd);
 				return 0;
@@ -729,9 +727,9 @@ int vcd_client_get_cmd_from_result_id(int result_id, vc_cmd_s** result)
 			temp_cmd = iter->data;
 
 			if (result_id == temp_cmd->id) {
-				//*pid = g_manager.pid;
-				//*cmd_type = VCD_CLIENT_COMMAND_GROUP_TYPE_SYSTEM_EXCLUSIVE;
-				//SLOG(LOG_DEBUG, TAG_VCD, "[Client Data] Find result pid(%d) type(%d)", *pid, *cmd_type);
+				/**pid = g_manager.pid; */
+				/**cmd_type = VCD_CLIENT_COMMAND_GROUP_TYPE_SYSTEM_EXCLUSIVE; */
+				/*SLOG(LOG_DEBUG, TAG_VCD, "[Client Data] Find result pid(%d) type(%d)", *pid, *cmd_type); */
 
 				*result = __command_copy(temp_cmd);
 				return 0;
@@ -759,8 +757,8 @@ int vcd_client_get_cmd_from_result_id(int result_id, vc_cmd_s** result)
 				temp_cmd = back_iter->data;
 
 				if (result_id == temp_cmd->id) {
-					//*pid = back_cmd_info->pid;
-					//*cmd_type = VCD_CLIENT_COMMAND_GROUP_TYPE_BACKGROUND;
+					/**pid = back_cmd_info->pid; */
+					/**cmd_type = VCD_CLIENT_COMMAND_GROUP_TYPE_BACKGROUND; */
 
 					*result = __command_copy(temp_cmd);
 					return 0;
@@ -804,7 +802,7 @@ int __show_client_list()
 		SLOG(LOG_DEBUG, TAG_VCD, "No Client");
 	} else {
 		iter = g_slist_nth(g_client_list, 0);
-		for (i = 0;i < count;i++) {
+		for (i = 0; i < count; i++) {
 			data = iter->data;
 
 			SLOG(LOG_DEBUG, TAG_VCD, "[%dth] pid(%d)", i, data->pid);
@@ -824,7 +822,7 @@ int __show_client_list()
 		SLOG(LOG_DEBUG, TAG_VCD, "No widget");
 	} else {
 		iter = g_slist_nth(g_widget_list, 0);
-		for (i = 0;i < count;i++) {
+		for (i = 0; i < count; i++) {
 			widget_data = iter->data;
 
 			SLOG(LOG_DEBUG, TAG_VCD, "[%dth] pid(%d)", i, widget_data->pid);
@@ -851,7 +849,7 @@ int __show_command_list(GSList* cmd_group)
 		SLOG(LOG_DEBUG, TAG_VCD, "No command");
 	} else {
 		iter = g_slist_nth(cmd_group, 0);
-		for (i = 0;i < count;i++) {
+		for (i = 0; i < count; i++) {
 			data = iter->data;
 
 			if (NULL != data->parameter) {
@@ -878,10 +876,10 @@ GSList* __client_get_item(const int pid)
 
 	if (0 < count) {
 		iter = g_slist_nth(g_client_list, 0);
-		for (i = 0;i < count;i++) {
+		for (i = 0; i < count; i++) {
 			data = iter->data;
 
-			if (pid == data->pid) 
+			if (pid == data->pid)
 				return iter;
 
 			iter = g_slist_next(iter);
@@ -895,16 +893,16 @@ vc_client_info_s* __client_get_element(int pid)
 {
 	GSList *iter = NULL;
 	vc_client_info_s *data = NULL;
-	
+
 	int count = g_slist_length(g_client_list);
 	int i;
 
 	if (0 < count) {
 		iter = g_slist_nth(g_client_list, 0);
-		for (i = 0;i < count;i++) {
+		for (i = 0; i < count; i++) {
 			data = iter->data;
 
-			if (pid == data->pid) 
+			if (pid == data->pid)
 				return data;
 
 			iter = g_slist_next(iter);
@@ -919,7 +917,7 @@ int vcd_client_add(int pid)
 	/*Check pid is duplicated*/
 	GSList *tmp = NULL;
 	tmp = __client_get_item(pid);
-	
+
 	if (NULL != tmp) {
 		SLOG(LOG_WARN, TAG_VCD, "[Client Data] Client pid is already registered");
 		return VCD_ERROR_INVALID_PARAMETER;
@@ -939,7 +937,7 @@ int vcd_client_add(int pid)
 
 	/* Add item to global list */
 	g_client_list = g_slist_append(g_client_list, info);
-	
+
 	if (NULL == g_client_list) {
 		SLOG(LOG_ERROR, TAG_VCD, "[Client Data ERROR] Fail to add new client");
 		return -1;
@@ -949,7 +947,7 @@ int vcd_client_add(int pid)
 
 #ifdef CLIENT_DATA_DEBUG
 	__show_client_list();
-#endif 
+#endif
 	return 0;
 }
 
@@ -977,7 +975,7 @@ int vcd_client_delete(int pid)
 
 #ifdef CLIENT_DATA_DEBUG
 	__show_client_list();
-#endif 
+#endif
 
 	return 0;
 }
@@ -998,7 +996,7 @@ bool vcd_client_is_available(int pid)
 int vcd_client_get_ref_count()
 {
 	int count = 0;
-	
+
 	count = g_slist_length(g_client_list) + g_slist_length(g_widget_list);
 	if (0 < g_manager.pid) {
 		count++;
@@ -1013,7 +1011,7 @@ int vcd_client_get_list(int** pids, int* pid_count)
 {
 	if (NULL == pids || NULL == pid_count)
 		return -1;
-	
+
 	int count = g_slist_length(g_client_list);
 
 	if (0 == count)
@@ -1025,7 +1023,7 @@ int vcd_client_get_list(int** pids, int* pid_count)
 		SLOG(LOG_ERROR, TAG_VCD, "[ERROR] Fail to allocate memory");
 		return VCD_ERROR_OUT_OF_MEMORY;
 	}
-	
+
 	GSList *iter = NULL;
 	vc_client_info_s *data = NULL;
 	int i = 0;
@@ -1152,10 +1150,10 @@ GSList* __widget_get_item(int pid)
 
 	if (0 < count) {
 		iter = g_slist_nth(g_widget_list, 0);
-		for (i = 0;i < count;i++) {
+		for (i = 0; i < count; i++) {
 			data = iter->data;
 
-			if (pid == data->pid) 
+			if (pid == data->pid)
 				return iter;
 
 			iter = g_slist_next(iter);
@@ -1169,13 +1167,13 @@ widget_info_s* __widget_get_element(int pid)
 {
 	GSList *iter = NULL;
 	widget_info_s *data = NULL;
-	
+
 	int count = g_slist_length(g_widget_list);
 	int i;
 
 	if (0 < count) {
 		iter = g_slist_nth(g_widget_list, 0);
-		for (i = 0;i < count;i++) {
+		for (i = 0; i < count; i++) {
 			data = iter->data;
 
 			if (NULL != data) {
@@ -1261,7 +1259,7 @@ int vcd_client_widget_add(int pid)
 
 #ifdef CLIENT_DATA_DEBUG
 	__show_client_list();
-#endif 
+#endif
 	return 0;
 }
 
@@ -1289,7 +1287,7 @@ int vcd_client_widget_delete(int pid)
 
 #ifdef CLIENT_DATA_DEBUG
 	__show_client_list();
-#endif 
+#endif
 
 	return 0;
 }
@@ -1338,7 +1336,7 @@ int vcd_client_widget_set_command(int pid)
 	}
 
 	info->widget_cmd = true;
-	
+
 	return 0;
 }
 
@@ -1352,6 +1350,6 @@ int vcd_client_widget_unset_command(int pid)
 	}
 
 	info->widget_cmd = false;
-	
+
 	return 0;
 }

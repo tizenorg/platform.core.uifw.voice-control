@@ -35,7 +35,7 @@ typedef struct {
 
 	/* engine load info */
 	bool	is_set;
-	bool	is_loaded;	
+	bool	is_loaded;
 	bool	is_command_ready;
 	void	*handle;
 
@@ -61,7 +61,7 @@ typedef struct _vcengine_info {
 static bool g_agent_init;
 
 /** vc engine list */
-static GList *g_engine_list;		
+static GList *g_engine_list;
 
 /** current engine information */
 static vcengine_s g_dynamic_engine;
@@ -82,7 +82,7 @@ void __free_language_list(GList* lang_list);
 
 
 /*
-* Internal Interfaces 
+* Internal Interfaces
 */
 
 /** check engine id */
@@ -159,7 +159,7 @@ int vcd_engine_agent_release()
 	}
 
 	g_list_free(iter);
-	
+
 	/* release current engine data */
 	if (NULL != g_dynamic_engine.pefuncs)	free(g_dynamic_engine.pefuncs);
 	if (NULL != g_dynamic_engine.pdfuncs)	free(g_dynamic_engine.pdfuncs);
@@ -173,16 +173,16 @@ int vcd_engine_agent_release()
 
 bool vcd_engine_is_available_engine()
 {
-	if (true == g_dynamic_engine.is_loaded) 
+	if (true == g_dynamic_engine.is_loaded)
 		return true;
-	
+
 	return false;
 }
 
 int vcd_engine_agent_initialize_current_engine()
 {
 	/* check agent init */
-	if (false == g_agent_init ) {
+	if (false == g_agent_init) {
 		SLOG(LOG_ERROR, TAG_VCD, "[Engine Agent ERROR] Not Initialized");
 		return VCD_ERROR_OPERATION_FAILED;
 	}
@@ -238,7 +238,7 @@ int vcd_engine_agent_initialize_current_engine()
 		SLOG(LOG_DEBUG, TAG_VCD, " Dynamic engine name : %s", g_dynamic_engine.engine_name);
 		SLOG(LOG_DEBUG, TAG_VCD, " Dynamic engine path : %s", g_dynamic_engine.engine_path);
 		SLOG(LOG_DEBUG, TAG_VCD, "-----");
-		
+
 	}
 
 	return 0;
@@ -260,7 +260,7 @@ int __internal_check_engine_id(const char* engine_uuid)
 
 		while (NULL != iter) {
 			data = iter->data;
-			
+
 			if (0 == strncmp(engine_uuid, data->engine_uuid, strlen(data->engine_uuid))) {
 				return 0;
 			}
@@ -374,7 +374,7 @@ int __internal_update_engine_list()
 				if (NULL != data->engine_uuid)		free(data->engine_uuid);
 				if (NULL != data->engine_path)		free(data->engine_path);
 				if (NULL != data->engine_name)		free(data->engine_name);
-				
+
 				free(data);
 			}
 
@@ -430,14 +430,14 @@ int __internal_update_engine_list()
 	} else {
 		SLOG(LOG_WARN, TAG_VCD, "[Engine Agent WARNING] Fail to open default directory");
 	}
-	
+
 	if (0 >= g_list_length(g_engine_list)) {
 		SLOG(LOG_ERROR, TAG_VCD, "[Engine Agent ERROR] No Engine");
-		return VCD_ERROR_ENGINE_NOT_FOUND;	
+		return VCD_ERROR_ENGINE_NOT_FOUND;
 	}
 
 	__log_enginelist();
-	
+
 	return 0;
 }
 
@@ -521,7 +521,7 @@ int __load_engine(vcengine_s* engine)
 		return VCD_ERROR_OPERATION_FAILED;
 	}
 
-	SLOG(LOG_DEBUG, TAG_VCD, "[Engine Agent] engine info : version(%d), size(%d)",engine->pefuncs->version, engine->pefuncs->size);
+	SLOG(LOG_DEBUG, TAG_VCD, "[Engine Agent] engine info : version(%d), size(%d)", engine->pefuncs->version, engine->pefuncs->size);
 
 	/* engine error check */
 	if (engine->pefuncs->size != sizeof(vcpe_funcs_s)) {
@@ -548,7 +548,7 @@ int __load_engine(vcengine_s* engine)
 		SLOG(LOG_ERROR, TAG_VCD, "[Engine Agent ERROR] Fail to initialize vc-engine");
 		return VCD_ERROR_OPERATION_FAILED;
 	}
-	
+
 	if (0 != engine->pefuncs->set_result_cb(__result_cb, NULL)) {
 		SLOG(LOG_ERROR, TAG_VCD, "[Engine Agent ERROR] Fail to set result callback of vc-engine");
 		return VCD_ERROR_OPERATION_FAILED;
@@ -587,7 +587,7 @@ int vcd_engine_agent_load_current_engine()
 			SLOG(LOG_DEBUG, TAG_VCD, "[Engine Agent SUCCESS] Load dynamic engine");
 		}
 	}
-	
+
 	return 0;
 }
 
@@ -653,7 +653,7 @@ int vcd_engine_recognize_start(bool silence)
 
 	int ret = -1;
 	SLOG(LOG_DEBUG, TAG_VCD, "[Engine Agent] silence is %s", silence ? "true" : "false");
-	
+
 	if (true == g_dynamic_engine.is_loaded && true == g_dynamic_engine.is_command_ready) {
 		ret = g_dynamic_engine.pefuncs->start(silence);
 		if (0 != ret) {
@@ -729,7 +729,7 @@ int vcd_engine_recognize_cancel()
 		if (0 != ret) {
 			SLOG(LOG_ERROR, TAG_VCD, "[Engine Agent ERROR] Fail to cancel dynamic engine error(%d)", ret);
 		}
-	} 
+	}
 
 	return 0;
 }
@@ -803,7 +803,7 @@ int vcd_engine_supported_langs(GList** lang_list)
 		SLOG(LOG_ERROR, TAG_VCD, "[Engine Agent ERROR] get language list error(%d)", ret);
 		return VCD_ERROR_OPERATION_FAILED;
 	}
-	
+
 	return 0;
 }
 
@@ -846,7 +846,7 @@ int vcd_engine_set_current_language(const char* language)
 		ret = g_dynamic_engine.pefuncs->set_language(language);
 		if (0 != ret) {
 			SLOG(LOG_WARN, TAG_VCD, "[Engine Agent] Fail to set language of dynamic engine error(%d, %s)", ret, language);
-		} 
+		}
 	} else {
 		SLOG(LOG_DEBUG, TAG_VCD, "[Engine Agent] Dynamic engine is not available (Cannot start)");
 	}
@@ -869,7 +869,7 @@ void __free_language_list(GList* lang_list)
 
 			if (NULL != data)
 				free(data);
-			
+
 			lang_list = g_list_remove_link(lang_list, iter);
 
 			iter = g_list_first(lang_list);
@@ -889,7 +889,7 @@ int __log_enginelist()
 
 		SLOG(LOG_DEBUG, TAG_VCD, "--------------- engine list -------------------");
 
-		int i = 1;	
+		int i = 1;
 		while (NULL != iter) {
 			/* Get handle data from list */
 			data = iter->data;

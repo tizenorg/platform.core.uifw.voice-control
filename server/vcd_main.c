@@ -41,7 +41,7 @@ int main(int argc, char** argv)
 		perm_app_set_privilege("voice-control", NULL, NULL);
 	}
 
- 	if (0 != vcd_dbus_open_connection()) {
+	if (0 != vcd_dbus_open_connection()) {
 		SLOG(LOG_ERROR, TAG_VCD, "[ERROR] Fail to open connection");
 		return EXIT_FAILURE;
 	}

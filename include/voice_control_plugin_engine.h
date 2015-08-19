@@ -29,7 +29,7 @@
 extern "C" {
 #endif
 
-/** 
+/**
 * @brief Enumerations of error codes.
 */
 typedef enum {
@@ -42,7 +42,7 @@ typedef enum {
 	VCP_ERROR_INVALID_LANGUAGE	= -0x0100032,			/**< Invalid language */
 	VCP_ERROR_OPERATION_FAILED	= -0x0100034,			/**< Operation failed */
 	VCP_ERROR_NOT_SUPPORTED_FEATURE	= -0x0100035			/**< Not supported feature */
-}vcp_error_e;
+} vcp_error_e;
 
 /**
 * @brief Enumerations of audio type.
@@ -50,7 +50,7 @@ typedef enum {
 typedef enum {
 	VCP_AUDIO_TYPE_PCM_S16_LE = 0,	/**< Signed 16bit audio type, Little endian */
 	VCP_AUDIO_TYPE_PCM_U8		/**< Unsigned 8bit audio type */
-}vcp_audio_type_e;
+} vcp_audio_type_e;
 
 /**
 * @brief Enumerations of callback event.
@@ -59,7 +59,7 @@ typedef enum {
 	VCP_RESULT_EVENT_SUCCESS = 0,		/**< Event when the recognition full result is ready  */
 	VCP_RESULT_EVENT_REJECTED,		/**< Event when the recognition result is rejected */
 	VCP_RESULT_EVENT_ERROR			/**< Event when the recognition has failed */
-}vcp_result_event_e;
+} vcp_result_event_e;
 
 /**
 * @brief Enumerations of command type.
@@ -68,7 +68,7 @@ typedef enum {
 	VCP_COMMAND_TYPE_FIXED = 0,		/**< Fixed command */
 	VCP_COMMAND_TYPE_FIXED_AND_NON_FIXED,	/**< Fixed command + Non-fixed command */
 	VCP_COMMAND_TYPE_NON_FIXED_AND_FIXED	/**< Non-fixed command + Fixed command */
-}vcp_command_type_e;
+} vcp_command_type_e;
 
 /**
 * @brief Enumerations of speech detect.
@@ -77,14 +77,14 @@ typedef enum {
 	VCP_SPEECH_DETECT_NONE = 0,	/**< No event */
 	VCP_SPEECH_DETECT_BEGIN,	/**< Begin of speech detected */
 	VCP_SPEECH_DETECT_END,		/**< End of speech detected */
-}vcp_speech_detect_e;
+} vcp_speech_detect_e;
 
-/** 
+/**
 * @brief A structure of handle for VC command
 */
 typedef int vcp_cmd_h;
 
-/** 
+/**
  * @brief Defines of bluetooth audio id.
 */
 #define VCP_AUDIO_ID_BLUETOOTH		"VC_AUDIO_ID_BLUETOOTH"		/**< Bluetooth audio id */
@@ -100,9 +100,9 @@ typedef int vcp_cmd_h;
 #define VC_RESULT_MESSAGE_ERROR_TOO_LOUD	"vc.result.message.error.too.loud"
 
 
-/** 
+/**
 * @brief Called when the daemon gets synthesized result.
-* 
+*
 * @param[in] event A result event
 * @param[in] result_id Result ids
 * @param[in] count Result count
@@ -115,11 +115,11 @@ typedef int vcp_cmd_h;
 *
 * @see vcpe_stop()
 */
-typedef void (*vcpe_result_cb)(vcp_result_event_e event, int* result_id, int count, 
-			       const char* all_result, const char* non_fixed_result, const char* msg, void *user_data);
+typedef void (*vcpe_result_cb)(vcp_result_event_e event, int* result_id, int count, const char* all_result,
+							   const char* non_fixed_result, const char* msg, void *user_data);
 
 /**
-* @brief Called to retrieve the supported languages. 
+* @brief Called to retrieve the supported languages.
 *
 * @param[in] language A language is specified as an ISO 3166 alpha-2 two letter country-code
 *		followed by ISO 639-1 for the two-letter language code \n
@@ -128,7 +128,7 @@ typedef void (*vcpe_result_cb)(vcp_result_event_e event, int* result_id, int cou
 *
 * @return @c true to continue with the next iteration of the loop \n @c false to break out of the loop
 *
-* @pre vcpe_foreach_supported_languages() will invoke this callback. 
+* @pre vcpe_foreach_supported_languages() will invoke this callback.
 *
 * @see vcpe_foreach_supported_languages()
 */
@@ -145,7 +145,7 @@ typedef bool (*vcpe_supported_language_cb)(const char* language, void* user_data
 * @retval #VCP_ERROR_INVALID_PARAMETER Invalid parameter
 * @retval #VCP_ERROR_INVALID_STATE Already initialized
 * @retval #VCP_ERROR_OPERATION_FAILED Operation failed
-* 
+*
 * @see vcpe_deinitialize()
 */
 typedef int (* vcpe_initialize)(void);
@@ -156,7 +156,7 @@ typedef int (* vcpe_initialize)(void);
 * @return 0 on success, otherwise a negative error value
 * @retval #VCP_ERROR_NONE Successful
 * @retval #VCP_ERROR_INVALID_STATE Not initialized
-* 
+*
 * @see vcpe_initialize()
 */
 typedef void (* vcpe_deinitialize)(void);
@@ -200,7 +200,7 @@ typedef int (* vcpe_get_recording_format)(const char* audio_id, vcp_audio_type_e
 * @retval #VCP_ERROR_INVALID_PARAMETER Invalid parameter
 * @retval #VCP_ERROR_INVALID_STATE Not initialized
 *
-* @post	This function invokes vcpe_supported_language_cb() repeatedly for getting supported languages. 
+* @post	This function invokes vcpe_supported_language_cb() repeatedly for getting supported languages.
 *
 * @see vcpe_supported_language_cb()
 */
@@ -216,7 +216,7 @@ typedef int (* vcpe_foreach_supported_languages)(vcpe_supported_language_cb call
 typedef bool (* vcpe_is_language_supported)(const char* language);
 
 /**
-* @brief Sets language. 
+* @brief Sets language.
 *
 * @param[in] language language.
 *
@@ -232,7 +232,7 @@ typedef int (*vcpe_set_language)(const char* language);
 *
 * @remark This function should set commands via vcpd_foreach_command().
 *
-* @param[in] vcp_command command handle. 
+* @param[in] vcp_command command handle.
 *
 * @return 0 on success, otherwise a negative error value
 * @retval #VCP_ERROR_NONE Successful
@@ -282,10 +282,10 @@ typedef int (* vcpe_unset_commands)();
 typedef int (* vcpe_start)(bool stop_by_silence);
 
 /**
-* @brief Sets recording data for speech recognition from recorder. 
+* @brief Sets recording data for speech recognition from recorder.
 *
-* @remark This function should be returned immediately after recording data copy. 
-* 
+* @remark This function should be returned immediately after recording data copy.
+*
 * @param[in] data A recording data
 * @param[in] length A length of recording data
 * @param[out] silence_detected @c true Silence detected \n @c false No silence detected
@@ -342,7 +342,7 @@ typedef int (* vcpe_cancel)(void);
 */
 
 /**
-* @brief Called to retrieve the commands. 
+* @brief Called to retrieve the commands.
 *
 * @param[in] id command id
 * @param[in] type command type
@@ -352,7 +352,7 @@ typedef int (* vcpe_cancel)(void);
 * @param[in] user_data The user data passed from the foreach function
 *
 * @return @c true to continue with the next iteration of the loop, \n @c false to break out of the loop.
-* @pre vcpd_foreach_command() will invoke this callback. 
+* @pre vcpd_foreach_command() will invoke this callback.
 *
 * @see vcpd_foreach_command()
 */
@@ -371,7 +371,7 @@ typedef bool (* vcpd_foreach_command_cb)(int id, int type, const char* command, 
 * @retval #VCP_ERROR_OPERATION_FAILED Operation failure
 * @retval #VCP_ERROR_INVALID_STATE Invalid state
 *
-* @post	This function invokes vcpd_foreach_command_cb() repeatedly for getting commands. 
+* @post	This function invokes vcpd_foreach_command_cb() repeatedly for getting commands.
 *
 * @see vcpd_foreach_command_cb()
 * @see vcpe_set_commands()
@@ -443,7 +443,7 @@ typedef struct {
 } vcpd_funcs_s;
 
 /**
-* @brief Loads the engine. 
+* @brief Loads the engine.
 *
 * @param[in] pdfuncs The daemon functions
 * @param[out] pefuncs The engine functions
@@ -462,7 +462,7 @@ typedef struct {
 int vcp_load_engine(vcpd_funcs_s* pdfuncs, vcpe_funcs_s* pefuncs);
 
 /**
-* @brief Unloads this engine by the daemon. 
+* @brief Unloads this engine by the daemon.
 *
 * @pre The vcp_load_engine() should be successful.
 *
@@ -479,15 +479,15 @@ void vcp_unload_engine(void);
 * @param[in] use_network @c true to need network @c false not to need network.
 * @param[in] user_data The User data passed from vcp_get_engine_info()
 *
-* @pre vcp_get_engine_info() will invoke this callback. 
+* @pre vcp_get_engine_info() will invoke this callback.
 *
 * @see vcp_get_engine_info()
 */
-typedef void (*vcpe_engine_info_cb)(const char* engine_uuid, const char* engine_name, const char* engine_setting, 
-				    bool use_network, void* user_data);
+typedef void (*vcpe_engine_info_cb)(const char* engine_uuid, const char* engine_name, const char* engine_setting,
+									bool use_network, void* user_data);
 
 /**
-* @brief Gets the engine base information before the engine is loaded by the daemon. 
+* @brief Gets the engine base information before the engine is loaded by the daemon.
 *
 * @param[in] callback Callback function
 * @param[in] user_data User data to be passed to the callback function

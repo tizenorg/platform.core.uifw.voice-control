@@ -133,8 +133,8 @@ int vc_cmd_parser_save_file(int pid, vc_cmd_type_e type, GSList* cmd_list)
 	doc->encoding = (const xmlChar*)"utf-8";
 	doc->charset = 1;
 
-	root_node = xmlNewNode(NULL,(const xmlChar*)VC_TAG_CMD_BASE_TAG);
-	xmlDocSetRootElement(doc,root_node);
+	root_node = xmlNewNode(NULL, (const xmlChar*)VC_TAG_CMD_BASE_TAG);
+	xmlDocSetRootElement(doc, root_node);
 
 	GSList *iter = NULL;
 	vc_cmd_s *temp_cmd;
@@ -144,10 +144,10 @@ int vc_cmd_parser_save_file(int pid, vc_cmd_type_e type, GSList* cmd_list)
 	iter = g_slist_nth(cmd_list, 0);
 
 	SLOG(LOG_DEBUG, vc_info_tag(), "list count : %d", count);
-	char temp[16];
+	char temp[16] = {0, };
 	int selected_count = 0;
 
-	for (i = 0;i < count;i++) {
+	for (i = 0; i < count; i++) {
 		temp_cmd = iter->data;
 
 		if (NULL == temp_cmd) {
@@ -156,33 +156,33 @@ int vc_cmd_parser_save_file(int pid, vc_cmd_type_e type, GSList* cmd_list)
 		}
 
 		if (type == temp_cmd->type) {
-			SLOG(LOG_DEBUG, vc_info_tag(), "[%dth] type(%d) format(%d) domain(%d) cmd(%s) param(%s)", 
-				i, temp_cmd->type, temp_cmd->format, temp_cmd->domain, temp_cmd->command, temp_cmd->parameter);
+			SLOG(LOG_DEBUG, vc_info_tag(), "[%dth] type(%d) format(%d) domain(%d) cmd(%s) param(%s)",
+				 i, temp_cmd->type, temp_cmd->format, temp_cmd->domain, temp_cmd->command, temp_cmd->parameter);
 
 			/* Make new command node */
-			cmd_node = xmlNewNode(NULL,(const xmlChar*)VC_TAG_CMD_COMMAND);
+			cmd_node = xmlNewNode(NULL, (const xmlChar*)VC_TAG_CMD_COMMAND);
 
 			/* ID */
 			memset(temp, 0, 16);
 			snprintf(temp, 16, "%d", i);
 
-			tmp_node = xmlNewNode(NULL,(const xmlChar*)VC_TAG_CMD_ID);
+			tmp_node = xmlNewNode(NULL, (const xmlChar*)VC_TAG_CMD_ID);
 			xmlNodeSetContent(tmp_node, (const xmlChar *)temp);
 			xmlAddChild(cmd_node, tmp_node);
 
 			/* PID */
 			memset(temp, 0, 16);
 			snprintf(temp, 16, "%d", getpid());
-			
-			tmp_node = xmlNewNode(NULL,(const xmlChar*)VC_TAG_CMD_PID);
+
+			tmp_node = xmlNewNode(NULL, (const xmlChar*)VC_TAG_CMD_PID);
 			xmlNodeSetContent(tmp_node, (const xmlChar *)temp);
 			xmlAddChild(cmd_node, tmp_node);
-			
+
 			/* TYPE */
 			memset(temp, 0, 16);
 			snprintf(temp, 16, "%d", temp_cmd->type);
 
-			tmp_node = xmlNewNode(NULL,(const xmlChar*)VC_TAG_CMD_TYPE);
+			tmp_node = xmlNewNode(NULL, (const xmlChar*)VC_TAG_CMD_TYPE);
 			xmlNodeSetContent(tmp_node, (const xmlChar *)temp);
 			xmlAddChild(cmd_node, tmp_node);
 
@@ -190,7 +190,7 @@ int vc_cmd_parser_save_file(int pid, vc_cmd_type_e type, GSList* cmd_list)
 			memset(temp, 0, 16);
 			snprintf(temp, 16, "%d", temp_cmd->format);
 
-			tmp_node = xmlNewNode(NULL,(const xmlChar*)VC_TAG_CMD_FORMAT);
+			tmp_node = xmlNewNode(NULL, (const xmlChar*)VC_TAG_CMD_FORMAT);
 			xmlNodeSetContent(tmp_node, (const xmlChar *)temp);
 			xmlAddChild(cmd_node, tmp_node);
 
@@ -198,17 +198,17 @@ int vc_cmd_parser_save_file(int pid, vc_cmd_type_e type, GSList* cmd_list)
 			memset(temp, 0, 16);
 			snprintf(temp, 16, "%d", temp_cmd->domain);
 
-			tmp_node = xmlNewNode(NULL,(const xmlChar*)VC_TAG_CMD_DOMAIN);
+			tmp_node = xmlNewNode(NULL, (const xmlChar*)VC_TAG_CMD_DOMAIN);
 			xmlNodeSetContent(tmp_node, (const xmlChar *)temp);
 			xmlAddChild(cmd_node, tmp_node);
 
 			/* COMMAND */
-			tmp_node = xmlNewNode(NULL,(const xmlChar*)VC_TAG_CMD_COMMAND_TEXT);
+			tmp_node = xmlNewNode(NULL, (const xmlChar*)VC_TAG_CMD_COMMAND_TEXT);
 			xmlNodeSetContent(tmp_node, (const xmlChar *)temp_cmd->command);
 			xmlAddChild(cmd_node, tmp_node);
 
 			/* PARAMETER */
-			tmp_node = xmlNewNode(NULL,(const xmlChar*)VC_TAG_CMD_PARAMETER_TEXT);
+			tmp_node = xmlNewNode(NULL, (const xmlChar*)VC_TAG_CMD_PARAMETER_TEXT);
 			xmlNodeSetContent(tmp_node, (const xmlChar *)temp_cmd->parameter);
 			xmlAddChild(cmd_node, tmp_node);
 
@@ -237,7 +237,7 @@ int vc_cmd_parser_save_file(int pid, vc_cmd_type_e type, GSList* cmd_list)
 		free(filepath);
 	} else {
 		free(filepath);
-		
+
 		SLOG(LOG_DEBUG, vc_info_tag(), "No command");
 		return -1;
 	}
@@ -313,7 +313,7 @@ int vc_cmd_parser_get_commands(int pid, vc_cmd_type_e type, GSList** cmd_list)
 
 		vc_cmd_s* temp_cmd;
 		temp_cmd = (vc_cmd_s*)calloc(1, sizeof(vc_cmd_s));
-		
+
 		if (NULL == temp_cmd) {
 			SLOG(LOG_ERROR, vc_info_tag(), "[ERROR] Memory alloc error!!");
 			return -1;
@@ -335,7 +335,7 @@ int vc_cmd_parser_get_commands(int pid, vc_cmd_type_e type, GSList** cmd_list)
 
 		command_node = command_node->next;
 		command_node = command_node->next;
-		
+
 		/* PID */
 		if (0 == xmlStrcmp(command_node->name, (const xmlChar *)VC_TAG_CMD_PID)) {
 			key = xmlNodeGetContent(command_node);
@@ -400,7 +400,7 @@ int vc_cmd_parser_get_commands(int pid, vc_cmd_type_e type, GSList** cmd_list)
 				break;
 			}
 		}
-		
+
 		command_node = command_node->next;
 		command_node = command_node->next;
 
@@ -455,7 +455,7 @@ int vc_cmd_parser_get_commands(int pid, vc_cmd_type_e type, GSList** cmd_list)
 	xmlFreeDoc(doc);
 
 	*cmd_list = temp_cmd_list;
-	
+
 	__vc_cmd_parser_print_commands(temp_cmd_list);
 
 	return 0;
@@ -522,7 +522,7 @@ int vc_cmd_parser_append_commands(int pid, vc_cmd_type_e type, vc_cmd_list_h vc_
 		if (0 == xmlStrcmp(command_node->name, (const xmlChar *)VC_TAG_CMD_ID)) {
 			key = xmlNodeGetContent(command_node);
 			if (NULL != key) {
-				//SLOG(LOG_DEBUG, vc_info_tag(), "ID : %s", (char *)key);
+				/*SLOG(LOG_DEBUG, vc_info_tag(), "ID : %s", (char *)key); */
 				vc_cmd_set_id(temp_command, atoi((char*)key));
 				xmlFree(key);
 			} else {
@@ -539,7 +539,7 @@ int vc_cmd_parser_append_commands(int pid, vc_cmd_type_e type, vc_cmd_list_h vc_
 		if (0 == xmlStrcmp(command_node->name, (const xmlChar *)VC_TAG_CMD_PID)) {
 			key = xmlNodeGetContent(command_node);
 			if (NULL != key) {
-				//SLOG(LOG_DEBUG, vc_info_tag(), "PID : %s", (char *)key);
+				/*SLOG(LOG_DEBUG, vc_info_tag(), "PID : %s", (char *)key); */
 				vc_cmd_set_pid(temp_command, atoi((char*)key));
 				xmlFree(key);
 			} else {
@@ -556,7 +556,7 @@ int vc_cmd_parser_append_commands(int pid, vc_cmd_type_e type, vc_cmd_list_h vc_
 		if (0 == xmlStrcmp(command_node->name, (const xmlChar *)VC_TAG_CMD_TYPE)) {
 			key = xmlNodeGetContent(command_node);
 			if (NULL != key) {
-				//SLOG(LOG_DEBUG, vc_info_tag(), "Type : %s", (char *)key);
+				/*SLOG(LOG_DEBUG, vc_info_tag(), "Type : %s", (char *)key); */
 				vc_cmd_set_type(temp_command, atoi((char*)key));
 				xmlFree(key);
 			} else {
@@ -573,7 +573,7 @@ int vc_cmd_parser_append_commands(int pid, vc_cmd_type_e type, vc_cmd_list_h vc_
 		if (0 == xmlStrcmp(command_node->name, (const xmlChar *)VC_TAG_CMD_FORMAT)) {
 			key = xmlNodeGetContent(command_node);
 			if (NULL != key) {
-				//SLOG(LOG_DEBUG, vc_info_tag(), "Format : %s", (char *)key);
+				/*SLOG(LOG_DEBUG, vc_info_tag(), "Format : %s", (char *)key); */
 				vc_cmd_set_format(temp_command, atoi((char*)key));
 				xmlFree(key);
 			} else {
@@ -590,7 +590,7 @@ int vc_cmd_parser_append_commands(int pid, vc_cmd_type_e type, vc_cmd_list_h vc_
 		if (0 == xmlStrcmp(command_node->name, (const xmlChar *)VC_TAG_CMD_DOMAIN)) {
 			key = xmlNodeGetContent(command_node);
 			if (NULL != key) {
-				//SLOG(LOG_DEBUG, vc_info_tag(), "Domain : %s", (char *)key);
+				/*SLOG(LOG_DEBUG, vc_info_tag(), "Domain : %s", (char *)key); */
 				vc_cmd_set_domain(temp_command, atoi((char*)key));
 				xmlFree(key);
 			} else {
@@ -599,7 +599,7 @@ int vc_cmd_parser_append_commands(int pid, vc_cmd_type_e type, vc_cmd_list_h vc_
 				break;
 			}
 		}
-		
+
 		command_node = command_node->next;
 		command_node = command_node->next;
 
@@ -607,9 +607,9 @@ int vc_cmd_parser_append_commands(int pid, vc_cmd_type_e type, vc_cmd_list_h vc_
 		if (0 == xmlStrcmp(command_node->name, (const xmlChar *)VC_TAG_CMD_COMMAND_TEXT)) {
 			key = xmlNodeGetContent(command_node);
 			if (NULL != key) {
-				//SLOG(LOG_DEBUG, vc_info_tag(), "Command : %s, size : %d", (char *)key, strlen(key));
+				/*SLOG(LOG_DEBUG, vc_info_tag(), "Command : %s, size : %d", (char *)key, strlen(key)); */
 				vc_cmd_set_command(temp_command, (char*)key);
-			
+
 				xmlFree(key);
 			} else {
 				SLOG(LOG_ERROR, vc_info_tag(), "[ERROR] <%s> has no content", VC_TAG_CMD_COMMAND_TEXT);
@@ -625,8 +625,8 @@ int vc_cmd_parser_append_commands(int pid, vc_cmd_type_e type, vc_cmd_list_h vc_
 		if (0 == xmlStrcmp(command_node->name, (const xmlChar *)VC_TAG_CMD_PARAMETER_TEXT)) {
 			key = xmlNodeGetContent(command_node);
 			if (NULL != key) {
-				//SLOG(LOG_DEBUG, vc_info_tag(), "Parameter : %s , size : %d", (char *)key, strlen(key));
-				//vc_cmd_set_parameter(temp_command, (char*)key);
+				/*SLOG(LOG_DEBUG, vc_info_tag(), "Parameter : %s , size : %d", (char *)key, strlen(key)); */
+				/*vc_cmd_set_parameter(temp_command, (char*)key); */
 				vc_cmd_set_unfixed_command(temp_command, (char*)key);
 				xmlFree(key);
 			} else {
@@ -694,7 +694,7 @@ int vc_info_parser_get_demandable_clients(GSList** client_list)
 
 				vc_demandable_client_s* temp_client;
 				temp_client = (vc_demandable_client_s*)calloc(1, sizeof(vc_demandable_client_s));
-				
+
 				if (NULL == temp_client) {
 					SLOG(LOG_ERROR, vc_info_tag(), "[ERROR] Memory alloc error!!");
 					return -1;
@@ -718,7 +718,7 @@ int vc_info_parser_get_demandable_clients(GSList** client_list)
 
 	xmlFreeDoc(doc);
 
-	*client_list = temp_client_list;		
+	*client_list = temp_client_list;
 
 	remove(VC_RUNTIME_INFO_DEMANDABLE_LIST);
 
@@ -793,7 +793,7 @@ int vc_info_parser_set_result(const char* result_text, int event, const char* ms
 	} else {
 		snprintf(filepath, 256, "%s", VC_RUNTIME_INFO_EX_RESULT);
 	}
-	
+
 	SLOG(LOG_DEBUG, vc_info_tag(), "Result file path : %s", filepath);
 
 	/* Check file */
@@ -810,23 +810,23 @@ int vc_info_parser_set_result(const char* result_text, int event, const char* ms
 	doc->encoding = (const xmlChar*)"utf-8";
 	doc->charset = 1;
 
-	root_node = xmlNewNode(NULL,(const xmlChar*)VC_TAG_RESULT_BASE_TAG);
-	xmlDocSetRootElement(doc,root_node);
+	root_node = xmlNewNode(NULL, (const xmlChar*)VC_TAG_RESULT_BASE_TAG);
+	xmlDocSetRootElement(doc, root_node);
 
-	tmp_node = xmlNewNode(NULL,(const xmlChar*)VC_TAG_RESULT_TEXT);
+	tmp_node = xmlNewNode(NULL, (const xmlChar*)VC_TAG_RESULT_TEXT);
 	xmlNodeSetContent(tmp_node, (const xmlChar *)result_text);
 	xmlAddChild(root_node, tmp_node);
 
 	memset(temp, 0, 16);
 	snprintf(temp, 16, "%d", event);
 
-	tmp_node = xmlNewNode(NULL,(const xmlChar*)VC_TAG_RESULT_EVENT);
+	tmp_node = xmlNewNode(NULL, (const xmlChar*)VC_TAG_RESULT_EVENT);
 	xmlNodeSetContent(tmp_node, (const xmlChar *)temp);
 	xmlAddChild(root_node, tmp_node);
 
-	tmp_node = xmlNewNode(NULL,(const xmlChar*)VC_TAG_RESULT_MESSAGE);
+	tmp_node = xmlNewNode(NULL, (const xmlChar*)VC_TAG_RESULT_MESSAGE);
 	xmlNodeSetContent(tmp_node, (const xmlChar *)msg);
-	xmlAddChild(root_node, tmp_node);	
+	xmlAddChild(root_node, tmp_node);
 
 	/* Make client list node */
 	vc_cmd_h vc_command = NULL;
@@ -848,16 +848,16 @@ int vc_info_parser_set_result(const char* result_text, int event, const char* ms
 
 		/* Make new command node */
 		cmd_node = xmlNewNode(NULL, (const xmlChar*)VC_TAG_CMD_COMMAND);
-		
-		SLOG(LOG_DEBUG, vc_info_tag(), "[Result info] ID(%d) PID(%d) type(%d) format(%d) domain(%d) cmd(%s) param(%s)", 
-			temp_cmd->id, temp_cmd->pid, temp_cmd->type, temp_cmd->format, temp_cmd->domain, temp_cmd->command, temp_cmd->parameter);
+
+		SLOG(LOG_DEBUG, vc_info_tag(), "[Result info] ID(%d) PID(%d) type(%d) format(%d) domain(%d) cmd(%s) param(%s)",
+			 temp_cmd->id, temp_cmd->pid, temp_cmd->type, temp_cmd->format, temp_cmd->domain, temp_cmd->command, temp_cmd->parameter);
 
 
 		/* ID */
 		memset(temp, 0, 16);
 		snprintf(temp, 16, "%d", temp_cmd->id);
 
-		tmp_node = xmlNewNode(NULL,(const xmlChar*)VC_TAG_CMD_ID);
+		tmp_node = xmlNewNode(NULL, (const xmlChar*)VC_TAG_CMD_ID);
 		xmlNodeSetContent(tmp_node, (const xmlChar *)temp);
 		xmlAddChild(cmd_node, tmp_node);
 
@@ -865,7 +865,7 @@ int vc_info_parser_set_result(const char* result_text, int event, const char* ms
 		memset(temp, 0, 16);
 		snprintf(temp, 16, "%d", temp_cmd->pid);
 
-		tmp_node = xmlNewNode(NULL,(const xmlChar*)VC_TAG_CMD_PID);
+		tmp_node = xmlNewNode(NULL, (const xmlChar*)VC_TAG_CMD_PID);
 		xmlNodeSetContent(tmp_node, (const xmlChar *)temp);
 		xmlAddChild(cmd_node, tmp_node);
 
@@ -873,7 +873,7 @@ int vc_info_parser_set_result(const char* result_text, int event, const char* ms
 		memset(temp, 0, 16);
 		snprintf(temp, 16, "%d", temp_cmd->type);
 
-		tmp_node = xmlNewNode(NULL,(const xmlChar*)VC_TAG_CMD_TYPE);
+		tmp_node = xmlNewNode(NULL, (const xmlChar*)VC_TAG_CMD_TYPE);
 		xmlNodeSetContent(tmp_node, (const xmlChar *)temp);
 		xmlAddChild(cmd_node, tmp_node);
 
@@ -881,7 +881,7 @@ int vc_info_parser_set_result(const char* result_text, int event, const char* ms
 		memset(temp, 0, 16);
 		snprintf(temp, 16, "%d", temp_cmd->format);
 
-		tmp_node = xmlNewNode(NULL,(const xmlChar*)VC_TAG_CMD_FORMAT);
+		tmp_node = xmlNewNode(NULL, (const xmlChar*)VC_TAG_CMD_FORMAT);
 		xmlNodeSetContent(tmp_node, (const xmlChar *)temp);
 		xmlAddChild(cmd_node, tmp_node);
 
@@ -889,17 +889,17 @@ int vc_info_parser_set_result(const char* result_text, int event, const char* ms
 		memset(temp, 0, 16);
 		snprintf(temp, 16, "%d", temp_cmd->domain);
 
-		tmp_node = xmlNewNode(NULL,(const xmlChar*)VC_TAG_CMD_DOMAIN);
+		tmp_node = xmlNewNode(NULL, (const xmlChar*)VC_TAG_CMD_DOMAIN);
 		xmlNodeSetContent(tmp_node, (const xmlChar *)temp);
 		xmlAddChild(cmd_node, tmp_node);
 
 		/* COMMAND */
-		tmp_node = xmlNewNode(NULL,(const xmlChar*)VC_TAG_CMD_COMMAND_TEXT);
+		tmp_node = xmlNewNode(NULL, (const xmlChar*)VC_TAG_CMD_COMMAND_TEXT);
 		xmlNodeSetContent(tmp_node, (const xmlChar *)temp_cmd->command);
 		xmlAddChild(cmd_node, tmp_node);
 
 		/* PARAMETER */
-		tmp_node = xmlNewNode(NULL,(const xmlChar*)VC_TAG_CMD_PARAMETER_TEXT);
+		tmp_node = xmlNewNode(NULL, (const xmlChar*)VC_TAG_CMD_PARAMETER_TEXT);
 		xmlNodeSetContent(tmp_node, (const xmlChar *)temp_cmd->parameter);
 		xmlAddChild(cmd_node, tmp_node);
 
@@ -933,7 +933,7 @@ int vc_info_parser_get_result(char** result_text, int* event, char** result_mess
 	} else {
 		snprintf(filepath, 256, "%s", VC_RUNTIME_INFO_EX_RESULT);
 	}
-	
+
 	SLOG(LOG_DEBUG, vc_info_tag(), "Result file path : %s", filepath);
 
 	xmlDocPtr doc = NULL;
@@ -972,7 +972,7 @@ int vc_info_parser_get_result(char** result_text, int* event, char** result_mess
 		xmlFreeDoc(doc);
 		return -1;
 	}
-	
+
 	/* Result text */
 	if (0 == xmlStrcmp(cur->name, (const xmlChar *)VC_TAG_RESULT_TEXT)) {
 		key = xmlNodeGetContent(cur);
@@ -1014,7 +1014,7 @@ int vc_info_parser_get_result(char** result_text, int* event, char** result_mess
 		xmlFreeDoc(doc);
 		return -1;
 	}
-	
+
 	/* Result Message */
 	if (result_message != NULL) {
 		if (0 == xmlStrcmp(cur->name, (const xmlChar *)VC_TAG_RESULT_MESSAGE)) {
@@ -1040,7 +1040,7 @@ int vc_info_parser_get_result(char** result_text, int* event, char** result_mess
 		} else if (0 == xmlStrcmp(cur->name, (const xmlChar *)"text")) {
 			continue;
 		}
-		
+
 		SLOG(LOG_ERROR, vc_info_tag(), "111 : %s", cur->name);
 
 		/* Check Command tag */
@@ -1055,7 +1055,7 @@ int vc_info_parser_get_result(char** result_text, int* event, char** result_mess
 
 		vc_cmd_s* temp_cmd = NULL;
 		temp_cmd = (vc_cmd_s*)vc_command;
-		
+
 		if (NULL == temp_cmd) {
 			SLOG(LOG_ERROR, vc_info_tag(), "[ERROR] Memory alloc error!!");
 			return -1;
@@ -1149,7 +1149,7 @@ int vc_info_parser_get_result(char** result_text, int* event, char** result_mess
 				return -1;
 			}
 		}
-		
+
 		command_node = command_node->next;
 		command_node = command_node->next;
 
@@ -1269,8 +1269,7 @@ int vc_info_parser_get_result_pid_list(GSList** pid_list)
 		cur = cur->next;
 		if (NULL == cur) {
 			break;
-		}
-		else if (0 == xmlStrcmp(cur->name, (const xmlChar *)"text")) {
+		} else if (0 == xmlStrcmp(cur->name, (const xmlChar *)"text")) {
 			continue;
 		}
 
@@ -1306,8 +1305,7 @@ int vc_info_parser_get_result_pid_list(GSList** pid_list)
 				SLOG(LOG_DEBUG, vc_info_tag(), "PID : %s", (char *)key);
 				temp_cmd->pid = atoi((char*)key);
 				xmlFree(key);
-			}
-			else {
+			} else {
 				SLOG(LOG_ERROR, vc_info_tag(), "[ERROR] <%s> has no content", VC_TAG_CMD_PID);
 				free(temp_cmd);
 				break;
@@ -1324,8 +1322,7 @@ int vc_info_parser_get_result_pid_list(GSList** pid_list)
 				SLOG(LOG_DEBUG, vc_info_tag(), "Type : %s", (char *)key);
 				temp_cmd->type = atoi((char*)key);
 				xmlFree(key);
-			}
-			else {
+			} else {
 				SECURE_SLOG(LOG_ERROR, vc_info_tag(), "[ERROR] <%s> has no content", VC_TAG_CMD_TYPE);
 				free(temp_cmd);
 				return -1;
@@ -1381,7 +1378,7 @@ int vc_info_parser_set_client_info(GSList* client_info_list)
 	doc->encoding = (const xmlChar*)"utf-8";
 	doc->charset = 1;
 
-	root_node = xmlNewNode(NULL,(const xmlChar*)VC_TAG_CLIENT_BASE_TAG);
+	root_node = xmlNewNode(NULL, (const xmlChar*)VC_TAG_CLIENT_BASE_TAG);
 	xmlDocSetRootElement(doc, root_node);
 
 	GSList *iter = NULL;
@@ -1394,51 +1391,51 @@ int vc_info_parser_set_client_info(GSList* client_info_list)
 	SLOG(LOG_DEBUG, vc_info_tag(), "client count : %d", count);
 	char temp[16] = {0, };
 
-	for (i = 0;i < count;i++) {
+	for (i = 0; i < count; i++) {
 		client = iter->data;
 
 		if (NULL != client) {
-			SLOG(LOG_DEBUG, vc_info_tag(), "[%dth] pid(%d) fgcmd(%d) bgcmd(%d) excmd(%d)", 
-				i, client->pid, client->fg_cmd, client->bg_cmd, client->exclusive_cmd);
+			SLOG(LOG_DEBUG, vc_info_tag(), "[%dth] pid(%d) fgcmd(%d) bgcmd(%d) excmd(%d)",
+				 i, client->pid, client->fg_cmd, client->bg_cmd, client->exclusive_cmd);
 
 			/* Make new client node */
-			client_node = xmlNewNode(NULL,(const xmlChar*)VC_TAG_CLIENT_CLIENT);
+			client_node = xmlNewNode(NULL, (const xmlChar*)VC_TAG_CLIENT_CLIENT);
 
 			memset(temp, 0, 16);
 			snprintf(temp, 16, "%d", client->pid);
 
-			tmp_node = xmlNewNode(NULL,(const xmlChar*)VC_TAG_CLIENT_PID);
+			tmp_node = xmlNewNode(NULL, (const xmlChar*)VC_TAG_CLIENT_PID);
 			xmlNodeSetContent(tmp_node, (const xmlChar *)temp);
 			xmlAddChild(client_node, tmp_node);
 
 			memset(temp, 0, 16);
 			snprintf(temp, 16, "%d", client->fg_cmd);
 
-			tmp_node = xmlNewNode(NULL,(const xmlChar*)VC_TAG_CLIENT_FGCMD);
+			tmp_node = xmlNewNode(NULL, (const xmlChar*)VC_TAG_CLIENT_FGCMD);
 			xmlNodeSetContent(tmp_node, (const xmlChar *)temp);
 			xmlAddChild(client_node, tmp_node);
 
 			memset(temp, 0, 16);
 			snprintf(temp, 16, "%d", client->bg_cmd);
 
-			tmp_node = xmlNewNode(NULL,(const xmlChar*)VC_TAG_CLIENT_BGCMD);
+			tmp_node = xmlNewNode(NULL, (const xmlChar*)VC_TAG_CLIENT_BGCMD);
 			xmlNodeSetContent(tmp_node, (const xmlChar *)temp);
 			xmlAddChild(client_node, tmp_node);
 
 			memset(temp, 0, 16);
 			snprintf(temp, 16, "%d", client->exclusive_cmd);
 
-			tmp_node = xmlNewNode(NULL,(const xmlChar*)VC_TAG_CLIENT_EXCMD);
+			tmp_node = xmlNewNode(NULL, (const xmlChar*)VC_TAG_CLIENT_EXCMD);
 			xmlNodeSetContent(tmp_node, (const xmlChar *)temp);
 			xmlAddChild(client_node, tmp_node);
 
 			xmlAddChild(root_node, client_node);
-		} 
+		}
 		iter = g_slist_next(iter);
 	}
 
 	int ret = xmlSaveFormatFile(VC_RUNTIME_INFO_CLIENT, doc, 1);
-	//xmlFreeDoc(doc);
+	/*xmlFreeDoc(doc); */
 	if (0 >= ret) {
 		SLOG(LOG_DEBUG, vc_info_tag(), "[ERROR] Fail to save client file : %d", ret);
 		return -1;
@@ -1498,7 +1495,7 @@ int vc_info_parser_get_client_info(GSList** client_info_list)
 
 		vc_client_info_s *client = NULL;
 		client = (vc_client_info_s*)calloc(1, sizeof(vc_client_info_s));
-		
+
 		if (NULL == client) {
 			SLOG(LOG_ERROR, vc_info_tag(), "[ERROR] Memory alloc error!!");
 			return -1;
@@ -1551,7 +1548,7 @@ int vc_info_parser_get_client_info(GSList** client_info_list)
 				break;
 			}
 		}
-		
+
 		client_node = client_node->next;
 		client_node = client_node->next;
 
@@ -1588,7 +1585,7 @@ int __vc_cmd_parser_print_commands(GSList* cmd_list)
 
 	iter = g_slist_nth(cmd_list, 0);
 
-	for (i = 0;i < count;i++) {
+	for (i = 0; i < count; i++) {
 		temp_cmd = iter->data;
 
 		if (NULL == temp_cmd) {
@@ -1598,8 +1595,8 @@ int __vc_cmd_parser_print_commands(GSList* cmd_list)
 		}
 
 		SLOG(LOG_DEBUG, vc_info_tag(), "  [%d][%p] PID(%d) ID(%d) Type(%d) Format(%d) Domain(%d)  Command(%s) Param(%s)",
-				i, temp_cmd, temp_cmd->pid, temp_cmd->index, temp_cmd->type, temp_cmd->format, temp_cmd->domain,
-				temp_cmd->command, temp_cmd->parameter);
+			 i, temp_cmd, temp_cmd->pid, temp_cmd->index, temp_cmd->type, temp_cmd->format, temp_cmd->domain,
+			 temp_cmd->command, temp_cmd->parameter);
 
 		iter = g_slist_next(iter);
 

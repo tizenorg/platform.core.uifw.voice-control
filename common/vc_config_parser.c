@@ -123,7 +123,7 @@ int vc_parser_get_engine_info(const char* path, vc_engine_info_s** engine_info)
 		if (0 == xmlStrcmp(cur->name, (const xmlChar *)VC_TAG_ENGINE_NAME)) {
 			key = xmlNodeGetContent(cur);
 			if (NULL != key) {
-				// SLOG(LOG_DEBUG, vc_config_tag(), "Engine name : %s", (char *)key);
+				/* SLOG(LOG_DEBUG, vc_config_tag(), "Engine name : %s", (char *)key); */
 				if (NULL != temp->name)	free(temp->name);
 				temp->name = strdup((char*)key);
 				xmlFree(key);
@@ -133,7 +133,7 @@ int vc_parser_get_engine_info(const char* path, vc_engine_info_s** engine_info)
 		} else if (0 == xmlStrcmp(cur->name, (const xmlChar *)VC_TAG_ENGINE_ID)) {
 			key = xmlNodeGetContent(cur);
 			if (NULL != key) {
-				// SLOG(LOG_DEBUG, vc_config_tag(), "Engine uuid : %s", (char *)key);
+				/* SLOG(LOG_DEBUG, vc_config_tag(), "Engine uuid : %s", (char *)key); */
 				if (NULL != temp->uuid)	free(temp->uuid);
 				temp->uuid = strdup((char*)key);
 				xmlFree(key);
@@ -147,10 +147,10 @@ int vc_parser_get_engine_info(const char* path, vc_engine_info_s** engine_info)
 			lang_node = cur->xmlChildrenNode;
 
 			while (lang_node != NULL) {
-				if (0 == xmlStrcmp(lang_node->name, (const xmlChar *)VC_TAG_ENGINE_LANGUAGE)){
+				if (0 == xmlStrcmp(lang_node->name, (const xmlChar *)VC_TAG_ENGINE_LANGUAGE)) {
 					key = xmlNodeGetContent(lang_node);
 					if (NULL != key) {
-						// SLOG(LOG_DEBUG, vc_config_tag(), "language : %s", (char *)key);
+						/* SLOG(LOG_DEBUG, vc_config_tag(), "language : %s", (char *)key); */
 						temp_lang = strdup((char*)key);
 						temp->languages = g_slist_append(temp->languages, temp_lang);
 						xmlFree(key);
@@ -164,7 +164,7 @@ int vc_parser_get_engine_info(const char* path, vc_engine_info_s** engine_info)
 		} else if (0 == xmlStrcmp(cur->name, (const xmlChar *)VC_TAG_ENGINE_NON_FIXED_SUPPORT)) {
 			key = xmlNodeGetContent(cur);
 			if (NULL != key) {
-				// SLOG(LOG_DEBUG, vc_config_tag(), "Engine uuid : %s", (char *)key);
+				/* SLOG(LOG_DEBUG, vc_config_tag(), "Engine uuid : %s", (char *)key); */
 
 				if (0 == xmlStrcmp(key, (const xmlChar *)"true")) {
 					temp->non_fixed_support = true;
@@ -214,7 +214,7 @@ int vc_parser_free_engine_info(vc_engine_info_s* engine_info)
 	int i ;
 	char *temp_lang;
 
-	for (i = 0;i < count ;i++) {
+	for (i = 0; i < count ; i++) {
 		temp_lang = g_slist_nth_data(engine_info->languages, 0);
 
 		if (NULL != temp_lang) {
@@ -222,12 +222,12 @@ int vc_parser_free_engine_info(vc_engine_info_s* engine_info)
 
 			if (NULL != temp_lang)
 				free(temp_lang);
-		} 
+		}
 	}
 
 	if (NULL != engine_info)	free(engine_info);
 
-	return 0;	
+	return 0;
 }
 
 int vc_parser_print_engine_info(vc_engine_info_s* engine_info)
@@ -237,7 +237,7 @@ int vc_parser_print_engine_info(vc_engine_info_s* engine_info)
 
 	SLOG(LOG_DEBUG, vc_config_tag(), "== engine info ==");
 	SLOG(LOG_DEBUG, vc_config_tag(), " id   : %s", engine_info->uuid);
-	
+
 	SLOG(LOG_DEBUG, vc_config_tag(), " languages");
 	GSList *iter = NULL;
 	char* lang;
@@ -245,7 +245,7 @@ int vc_parser_print_engine_info(vc_engine_info_s* engine_info)
 		/* Get a first item */
 		iter = g_slist_nth(engine_info->languages, 0);
 
-		int i = 1;	
+		int i = 1;
 		while (NULL != iter) {
 			/*Get handle data from list*/
 			lang = iter->data;
@@ -351,7 +351,7 @@ int vc_parser_load_config(vc_config_s** config_info)
 		if (0 == xmlStrcmp(cur->name, (const xmlChar *)VC_TAG_CONFIG_ENGINE_ID)) {
 			key = xmlNodeGetContent(cur);
 			if (NULL != key) {
-				//SLOG(LOG_DEBUG, vc_config_tag(), "Engine id : %s", (char *)key);
+				/*SLOG(LOG_DEBUG, vc_config_tag(), "Engine id : %s", (char *)key); */
 				if (NULL != temp->engine_id)	free(temp->engine_id);
 				temp->engine_id = strdup((char*)key);
 				xmlFree(key);
@@ -379,7 +379,7 @@ int vc_parser_load_config(vc_config_s** config_info)
 		} else if (0 == xmlStrcmp(cur->name, (const xmlChar *)VC_TAG_CONFIG_LANGUAGE)) {
 			key = xmlNodeGetContent(cur);
 			if (NULL != key) {
-				//SLOG(LOG_DEBUG, vc_config_tag(), "language : %s", (char *)key);
+				/*SLOG(LOG_DEBUG, vc_config_tag(), "language : %s", (char *)key); */
 				if (NULL != temp->language)	free(temp->language);
 				temp->language = strdup((char*)key);
 				xmlFree(key);
@@ -389,15 +389,13 @@ int vc_parser_load_config(vc_config_s** config_info)
 		} else if (0 == xmlStrcmp(cur->name, (const xmlChar*)VC_TAG_CONFIG_ENABLED)) {
 			key = xmlNodeGetContent(cur);
 			if (NULL != key) {
-				//SLOG(LOG_DEBUG, vc_config_tag(), "Enabled service : %s", (char *)key);
+				/*SLOG(LOG_DEBUG, vc_config_tag(), "Enabled service : %s", (char *)key); */
 
 				if (0 == xmlStrcmp(key, (const xmlChar *)"on")) {
 					temp->enabled = true;
-				}
-				else if (0 == xmlStrcmp(key, (const xmlChar *)"off")) {
+				} else if (0 == xmlStrcmp(key, (const xmlChar *)"off")) {
 					temp->enabled = false;
-				}
-				else {
+				} else {
 					SLOG(LOG_ERROR, vc_config_tag(), "Enabled service is wrong");
 					temp->enabled = false;
 				}
@@ -547,7 +545,7 @@ int vc_parser_set_language(const char* language)
 	while (cur != NULL) {
 		if (0 == xmlStrcmp(cur->name, (const xmlChar *)VC_TAG_CONFIG_LANGUAGE)) {
 			xmlNodeSetContent(cur, (const xmlChar *)language);
-		} 
+		}
 
 		cur = cur->next;
 	}
@@ -650,7 +648,7 @@ int vc_parser_find_config_changed(int* auto_lang, char** language, int* enabled)
 	*language = NULL;
 	while (cur_new != NULL && cur_old != NULL) {
 
-		// SLOG(LOG_DEBUG, vc_config_tag(), "cur_new->name(%s), cur_old->name(%s)", (char*)cur_new->name, (char*)cur_old->name);
+		/* SLOG(LOG_DEBUG, vc_config_tag(), "cur_new->name(%s), cur_old->name(%s)", (char*)cur_new->name, (char*)cur_old->name); */
 
 		if (0 == xmlStrcmp(cur_new->name, (const xmlChar*)VC_TAG_CONFIG_AUTO_LANGUAGE)) {
 			if (0 == xmlStrcmp(cur_old->name, (const xmlChar*)VC_TAG_CONFIG_AUTO_LANGUAGE)) {
@@ -719,7 +717,7 @@ int vc_parser_find_config_changed(int* auto_lang, char** language, int* enabled)
 		cur_new = cur_new->next;
 		cur_old = cur_old->next;
 	}
-	
+
 	xmlFreeDoc(g_config_doc);
 	g_config_doc = doc;
 
@@ -975,7 +973,7 @@ int vc_parser_set_foreground(int pid, bool value)
 	}
 
 	while (cur != NULL) {
-		if (0 == xmlStrcmp(cur->name, (const xmlChar *)VC_TAG_INFO_FOREGROUND)) {			
+		if (0 == xmlStrcmp(cur->name, (const xmlChar *)VC_TAG_INFO_FOREGROUND)) {
 			char temp[16];
 			memset(temp, 0, 16);
 			if (true == value) {
@@ -986,7 +984,7 @@ int vc_parser_set_foreground(int pid, bool value)
 
 			xmlNodeSetContent(cur, (const xmlChar *)temp);
 			break;
-		} 
+		}
 
 		cur = cur->next;
 	}
@@ -1021,7 +1019,7 @@ int vc_parser_get_foreground(int* pid)
 		doc->charset = 1;
 
 		root_node = xmlNewNode(NULL, (const xmlChar*)VC_TAG_INFO_BASE_TAG);
-		xmlDocSetRootElement(doc,root_node);
+		xmlDocSetRootElement(doc, root_node);
 
 		/* Make new command node */
 		info_node = xmlNewNode(NULL, (const xmlChar*)VC_TAG_INFO_FOREGROUND);

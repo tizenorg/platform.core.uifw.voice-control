@@ -71,7 +71,7 @@ int vcdc_send_hello(int pid, vcd_client_type_e type)
 		return -1;
 	}
 
-	if (NULL == msg) { 
+	if (NULL == msg) {
 		SLOG(LOG_ERROR, TAG_VCD, "[Dbus ERROR] Fail to create message");
 		return VCD_ERROR_OUT_OF_MEMORY;
 	}
@@ -87,7 +87,7 @@ int vcdc_send_hello(int pid, vcd_client_type_e type)
 	result_msg = dbus_connection_send_with_reply_and_block(g_conn_sender, msg, g_waiting_time, &err);
 	dbus_message_unref(msg);
 
-	if (dbus_error_is_set(&err)) { 
+	if (dbus_error_is_set(&err)) {
 		SLOG(LOG_ERROR, TAG_VCD, "[Dbus ERROR] %s", err.message);
 		dbus_error_free(&err);
 	}
@@ -95,7 +95,7 @@ int vcdc_send_hello(int pid, vcd_client_type_e type)
 	if (NULL != result_msg) {
 		dbus_message_get_args(result_msg, &err, DBUS_TYPE_INT32, &result, DBUS_TYPE_INVALID);
 
-		if (dbus_error_is_set(&err)) { 
+		if (dbus_error_is_set(&err)) {
 			SLOG(LOG_ERROR, TAG_VCD, "[Dbus] Get arguments error (%s)", err.message);
 			dbus_error_free(&err);
 			result = VCD_ERROR_OPERATION_FAILED;
@@ -113,15 +113,15 @@ int vcdc_send_hello(int pid, vcd_client_type_e type)
 int vcdc_send_show_tooltip(int pid, bool show)
 {
 	if (0 > pid) {
-		SLOG(LOG_ERROR, TAG_VCD, "[Dbus ERROR] widget pid is NOT valid" );
+		SLOG(LOG_ERROR, TAG_VCD, "[Dbus ERROR] widget pid is NOT valid");
 		return -1;
 	}
 
-	char service_name[64];
+	char service_name[64] = {0, };
 	memset(service_name, 0, 64);
 	snprintf(service_name, 64, "%s", VC_WIDGET_SERVICE_NAME);
 
-	char target_if_name[128];
+	char target_if_name[128] = {0, };
 	snprintf(target_if_name, sizeof(target_if_name), "%s", VC_WIDGET_SERVICE_INTERFACE);
 
 	DBusMessage* msg;
@@ -129,12 +129,12 @@ int vcdc_send_show_tooltip(int pid, bool show)
 	SLOG(LOG_DEBUG, TAG_VCD, "[Dbus] send widget show tooltip signal : pid(%d) show(%d)", pid, show);
 
 	msg = dbus_message_new_method_call(
-		service_name, 
-		VC_WIDGET_SERVICE_OBJECT_PATH, 
-		target_if_name, 
-		VCD_WIDGET_METHOD_SHOW_TOOLTIP);
+			  service_name,
+			  VC_WIDGET_SERVICE_OBJECT_PATH,
+			  target_if_name,
+			  VCD_WIDGET_METHOD_SHOW_TOOLTIP);
 
-	if (NULL == msg) { 
+	if (NULL == msg) {
 		SLOG(LOG_ERROR, TAG_VCD, "[Dbus ERROR] Fail to create message");
 		return VCD_ERROR_OUT_OF_MEMORY;
 	}
@@ -279,21 +279,21 @@ int vcdc_send_error_signal(int pid, int reason, char *err_msg)
 	SLOG(LOG_DEBUG, TAG_VCD, "[Dbus] send error signal : reason(%d), Error Msg(%s)", reason, err_msg);
 
 	msg = dbus_message_new_method_call(
-		service_name, 
-		VC_CLIENT_SERVICE_OBJECT_PATH, 
-		target_if_name, 
-		VCD_METHOD_ERROR);
+			  service_name,
+			  VC_CLIENT_SERVICE_OBJECT_PATH,
+			  VC_CLIENT_SERVICE_INTERFACE,
+			  VCD_METHOD_ERROR);
 
-	if (NULL == msg) { 
+	if (NULL == msg) {
 		SLOG(LOG_ERROR, TAG_VCD, "[Dbus ERROR] Fail to create message");
 		return VCD_ERROR_OUT_OF_MEMORY;
 	}
 
-	dbus_message_append_args(msg, 
-		DBUS_TYPE_INT32, &pid, 
-		DBUS_TYPE_INT32, &reason, 
-		DBUS_TYPE_STRING, &err_msg,
-		DBUS_TYPE_INVALID);
+	dbus_message_append_args(msg,
+							 DBUS_TYPE_INT32, &pid,
+							 DBUS_TYPE_INT32, &reason,
+							 DBUS_TYPE_STRING, &err_msg,
+							 DBUS_TYPE_INVALID);
 
 	dbus_message_set_no_reply(msg, TRUE);
 
@@ -318,7 +318,7 @@ static Eina_Bool listener_event_callback(void* data, Ecore_Fd_Handler *fd_handle
 	msg = dbus_connection_pop_message(g_conn_listener);
 
 	/* loop again if we haven't read a message */
-	if (NULL == msg) { 
+	if (NULL == msg) {
 		return ECORE_CALLBACK_RENEW;
 	}
 
@@ -408,7 +408,7 @@ static Eina_Bool listener_event_callback(void* data, Ecore_Fd_Handler *fd_handle
 	else if (dbus_message_is_method_call(msg, VC_SERVER_SERVICE_INTERFACE, VC_WIDGET_METHOD_CANCEL))
 		vcd_dbus_server_widget_cancel(g_conn_listener, msg);
 
-	else 
+	else
 		return ECORE_CALLBACK_RENEW;
 
 	/* free the message */
@@ -440,7 +440,7 @@ int vcd_dbus_open_connection()
 	/* connect to the bus and check for errors */
 	g_conn_listener = dbus_bus_get(DBUS_BUS_SYSTEM, &err);
 
-	if (dbus_error_is_set(&err)) { 
+	if (dbus_error_is_set(&err)) {
 		SLOG(LOG_ERROR, TAG_VCD, "[Dbus ERROR] Fail dbus_bus_get : %s", err.message);
 		dbus_error_free(&err);
 	}
@@ -459,7 +459,7 @@ int vcd_dbus_open_connection()
 		return VCD_ERROR_OPERATION_FAILED;
 	}
 
-	if (dbus_error_is_set(&err)) { 
+	if (dbus_error_is_set(&err)) {
 		SLOG(LOG_ERROR, TAG_VCD, "[Dbus ERROR] dbus_bus_request_name() : %s", err.message);
 		dbus_error_free(&err);
 		return VCD_ERROR_OPERATION_FAILED;
@@ -473,7 +473,7 @@ int vcd_dbus_open_connection()
 	dbus_bus_add_match(g_conn_listener, rule, &err);/* see signals from the given interface */
 	dbus_connection_flush(g_conn_listener);
 
-	if (dbus_error_is_set(&err)) { 
+	if (dbus_error_is_set(&err)) {
 		SLOG(LOG_ERROR, TAG_VCD, "[Dbus ERROR] dbus_bus_add_match() : %s", err.message);
 		dbus_error_free(&err);
 		return VCD_ERROR_OPERATION_FAILED;

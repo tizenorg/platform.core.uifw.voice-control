@@ -14,7 +14,7 @@
 * limitations under the License.
 */
 
- 
+
 #ifndef __VC_MAIN_H_
 #define __VC_MAIN_H_
 
@@ -43,7 +43,7 @@ extern "C" {
 #define TAG_VCCONFIG	"vcinfo"	/* config lib log tag */
 #define TAG_VCCMD	"vccmd"		/* Command log tag */
 
-/** 
+/**
 * @brief A structure of handle for identification
 */
 struct vc_s {

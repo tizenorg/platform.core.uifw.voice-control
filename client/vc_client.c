@@ -34,7 +34,7 @@ typedef struct {
 	void*				state_changed_user_data;
 	vc_current_language_changed_cb	current_lang_changed_cb;
 	void*				current_lang_changed_user_data;
-	
+
 #if 0
 	/* exclusive option */
 	bool			exclusive_cmd;
@@ -60,7 +60,7 @@ typedef struct {
 	void*				auth_state_changed_user_data;
 
 	int	mgr_pid;
-}vc_client_s;
+} vc_client_s;
 
 /* client list */
 static GSList *g_client_list = NULL;
@@ -75,9 +75,9 @@ static vc_client_s* __client_get(vc_h vc)
 	vc_client_s *data = NULL;
 
 	int count = g_slist_length(g_client_list);
-	int i; 
+	int i;
 
-	for (i = 0;i < count;i++) {
+	for (i = 0; i < count; i++) {
 		data = g_slist_nth_data(g_client_list, i);
 
 		if (NULL != data) {
@@ -109,11 +109,11 @@ int vc_client_create(vc_h* vc)
 		return VC_ERROR_OUT_OF_MEMORY;
 	}
 
-	temp->handle = getpid(); 
+	temp->handle = getpid();
 
 	/* initialize client data */
 	client->vc = temp;
-	client->pid = getpid(); 
+	client->pid = getpid();
 	client->uid = temp->handle;
 	client->xid = -1;
 
@@ -134,8 +134,8 @@ int vc_client_create(vc_h* vc)
 
 	client->service_state = -1;
 
-	client->before_state = VC_STATE_INITIALIZED; 
-	client->current_state = VC_STATE_INITIALIZED; 
+	client->before_state = VC_STATE_INITIALIZED;
+	client->current_state = VC_STATE_INITIALIZED;
 
 	client->cb_ref_count = 0;
 
@@ -157,22 +157,21 @@ int vc_client_destroy(vc_h vc)
 	if (vc == NULL) {
 		SLOG(LOG_ERROR, TAG_VCC, "Input parameter is NULL");
 		return 0;
-	}	
+	}
 
 	vc_client_s *data = NULL;
 
 	int count = g_slist_length(g_client_list);
-	int i; 
+	int i;
 
-	for (i = 0;i < count;i++) {
+	for (i = 0; i < count; i++) {
 		data = g_slist_nth_data(g_client_list, i);
 
 		if (NULL != data) {
 			if (vc->handle == data->vc->handle) {
 				g_client_list =  g_slist_remove(g_client_list, data);
 
-				while (0 != data->cb_ref_count)
-				{
+				while (0 != data->cb_ref_count) {
 					/* wait for release callback function */
 				}
 				free(data);
@@ -206,13 +205,13 @@ bool vc_client_is_valid_by_uid(int uid)
 	vc_client_s *data = NULL;
 
 	int count = g_slist_length(g_client_list);
-	int i; 
+	int i;
 
-	for (i = 0;i < count;i++) {
+	for (i = 0; i < count; i++) {
 		data = g_slist_nth_data(g_client_list, i);
 
 		if (NULL != data) {
-			if (uid == data->vc->handle) 
+			if (uid == data->vc->handle)
 				return true;
 		}
 	}
@@ -225,11 +224,11 @@ bool vc_client_is_valid_by_uid(int uid)
 int vc_client_get_handle(int uid, vc_h* vc)
 {
 	vc_client_s *data = NULL;
-	
-	int count = g_slist_length(g_client_list);
-	int i; 
 
-	for (i = 0;i < count;i++) {
+	int count = g_slist_length(g_client_list);
+	int i;
+
+	for (i = 0; i < count; i++) {
 		data = g_slist_nth_data(g_client_list, i);
 
 		if (NULL != data) {
@@ -239,7 +238,7 @@ int vc_client_get_handle(int uid, vc_h* vc)
 			}
 		}
 	}
-	
+
 	return -1;
 }
 
@@ -249,7 +248,7 @@ int vc_client_set_result_cb(vc_h vc, vc_result_cb callback, void* user_data)
 	vc_client_s* client = __client_get(vc);
 
 	/* check handle */
-	if (NULL == client) 
+	if (NULL == client)
 		return VC_ERROR_INVALID_PARAMETER;
 
 	client->result_cb = callback;
@@ -263,13 +262,13 @@ int vc_client_get_result_cb(vc_h vc, vc_result_cb* callback, void** user_data)
 	vc_client_s* client = __client_get(vc);
 
 	/* check handle */
-	if (NULL == client) 
+	if (NULL == client)
 		return VC_ERROR_INVALID_PARAMETER;
 
 	*callback = client->result_cb;
 	*user_data = client->result_user_data;
 
-	return 0;	
+	return 0;
 }
 
 int vc_client_set_service_state_changed_cb(vc_h vc, vc_service_state_changed_cb callback, void* user_data)
@@ -277,7 +276,7 @@ int vc_client_set_service_state_changed_cb(vc_h vc, vc_service_state_changed_cb 
 	vc_client_s* client = __client_get(vc);
 
 	/* check handle */
-	if (NULL == client) 
+	if (NULL == client)
 		return VC_ERROR_INVALID_PARAMETER;
 
 	client->service_state_changed_cb = callback;
@@ -291,7 +290,7 @@ int vc_client_get_service_state_changed_cb(vc_h vc, vc_service_state_changed_cb*
 	vc_client_s* client = __client_get(vc);
 
 	/* check handle */
-	if (NULL == client) 
+	if (NULL == client)
 		return VC_ERROR_INVALID_PARAMETER;
 
 	*callback = client->service_state_changed_cb;
@@ -305,7 +304,7 @@ int vc_client_set_state_changed_cb(vc_h vc, vc_state_changed_cb callback, void* 
 	vc_client_s* client = __client_get(vc);
 
 	/* check handle */
-	if (NULL == client) 
+	if (NULL == client)
 		return VC_ERROR_INVALID_PARAMETER;
 
 	client->state_changed_cb = callback;
@@ -319,7 +318,7 @@ int vc_client_get_state_changed_cb(vc_h vc, vc_state_changed_cb* callback, void*
 	vc_client_s* client = __client_get(vc);
 
 	/* check handle */
-	if (NULL == client) 
+	if (NULL == client)
 		return VC_ERROR_INVALID_PARAMETER;
 
 	*callback = client->state_changed_cb;
@@ -333,7 +332,7 @@ int vc_client_set_current_lang_changed_cb(vc_h vc, vc_current_language_changed_c
 	vc_client_s* client = __client_get(vc);
 
 	/* check handle */
-	if (NULL == client) 
+	if (NULL == client)
 		return VC_ERROR_INVALID_PARAMETER;
 
 	client->current_lang_changed_cb = callback;
@@ -347,7 +346,7 @@ int vc_client_get_current_lang_changed_cb(vc_h vc, vc_current_language_changed_c
 	vc_client_s* client = __client_get(vc);
 
 	/* check handle */
-	if (NULL == client) 
+	if (NULL == client)
 		return VC_ERROR_INVALID_PARAMETER;
 
 	*callback = client->current_lang_changed_cb;
@@ -361,7 +360,7 @@ int vc_client_set_error_cb(vc_h vc, vc_error_cb callback, void* user_data)
 	vc_client_s* client = __client_get(vc);
 
 	/* check handle */
-	if (NULL == client) 
+	if (NULL == client)
 		return VC_ERROR_INVALID_PARAMETER;
 
 	client->error_cb = callback;
@@ -375,7 +374,7 @@ int vc_client_get_error_cb(vc_h vc, vc_error_cb* callback, void** user_data)
 	vc_client_s* client = __client_get(vc);
 
 	/* check handle */
-	if (NULL == client) 
+	if (NULL == client)
 		return VC_ERROR_INVALID_PARAMETER;
 
 	*callback = client->error_cb;
@@ -390,7 +389,7 @@ int vc_client_set_service_state(vc_h vc, vc_service_state_e state)
 	vc_client_s* client = __client_get(vc);
 
 	/* check handle */
-	if (NULL == client) 
+	if (NULL == client)
 		return VC_ERROR_INVALID_PARAMETER;
 
 	client->service_state = state;
@@ -403,7 +402,7 @@ int vc_client_get_service_state(vc_h vc, vc_service_state_e* state)
 	vc_client_s* client = __client_get(vc);
 
 	/* check handle */
-	if (NULL == client) 
+	if (NULL == client)
 		return VC_ERROR_INVALID_PARAMETER;
 
 	*state = client->service_state;
@@ -416,7 +415,7 @@ int vc_client_set_client_state(vc_h vc, vc_state_e state)
 	vc_client_s* client = __client_get(vc);
 
 	/* check handle */
-	if (NULL == client) 
+	if (NULL == client)
 		return VC_ERROR_INVALID_PARAMETER;
 
 	client->before_state = client->current_state;
@@ -430,7 +429,7 @@ int vc_client_get_client_state(vc_h vc, vc_state_e* state)
 	vc_client_s* client = __client_get(vc);
 
 	/* check handle */
-	if (NULL == client) 
+	if (NULL == client)
 		return VC_ERROR_INVALID_PARAMETER;
 
 	*state = client->current_state;
@@ -443,9 +442,9 @@ int vc_client_get_client_state_by_uid(int uid, vc_state_e* state)
 	vc_client_s *data = NULL;
 
 	int count = g_slist_length(g_client_list);
-	int i; 
+	int i;
 
-	for (i = 0;i < count;i++) {
+	for (i = 0; i < count; i++) {
 		data = g_slist_nth_data(g_client_list, i);
 
 		if (NULL != data) {
@@ -464,7 +463,7 @@ int vc_client_get_before_state(vc_h vc, vc_state_e* state, vc_state_e* before_st
 	vc_client_s* client = __client_get(vc);
 
 	/* check handle */
-	if (NULL == client) 
+	if (NULL == client)
 		return VC_ERROR_INVALID_PARAMETER;
 
 	*before_state = client->before_state;
@@ -478,7 +477,7 @@ int vc_client_set_xid(vc_h vc, int xid)
 	vc_client_s* client = __client_get(vc);
 
 	/* check handle */
-	if (NULL == client) 
+	if (NULL == client)
 		return VC_ERROR_INVALID_PARAMETER;
 
 	client->xid = xid;
@@ -491,7 +490,7 @@ int vc_client_get_xid(vc_h vc, int* xid)
 	vc_client_s* client = __client_get(vc);
 
 	/* check handle */
-	if (NULL == client) 
+	if (NULL == client)
 		return VC_ERROR_INVALID_PARAMETER;
 
 	*xid = client->xid;
@@ -505,7 +504,7 @@ int vc_client_set_exclusive_cmd(vc_h vc, bool value)
 	vc_client_s* client = __client_get(vc);
 
 	/* check handle */
-	if (NULL == client) 
+	if (NULL == client)
 		return VC_ERROR_INVALID_PARAMETER;
 
 	client->exclusive_cmd = value;
@@ -518,7 +517,7 @@ int vc_client_get_exclusive_cmd(vc_h vc, bool* value)
 	vc_client_s* client = __client_get(vc);
 
 	/* check handle */
-	if (NULL == client) 
+	if (NULL == client)
 		return VC_ERROR_INVALID_PARAMETER;
 
 	*value = client->exclusive_cmd;
@@ -532,7 +531,7 @@ int vc_client_set_error(vc_h vc, int reason)
 	vc_client_s* client = __client_get(vc);
 
 	/* check handle */
-	if (NULL == client) 
+	if (NULL == client)
 		return VC_ERROR_INVALID_PARAMETER;
 
 	client->reason = reason;
@@ -545,7 +544,7 @@ int vc_client_get_error(vc_h vc, int* reason)
 	vc_client_s* client = __client_get(vc);
 
 	/* check handle */
-	if (NULL == client) 
+	if (NULL == client)
 		return VC_ERROR_INVALID_PARAMETER;
 
 	*reason = client->reason;
@@ -565,7 +564,7 @@ int vc_client_use_callback(vc_h vc)
 	vc_client_s* client = __client_get(vc);
 
 	/* check handle */
-	if (NULL == client) 
+	if (NULL == client)
 		return VC_ERROR_INVALID_PARAMETER;
 
 	client->cb_ref_count++;
@@ -577,7 +576,7 @@ int vc_client_not_use_callback(vc_h vc)
 	vc_client_s* client = __client_get(vc);
 
 	/* check handle */
-	if (NULL == client) 
+	if (NULL == client)
 		return VC_ERROR_INVALID_PARAMETER;
 
 	client->cb_ref_count--;

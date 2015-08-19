@@ -27,7 +27,7 @@
 */
 
 #ifdef __cplusplus
-extern "C" 
+extern "C"
 {
 #endif
 
@@ -78,7 +78,7 @@ extern "C"
 *
 * @see vc_deinitialize()
 */
-int vc_initialize();
+int vc_initialize(void);
 
 /**
 * @brief Deinitializes voice control.
@@ -95,7 +95,7 @@ int vc_initialize();
 *
 * @see vc_deinitialize()
 */
-int vc_deinitialize();
+int vc_deinitialize(void);
 
 /**
 * @brief Connects the voice control service.
@@ -115,7 +115,7 @@ int vc_deinitialize();
 *
 * @see vc_unprepare()
 */
-int vc_prepare();
+int vc_prepare(void);
 
 /**
 * @brief Disconnects the voice control service.
@@ -134,7 +134,7 @@ int vc_prepare();
 *
 * @see vc_prepare()
 */
-int vc_unprepare();
+int vc_unprepare(void);
 
 /**
 * @brief Retrieves all supported languages using callback function.
@@ -202,7 +202,7 @@ int vc_get_current_language(char** language);
 * @retval #VC_ERROR_PERMISSION_DENIED Permission denied
 * @retval #VC_ERROR_NOT_SUPPORTED Not supported
 *
-* @see vc_state_changed_cb() 
+* @see vc_state_changed_cb()
 * @see vc_set_state_changed_cb()
 */
 int vc_get_state(vc_state_e* state);
@@ -226,7 +226,7 @@ int vc_get_state(vc_state_e* state);
 * @see vc_request_start()
 * @see vc_request_stop()
 * @see vc_request_cancel()
-* @see vc_set_service_state_changed_cb() 
+* @see vc_set_service_state_changed_cb()
 * @see vc_unset_service_state_changed_cb()
 */
 int vc_get_service_state(vc_service_state_e* state);
@@ -252,7 +252,7 @@ int vc_get_service_state(vc_service_state_e* state);
 *
 * @pre The state should be #VC_STATE_READY.
 *
-* @see vc_unset_command_list() 
+* @see vc_unset_command_list()
 */
 int vc_set_command_list(vc_cmd_list_h vc_cmd_list, int type);
 
@@ -273,7 +273,7 @@ int vc_set_command_list(vc_cmd_list_h vc_cmd_list, int type);
 *
 * @pre The state should be #VC_STATE_READY.
 *
-* @see vc_set_command_list() 
+* @see vc_set_command_list()
 */
 int vc_unset_command_list(int type);
 
@@ -316,7 +316,7 @@ int vc_set_result_cb(vc_result_cb callback, void* user_data);
 *
 * @see vc_set_result_cb()
 */
-int vc_unset_result_cb();
+int vc_unset_result_cb(void);
 
 /**
 * @brief Registers a callback function to be called when state is changed.
@@ -357,7 +357,7 @@ int vc_set_service_state_changed_cb(vc_service_state_changed_cb callback, void* 
 *
 * @see vc_set_service_state_changed_cb()
 */
-int vc_unset_service_state_changed_cb();
+int vc_unset_service_state_changed_cb(void);
 
 /**
 * @brief Registers a callback function to be called when state is changed.
@@ -398,7 +398,7 @@ int vc_set_state_changed_cb(vc_state_changed_cb callback, void* user_data);
 *
 * @see vc_set_state_changed_cb()
 */
-int vc_unset_state_changed_cb();
+int vc_unset_state_changed_cb(void);
 
 /**
 * @brief Registers a callback function to be called when current language is changed.
@@ -439,7 +439,7 @@ int vc_set_current_language_changed_cb(vc_current_language_changed_cb callback, 
 *
 * @see vc_set_current_language_changed_cb()
 */
-int vc_unset_current_language_changed_cb();
+int vc_unset_current_language_changed_cb(void);
 
 /**
 * @brief Registers a callback function to be called when an error occurred.
@@ -480,7 +480,7 @@ int vc_set_error_cb(vc_error_cb callback, void* user_data);
 *
 * @see vc_set_error_cb()
 */
-int vc_unset_error_cb();
+int vc_unset_error_cb(void);
 
 
 #ifdef __cplusplus

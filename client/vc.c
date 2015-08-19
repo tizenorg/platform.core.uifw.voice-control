@@ -43,7 +43,7 @@ Eina_Bool __vc_notify_error(void *data);
 
 static const char* __vc_get_error_code(vc_error_e err)
 {
-	switch(err) {
+	switch (err) {
 		case VC_ERROR_NONE:			return "VC_ERROR_NONE";			break;
 		case VC_ERROR_OUT_OF_MEMORY:		return "VC_ERROR_OUT_OF_MEMORY";	break;
 		case VC_ERROR_IO_ERROR:			return "VC_ERROR_IO_ERROR";		break;
@@ -75,8 +75,8 @@ static int __vc_convert_config_error_code(vc_config_error_e code)
 
 static void __vc_lang_changed_cb(const char* before_lang, const char* current_lang)
 {
-	SECURE_SLOG(LOG_DEBUG, TAG_VCC, "Lang changed : Before lang(%s) Current lang(%s)", 
-		before_lang, current_lang);
+	SLOG(LOG_DEBUG, TAG_VCC, "Lang changed : Before lang(%s) Current lang(%s)",
+		 before_lang, current_lang);
 
 	vc_current_language_changed_cb callback;
 	void* lang_user_data;
@@ -118,7 +118,8 @@ static void __vc_service_state_changed_cb(int before_state, int current_state)
 	return;
 }
 
-int vc_initialize()
+
+int vc_initialize(void)
 {
 	SLOG(LOG_DEBUG, TAG_VCC, "===== [Client] Initialize");
 
@@ -145,8 +146,8 @@ int vc_initialize()
 
 	int ret = vc_config_mgr_initialize(g_vc->handle);
 	if (0 != ret) {
-		SLOG(LOG_ERROR, TAG_VCC, "[ERROR] Fail to init config manager : %s", 
-			__vc_get_error_code(__vc_convert_config_error_code(ret)));
+		SLOG(LOG_ERROR, TAG_VCC, "[ERROR] Fail to init config manager : %s",
+			 __vc_get_error_code(__vc_convert_config_error_code(ret)));
 		vc_client_destroy(g_vc);
 		return __vc_convert_config_error_code(ret);
 	}
@@ -186,7 +187,7 @@ int vc_initialize()
 	return VC_ERROR_NONE;
 }
 
-static void __vc_internal_unprepare()
+static void __vc_internal_unprepare(void)
 {
 	/* return authority */
 	vc_auth_state_e state = VC_AUTH_STATE_NONE;
@@ -217,7 +218,7 @@ static void __vc_internal_unprepare()
 	return;
 }
 
-int vc_deinitialize()
+int vc_deinitialize(void)
 {
 	SLOG(LOG_DEBUG, TAG_VCC, "===== [Client] Deinitialize");
 
@@ -295,8 +296,8 @@ static Eina_Bool __notify_auth_changed_cb(void *data)
 }
 
 #if 0
-static Eina_Bool __vc_x_event_window_focus_in(void *data, int type, void *event) 
-{ 
+static Eina_Bool __vc_x_event_window_focus_in(void *data, int type, void *event)
+{
 	Ecore_X_Event_Window_Focus_In *e;
 
 	e = event;
@@ -321,17 +322,17 @@ static Eina_Bool __vc_x_event_window_focus_in(void *data, int type, void *event)
 		}
 		if (VC_AUTH_STATE_INVALID == state) {
 			vc_client_set_auth_state(g_vc, VC_AUTH_STATE_VALID);
-			
+
 			/* notify auth changed cb */
 			ecore_timer_add(0, __notify_auth_changed_cb, NULL);
 		}
 	}
 
 	return ECORE_CALLBACK_PASS_ON;
-} 
+}
 
-static Eina_Bool __vc_x_event_window_focus_out(void *data, int type, void *event) 
-{ 
+static Eina_Bool __vc_x_event_window_focus_out(void *data, int type, void *event)
+{
 	Ecore_X_Event_Window_Focus_In *e;
 
 	e = event;
@@ -420,7 +421,7 @@ static Eina_Bool __vc_connect_daemon(void *data)
 	return EINA_FALSE;
 }
 
-int vc_prepare()
+int vc_prepare(void)
 {
 	SLOG(LOG_DEBUG, TAG_VCC, "===== [Client] Prepare");
 
@@ -440,7 +441,6 @@ int vc_prepare()
 		return VC_ERROR_INVALID_STATE;
 	}
 
-
 	g_connect_timer = ecore_timer_add(0, __vc_connect_daemon, NULL);
 
 	SLOG(LOG_DEBUG, TAG_VCC, "=====");
@@ -449,7 +449,7 @@ int vc_prepare()
 	return VC_ERROR_NONE;
 }
 
-int vc_unprepare()
+int vc_unprepare(void)
 {
 	SLOG(LOG_DEBUG, TAG_VCC, "===== [Client] Unprepare");
 
@@ -564,7 +564,7 @@ int vc_get_state(vc_state_e* state)
 
 	*state = temp;
 
-	switch(*state) {
+	switch (*state) {
 		case VC_STATE_NONE:		SLOG(LOG_DEBUG, TAG_VCC, "Current state is 'None'");		break;
 		case VC_STATE_INITIALIZED:	SLOG(LOG_DEBUG, TAG_VCC, "Current state is 'Created'");		break;
 		case VC_STATE_READY:		SLOG(LOG_DEBUG, TAG_VCC, "Current state is 'Ready'");		break;
@@ -603,12 +603,12 @@ int vc_get_service_state(vc_service_state_e* state)
 
 	*state = service_state;
 
-	switch(*state) {
-	case VC_SERVICE_STATE_NONE:		SLOG(LOG_DEBUG, TAG_VCC, "Current service state is 'None'");		break;
-	case VC_SERVICE_STATE_READY:		SLOG(LOG_DEBUG, TAG_VCC, "Current service state is 'Ready'");		break;
-	case VC_SERVICE_STATE_RECORDING:	SLOG(LOG_DEBUG, TAG_VCC, "Current service state is 'Recording'");	break;
-	case VC_SERVICE_STATE_PROCESSING:	SLOG(LOG_DEBUG, TAG_VCC, "Current service state is 'Processing'");	break;
-	default:				SLOG(LOG_ERROR, TAG_VCC, "[ERROR] Invalid state");			break;
+	switch (*state) {
+		case VC_SERVICE_STATE_NONE:		SLOG(LOG_DEBUG, TAG_VCC, "Current service state is 'None'");		break;
+		case VC_SERVICE_STATE_READY:		SLOG(LOG_DEBUG, TAG_VCC, "Current service state is 'Ready'");		break;
+		case VC_SERVICE_STATE_RECORDING:	SLOG(LOG_DEBUG, TAG_VCC, "Current service state is 'Recording'");	break;
+		case VC_SERVICE_STATE_PROCESSING:	SLOG(LOG_DEBUG, TAG_VCC, "Current service state is 'Processing'");	break;
+		default:				SLOG(LOG_ERROR, TAG_VCC, "[ERROR] Invalid state");			break;
 	}
 
 	SLOG(LOG_DEBUG, TAG_VCC, "=====");
@@ -617,7 +617,7 @@ int vc_get_service_state(vc_service_state_e* state)
 	return VC_ERROR_NONE;
 }
 
-#if 0 
+#if 0
 int vc_set_window_id(int wid)
 {
 	SLOG(LOG_DEBUG, TAG_VCC, "===== [Client] Set Window id");
@@ -725,7 +725,7 @@ int vc_get_window_id(int* wid)
 *
 * @pre The state should be #VC_STATE_READY.
 */
-#if 0 
+#if 0
 int vc_is_command_format_supported(vc_cmd_format_e format, bool* support)
 {
 	SLOG(LOG_DEBUG, TAG_VCC, "===== [Client] Is command format supported");
@@ -761,7 +761,7 @@ int vc_is_command_format_supported(vc_cmd_format_e format, bool* support)
 #endif
 
 int vc_set_command_list(vc_cmd_list_h vc_cmd_list, int type)
-{ 
+{
 	SLOG(LOG_DEBUG, TAG_VCC, "===== [Client] Set Command list");
 
 	if (NULL == vc_cmd_list) {
@@ -818,7 +818,7 @@ int vc_set_command_list(vc_cmd_list_h vc_cmd_list, int type)
 					}
 				}
 			}
-		} while(0 != ret);
+		} while (0 != ret);
 	}
 
 	SLOG(LOG_DEBUG, TAG_VCC, "=====");
@@ -1032,7 +1032,7 @@ int vc_request_start(bool stop_by_silence)
 	return ret;
 }
 
-int vc_request_stop()
+int vc_request_stop(void)
 {
 	SLOG(LOG_DEBUG, TAG_VCC, "===== [Client] Request stop");
 
@@ -1091,7 +1091,7 @@ int vc_request_stop()
 	return ret;
 }
 
-int vc_request_cancel()
+int vc_request_cancel(void)
 {
 	SLOG(LOG_DEBUG, TAG_VCC, "===== [Client] Request cancel Interrupt");
 
@@ -1168,7 +1168,7 @@ Eina_Bool __vc_notify_error(void *data)
 		SLOG(LOG_DEBUG, TAG_VCC, "Error callback is called");
 	} else {
 		SLOG(LOG_WARN, TAG_VCC, "[WARNING] Error callback is null");
-	}  
+	}
 
 	return EINA_FALSE;
 }
@@ -1243,7 +1243,7 @@ static Eina_Bool __vc_notify_result(void *data)
 	callback(event, vc_cmd_list, temp_text, user_data);
 	vc_client_not_use_callback(g_vc);
 
-	SLOG(LOG_DEBUG, TAG_VCC, "Client result callback called");	
+	SLOG(LOG_DEBUG, TAG_VCC, "Client result callback called");
 
 	vc_cmd_list_destroy(vc_cmd_list, true);
 
@@ -1253,7 +1253,7 @@ static Eina_Bool __vc_notify_result(void *data)
 	return EINA_FALSE;
 }
 
-void __vc_cb_result()
+void __vc_cb_result(void)
 {
 	ecore_timer_add(0, __vc_notify_result, NULL);
 
@@ -1278,11 +1278,11 @@ int vc_set_result_cb(vc_result_cb callback, void* user_data)
 	}
 
 	vc_client_set_result_cb(g_vc, callback, user_data);
-	
+
 	return 0;
 }
 
-int vc_unset_result_cb()
+int vc_unset_result_cb(void)
 {
 	vc_state_e state;
 	if (0 != vc_client_get_client_state(g_vc, &state)) {
@@ -1319,11 +1319,11 @@ int vc_set_service_state_changed_cb(vc_service_state_changed_cb callback, void* 
 	}
 
 	vc_client_set_service_state_changed_cb(g_vc, callback, user_data);
-	
+
 	return 0;
 }
 
-int vc_unset_service_state_changed_cb()
+int vc_unset_service_state_changed_cb(void)
 {
 	vc_state_e state;
 	if (0 != vc_client_get_client_state(g_vc, &state)) {
@@ -1364,7 +1364,7 @@ int vc_set_state_changed_cb(vc_state_changed_cb callback, void* user_data)
 	return 0;
 }
 
-int vc_unset_state_changed_cb()
+int vc_unset_state_changed_cb(void)
 {
 	vc_state_e state;
 	if (0 != vc_client_get_client_state(g_vc, &state)) {
@@ -1405,7 +1405,7 @@ int vc_set_current_language_changed_cb(vc_current_language_changed_cb callback, 
 	return 0;
 }
 
-int vc_unset_current_language_changed_cb()
+int vc_unset_current_language_changed_cb(void)
 {
 	vc_state_e state;
 	if (0 != vc_client_get_client_state(g_vc, &state)) {
@@ -1446,7 +1446,7 @@ int vc_set_error_cb(vc_error_cb callback, void* user_data)
 	return 0;
 }
 
-int vc_unset_error_cb()
+int vc_unset_error_cb(void)
 {
 	vc_state_e state;
 	if (0 != vc_client_get_client_state(g_vc, &state)) {
@@ -1466,7 +1466,7 @@ int vc_unset_error_cb()
 }
 
 /* Authority */
-int vc_auth_enable()
+int vc_auth_enable(void)
 {
 	/* check state */
 	vc_state_e state;
@@ -1525,11 +1525,11 @@ int vc_auth_enable()
 	ecore_timer_add(0, __notify_auth_changed_cb, NULL);
 
 	SLOG(LOG_DEBUG, TAG_VCC, "[SUCCESS] Auth enable");
-	
+
 	return VC_ERROR_NONE;
 }
 
-int vc_auth_disable()
+int vc_auth_disable(void)
 {
 	/* check state */
 	vc_state_e state;
@@ -1608,7 +1608,7 @@ int vc_auth_get_state(vc_auth_state_e* state)
 	*state = temp;
 
 	SLOG(LOG_DEBUG, TAG_VCC, "[SUCCESS] Current auth state is %d", *state);
-	
+
 	return VC_ERROR_NONE;
 }
 
@@ -1643,7 +1643,7 @@ int vc_auth_set_state_changed_cb(vc_auth_state_changed_cb callback, void* user_d
 	return VC_ERROR_NONE;
 }
 
-int vc_auth_unset_state_changed_cb()
+int vc_auth_unset_state_changed_cb(void)
 {
 	/* check auth */
 	vc_auth_state_e auth_state;
@@ -1668,7 +1668,7 @@ int vc_auth_unset_state_changed_cb()
 	return VC_ERROR_NONE;
 }
 
-int vc_auth_start()
+int vc_auth_start(void)
 {
 	SLOG(LOG_DEBUG, TAG_VCC, "===== [Client] Request start");
 
@@ -1748,7 +1748,7 @@ int vc_auth_start()
 	return ret;
 }
 
-int vc_auth_stop()
+int vc_auth_stop(void)
 {
 	SLOG(LOG_DEBUG, TAG_VCC, "===== [Client] Request stop");
 
@@ -1826,7 +1826,7 @@ int vc_auth_stop()
 	return ret;
 }
 
-int vc_auth_cancel()
+int vc_auth_cancel(void)
 {
 	SLOG(LOG_DEBUG, TAG_VCC, "===== [Client] Request cancel");
 

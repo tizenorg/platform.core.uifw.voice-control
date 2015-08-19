@@ -14,7 +14,7 @@
 * limitations under the License.
 */
 
- 
+
 #ifndef __VC_CONFIG_PARSER_H_
 #define __VC_CONFIG_PARSER_H_
 
@@ -30,14 +30,14 @@ typedef struct {
 	char*	uuid;
 	GSList*	languages;
 	bool	non_fixed_support;
-}vc_engine_info_s;
+} vc_engine_info_s;
 
 typedef struct {
 	char*	engine_id;
 	bool	auto_lang;
 	char*	language;
 	bool	enabled;
-}vc_config_s;
+} vc_config_s;
 
 
 /* Get engine information */

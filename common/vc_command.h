@@ -26,7 +26,7 @@
 extern "C" {
 #endif
 
-typedef struct _command_s{
+typedef struct _command_s {
 	int	pid;
 	int	id;
 	int	index;
@@ -39,12 +39,12 @@ typedef struct _command_s{
 	/* not used */
 	int	key;
 	int	modifier;
-}vc_cmd_s;
+} vc_cmd_s;
 
 typedef struct {
 	int index;
 	GSList*	list;
-}vc_cmd_list_s;
+} vc_cmd_list_s;
 
 /**
 * @brief Enumerations of command type.
@@ -57,7 +57,7 @@ typedef enum {
 	VC_COMMAND_TYPE_WIDGET = 3,	/**< Widget command by widget client */
 	VC_COMMAND_TYPE_SYSTEM = 4,	/**< System command by manager client */
 	VC_COMMAND_TYPE_EXCLUSIVE = 5	/**< exclusive command by manager client */
-}vc_cmd_type_e;
+} vc_cmd_type_e;
 
 
 int vc_cmd_set_id(vc_cmd_h vc_command, int id);
