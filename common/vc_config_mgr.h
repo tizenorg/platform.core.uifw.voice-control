@@ -41,8 +41,6 @@ typedef void (*vc_config_lang_changed_cb)(const char* before_lang, const char* c
 
 typedef void (*vc_config_foreground_changed_cb)(int previous, int current);
 
-typedef void (*vc_config_state_changed_cb)(int previous, int current);
-
 typedef void (*vc_config_enabled_cb)(bool enable);
 
 
@@ -55,10 +53,6 @@ int vc_config_mgr_finalize(int uid);
 int vc_config_mgr_set_lang_cb(int uid, vc_config_lang_changed_cb lang_cb);
 
 int vc_config_mgr_unset_lang_cb(int uid);
-
-int vc_config_mgr_set_service_state_cb(int uid, vc_config_state_changed_cb state_cb);
-
-int vc_config_mgr_unset_service_state_cb(int uid);
 
 int vc_config_mgr_set_foreground_cb(int uid, vc_config_foreground_changed_cb foreground_cb);
 
@@ -89,11 +83,6 @@ int vc_config_mgr_get_nonfixed_support(bool* value);
 bool vc_config_check_default_language_is_valid(const char* language);
 
 int vc_config_convert_error_code(vc_config_error_e code);
-
-
-int vc_config_mgr_set_service_state(int state);
-
-int vc_config_mgr_get_service_state(int* state);
 
 
 int vc_config_mgr_set_foreground(int pid, bool value);

@@ -30,7 +30,7 @@ int vc_dbus_close_connection();
 
 int vc_dbus_request_hello();
 
-int vc_dbus_request_initialize(int pid, int* mgr_pid);
+int vc_dbus_request_initialize(int pid, int* mgr_pid, int* service_state);
 
 int vc_dbus_request_finalize(int pid);
 

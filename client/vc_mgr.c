@@ -37,6 +37,8 @@ static vc_h g_vc_m = NULL;
 
 static GSList* g_demandable_client_list = NULL;
 
+static float g_volume_db = 0;
+
 static Eina_Bool __vc_mgr_notify_state_changed(void *data);
 static Eina_Bool __vc_mgr_notify_error(void *data);
 static Eina_Bool __vc_mgr_notify_result(void *data);
@@ -75,30 +77,6 @@ static void __vc_mgr_lang_changed_cb(const char* before_lang, const char* curren
 		SLOG(LOG_DEBUG, TAG_VCM, "Language changed callback is called");
 	} else {
 		SLOG(LOG_WARN, TAG_VCM, "[WARNING] Language changed callback is null");
-	}
-
-	return;
-}
-
-static void __vc_mgr_service_state_changed_cb(int before_state, int current_state)
-{
-	SECURE_SLOG(LOG_DEBUG, TAG_VCM, "Service State changed : Before(%d) Current(%d)", 
-		before_state, current_state);
-
-	/* Save service state */
-	vc_mgr_client_set_service_state(g_vc_m, (vc_service_state_e)current_state);
-
-	vc_service_state_changed_cb callback = NULL;
-	void* service_user_data;
-	vc_mgr_client_get_service_state_changed_cb(g_vc_m, &callback, &service_user_data);
-
-	if (NULL != callback) {
-		vc_mgr_client_use_callback(g_vc_m);
-		callback((vc_service_state_e)before_state, (vc_service_state_e)current_state, service_user_data);
-		vc_mgr_client_not_use_callback(g_vc_m);
-		SLOG(LOG_DEBUG, TAG_VCM, "Service state changed callback is called");
-	} else {
-		SLOG(LOG_WARN, TAG_VCM, "[WARNING] Service state changed callback is null");
 	}
 
 	return;
@@ -164,27 +142,8 @@ int vc_mgr_initialize()
 		vc_mgr_client_destroy(g_vc_m);
 		return VC_ERROR_OPERATION_FAILED;
 	}
-	
-	ret = vc_config_mgr_set_service_state_cb(g_vc_m->handle + VC_MANAGER_CONFIG_HANDLE, __vc_mgr_service_state_changed_cb);
-	if (0 != ret) {
-		SLOG(LOG_ERROR, TAG_VCM, "[ERROR] Fail to set service change callback : %d", ret);
-		vc_config_mgr_unset_lang_cb(g_vc_m->handle + VC_MANAGER_CONFIG_HANDLE);
-		vc_config_mgr_finalize(g_vc_m->handle + VC_MANAGER_CONFIG_HANDLE);
-		vc_mgr_client_destroy(g_vc_m);
-		return VC_ERROR_OPERATION_FAILED;
-	}
 
 	ret = vc_config_mgr_set_foreground_cb(g_vc_m->handle + VC_MANAGER_CONFIG_HANDLE, __vc_mgr_foreground_changed_cb);
-
-	int service_state = -1;
-	if (0 != vc_config_mgr_get_service_state(&service_state)) {
-		SLOG(LOG_ERROR, TAG_VCM, "[ERROR] Fail to get service state");
-		vc_config_mgr_finalize(g_vc_m->handle + VC_MANAGER_CONFIG_HANDLE);
-		vc_mgr_client_destroy(g_vc_m);
-		return VC_ERROR_OPERATION_FAILED;
-	}
-
-	vc_mgr_client_set_service_state(g_vc_m, service_state);
 
 	SLOG(LOG_DEBUG, TAG_VCM, "[Success] pid(%d)", g_vc_m->handle);
 
@@ -232,7 +191,6 @@ int vc_mgr_deinitialize()
 			ecore_timer_del(g_m_connect_timer);
 		}
 
-		vc_config_mgr_unset_service_state_cb(g_vc_m->handle + VC_MANAGER_CONFIG_HANDLE);
 		vc_config_mgr_unset_lang_cb(g_vc_m->handle + VC_MANAGER_CONFIG_HANDLE);
 		vc_config_mgr_finalize(g_vc_m->handle + VC_MANAGER_CONFIG_HANDLE);
 
@@ -270,7 +228,8 @@ static Eina_Bool __vc_mgr_connect_daemon(void *data)
 
 	/* request initialization */
 	int ret = -1;
-	ret = vc_mgr_dbus_request_initialize(g_vc_m->handle);
+	int service_state = 0;
+	ret = vc_mgr_dbus_request_initialize(g_vc_m->handle, &service_state);
 
 	if (VC_ERROR_ENGINE_NOT_FOUND == ret) {
 		SLOG(LOG_ERROR, TAG_VCM, "[ERROR] Fail to initialize : %s", __vc_mgr_get_error_code(ret));
@@ -289,7 +248,10 @@ static Eina_Bool __vc_mgr_connect_daemon(void *data)
 		/* Success to connect */
 	}
 
-	SECURE_SLOG(LOG_DEBUG, TAG_VCM, "[SUCCESS] Connected daemon");
+	/* Set service state */
+	vc_mgr_client_set_service_state(g_vc_m, (vc_service_state_e)service_state);
+
+	SLOG(LOG_DEBUG, TAG_VCM, "[SUCCESS] Connected daemon");
 
 	vc_mgr_client_set_client_state(g_vc_m, VC_STATE_READY);
 
@@ -1092,6 +1054,54 @@ int vc_mgr_get_current_commands(vc_cmd_list_h* vc_cmd_list)
 	return 0;
 }
 
+int vc_mgr_set_recognition_mode(vc_recognition_mode_e mode)
+{
+	SLOG(LOG_DEBUG, TAG_VCM, "===== [Manager] Set recognition mode = %d", mode);
+
+	vc_state_e state;
+	if (0 != vc_mgr_client_get_client_state(g_vc_m, &state)) {
+		SLOG(LOG_ERROR, TAG_VCM, "[ERROR] A handle is not available");
+		SLOG(LOG_DEBUG, TAG_VCM, "=====");
+		SLOG(LOG_DEBUG, TAG_VCM, " ");
+		return VC_ERROR_INVALID_STATE;
+	}
+
+	/* check state */
+	if (state != VC_STATE_READY) {
+		SLOG(LOG_ERROR, TAG_VCM, "[ERROR] Invalid State: Current state is not 'READY'");
+		SLOG(LOG_DEBUG, TAG_VCM, "=====");
+		SLOG(LOG_DEBUG, TAG_VCM, " ");
+		return VC_ERROR_INVALID_STATE;
+	}
+
+	/* Check service state */
+	vc_service_state_e service_state = -1;
+	vc_mgr_client_get_service_state(g_vc_m, &service_state);
+	if (service_state != VC_SERVICE_STATE_READY) {
+		SLOG(LOG_ERROR, TAG_VCM, "[ERROR] Invalid State: service state is not 'READY'");
+		SLOG(LOG_DEBUG, TAG_VCM, "=====");
+		SLOG(LOG_DEBUG, TAG_VCM, " ");
+		return VC_ERROR_INVALID_STATE;
+	}
+
+	vc_mgr_client_set_recognition_mode(g_vc_m, mode);
+	return 0;
+}
+
+int vc_mgr_get_recognition_mode(vc_recognition_mode_e* mode)
+{
+	int ret = -1;
+
+	ret = vc_mgr_client_get_recognition_mode(g_vc_m, mode);
+	if (0 != ret) {
+		SLOG(LOG_ERROR, TAG_VCM, "[ERROR] Fail to get recognition mode");
+		return ret;
+	}
+
+	SLOG(LOG_DEBUG, TAG_VCM, "===== [Manager] Get recognition mode = %d", *mode);
+	return 0;
+}
+
 int vc_mgr_start(bool stop_by_silence, bool exclusive_command_option)
 {
 	SLOG(LOG_DEBUG, TAG_VCM, "===== [Manager] Request start");
@@ -1131,12 +1141,18 @@ int vc_mgr_start(bool stop_by_silence, bool exclusive_command_option)
 
 	int ret;
 	int count = 0;
+	vc_recognition_mode_e recognition_mode;
+
+	if (0 == stop_by_silence)
+		recognition_mode = VC_RECOGNITION_MODE_MANUAL;
+	else
+		vc_mgr_get_recognition_mode(&recognition_mode);
 
 	/* Request */
 	ret = -1;
 	count = 0;
 	while (0 != ret) {
-		ret = vc_mgr_dbus_request_start(g_vc_m->handle, stop_by_silence, exclusive_command_option, start_by_client);
+		ret = vc_mgr_dbus_request_start(g_vc_m->handle, (int)recognition_mode, exclusive_command_option, start_by_client);
 		if (0 != ret) {
 			if (VC_ERROR_TIMED_OUT != ret) {
 				SLOG(LOG_ERROR, TAG_VCM, "[ERROR] Fail to start request start : %s", __vc_mgr_get_error_code(ret));
@@ -1153,7 +1169,6 @@ int vc_mgr_start(bool stop_by_silence, bool exclusive_command_option)
 			}
 		} else {
 			SLOG(LOG_DEBUG, TAG_VCM, "[SUCCESS] start recognition");
-			vc_mgr_client_set_service_state(g_vc_m, VC_SERVICE_STATE_RECORDING);
 		}
 	}
 
@@ -1213,7 +1228,6 @@ int vc_mgr_stop()
 			}
 		} else {
 			SLOG(LOG_DEBUG, TAG_VCM, "[SUCCESS] Stop recognition");
-			vc_mgr_client_set_service_state(g_vc_m, VC_SERVICE_STATE_PROCESSING);
 		}
 	}
 
@@ -1272,7 +1286,6 @@ int vc_mgr_cancel()
 			}
 		} else {
 			SLOG(LOG_DEBUG, TAG_VCM, "[SUCCESS] Cancel recognition");
-			vc_mgr_client_set_service_state(g_vc_m, VC_SERVICE_STATE_READY);
 		}
 	}
 
@@ -1282,6 +1295,14 @@ int vc_mgr_cancel()
 	SLOG(LOG_DEBUG, TAG_VCM, " ");
 
 	return ret;
+}
+
+int __vc_mgr_cb_set_volume(float volume)
+{
+	g_volume_db = volume;
+	SLOG(LOG_DEBUG, TAG_VCM, "Set volume (%f)", g_volume_db);
+
+	return 0;
 }
 
 int vc_mgr_get_recording_volume(float* volume)
@@ -1303,17 +1324,7 @@ int vc_mgr_get_recording_volume(float* volume)
 		return VC_ERROR_INVALID_STATE;
 	}
 
-	FILE* fp = fopen(VC_RUNTIME_INFO_AUDIO_VOLUME, "rb");
-	if (!fp) {
-		SLOG(LOG_ERROR, TAG_VCM, "[ERROR] Fail to open Volume File");
-		return VC_ERROR_OPERATION_FAILED;
-	}
-
-	int readlen = fread((void*)volume, sizeof(*volume), 1, fp);
-	fclose(fp);
-
-	if (0 == readlen)
-		*volume = 0.0f;
+	*volume = g_volume_db;
 
 	return 0;
 }
@@ -1322,13 +1333,20 @@ int vc_mgr_set_selected_results(vc_cmd_list_h vc_cmd_list)
 {
 	SLOG(LOG_DEBUG, TAG_VCM, "===== [Manager] Select result");
 
+	/* Do not check state for 'restart continusly' mode */
+
 	vc_service_state_e service_state = -1;
 	vc_mgr_client_get_service_state(g_vc_m, &service_state);
 	if (service_state != VC_SERVICE_STATE_PROCESSING) {
-		SLOG(LOG_ERROR, TAG_VCM, "[ERROR] Invalid State: service state is not 'PROCESSING'");
-		SLOG(LOG_DEBUG, TAG_VCM, "=====");
-		SLOG(LOG_DEBUG, TAG_VCM, " ");
-		return VC_ERROR_INVALID_STATE;
+		vc_recognition_mode_e recognition_mode;
+		vc_mgr_get_recognition_mode(&recognition_mode);
+
+		if (VC_RECOGNITION_MODE_RESTART_CONTINUOUSLY != recognition_mode) {
+			SLOG(LOG_ERROR, TAG_VCM, "[ERROR] Invalid State: service state is not 'PROCESSING' and mode is not 'Restart continously'");
+			SLOG(LOG_DEBUG, TAG_VCM, "=====");
+			SLOG(LOG_DEBUG, TAG_VCM, " ");
+			return VC_ERROR_INVALID_STATE;
+		}
 	}
 
 	if (NULL != vc_cmd_list) {
@@ -1385,7 +1403,7 @@ static Eina_Bool __vc_mgr_set_select_result(void *data)
 	return EINA_FALSE;
 }
 
-static Eina_Bool __vc_mgr_notify_all_result(void *data)
+static void __vc_mgr_notify_all_result(vc_result_type_e result_type)
 {
 	char* temp_text = NULL;
 	int event;
@@ -1398,17 +1416,18 @@ static Eina_Bool __vc_mgr_notify_all_result(void *data)
 	vc_mgr_client_get_all_result_cb(g_vc_m, &all_callback, &all_user_data);
 	if (NULL == all_callback) {
 		SLOG(LOG_ERROR, TAG_VCM, "[ERROR] All result callback is NULL");
-		return EINA_FALSE;
+		return;
 	}
 
 	if (0 != vc_cmd_list_create(&vc_cmd_list)) {
 		SLOG(LOG_ERROR, TAG_VCM, "[ERROR] Fail to create command list");
-		return EINA_FALSE;
+		return;
 	}
 
 	vc_info_parser_get_result(&temp_text, &event, &temp_message, -1, vc_cmd_list, vc_mgr_client_get_exclusive_command(g_vc_m));
 
-	SLOG(LOG_DEBUG, TAG_VCM, "Result info : result text(%s) event(%d) result_message(%s)", temp_text, event, temp_message);
+	SLOG(LOG_DEBUG, TAG_VCM, "Result info : result type(%d) result text(%s) event(%d) result_message(%s)", 
+		result_type, temp_text, event, temp_message);
 
 	vc_cmd_print_list(vc_cmd_list);
 
@@ -1426,7 +1445,7 @@ static Eina_Bool __vc_mgr_notify_all_result(void *data)
 		vc_mgr_client_get_result_cb(g_vc_m, &callback, &user_data);
 		if (NULL == callback) {
 			SLOG(LOG_ERROR, TAG_VCM, "[ERROR] Client result callback is NULL");
-			return EINA_FALSE;
+			return;
 		}
 
 		vc_mgr_client_use_callback(g_vc_m);
@@ -1442,7 +1461,7 @@ static Eina_Bool __vc_mgr_notify_all_result(void *data)
 
 		vc_mgr_client_set_exclusive_command(g_vc_m, false);
 
-		return EINA_FALSE;
+		return;
 	}
 
 	int count = 0;
@@ -1450,7 +1469,8 @@ static Eina_Bool __vc_mgr_notify_all_result(void *data)
 	if (0 < count) {
 		if (true == cb_ret) {
 			SLOG(LOG_DEBUG, TAG_VCM, "Callback result is true");
-			ecore_idler_add(__vc_mgr_set_select_result, NULL);
+			if (VC_RESULT_TYPE_NOTIFICATION != result_type)
+				ecore_idler_add(__vc_mgr_set_select_result, NULL);
 		} else {
 			SLOG(LOG_DEBUG, TAG_VCM, "Callback result is false");
 			/* need to select conflicted result */
@@ -1458,7 +1478,9 @@ static Eina_Bool __vc_mgr_notify_all_result(void *data)
 			vc_mgr_client_set_all_result(g_vc_m, event, temp_text);
 		}
 	} else {
-		ecore_idler_add(__vc_mgr_set_select_result, NULL);
+		if (VC_RESULT_TYPE_NOTIFICATION != result_type)
+			ecore_idler_add(__vc_mgr_set_select_result, NULL);
+
 		vc_mgr_client_set_exclusive_command(g_vc_m, false);
 		vc_mgr_client_unset_all_result(g_vc_m);
 	}
@@ -1469,7 +1491,7 @@ static Eina_Bool __vc_mgr_notify_all_result(void *data)
 	/* Release list */
 	vc_cmd_list_destroy(vc_cmd_list, true);
 
-	return EINA_FALSE;
+	return;
 }
 
 static Eina_Bool __vc_mgr_notify_result(void *data)
@@ -1511,10 +1533,10 @@ static Eina_Bool __vc_mgr_notify_result(void *data)
 	return EINA_FALSE;
 }
 
-void __vc_mgr_cb_all_result()
+void __vc_mgr_cb_all_result(vc_result_type_e type)
 {
 	if (false == vc_mgr_client_get_exclusive_command(g_vc_m)) {
-		__vc_mgr_notify_all_result(NULL);
+		__vc_mgr_notify_all_result(type);
 	} else {
 		__vc_mgr_notify_result(0);
 	}
@@ -1735,6 +1757,40 @@ int vc_mgr_unset_state_changed_cb()
 	}
 
 	vc_mgr_client_set_state_changed_cb(g_vc_m, NULL, NULL);
+
+	return 0;
+}
+
+int __vc_mgr_cb_service_state(int state)
+{
+	vc_service_state_e current_state = (vc_service_state_e)state;
+	vc_service_state_e before_state;
+	vc_mgr_client_get_service_state(g_vc_m, &before_state);
+
+	if (current_state == before_state) {
+		SLOG(LOG_WARN, TAG_VCM, "Service State NOT changed : Before(%d) Current(%d)",
+			before_state, current_state);
+		return 0;
+	}
+
+	SLOG(LOG_DEBUG, TAG_VCM, "Service State changed : Before(%d) Current(%d)",
+		before_state, current_state);
+
+	/* Save service state */
+	vc_mgr_client_set_service_state(g_vc_m, current_state);
+
+	vc_service_state_changed_cb callback = NULL;
+	void* service_user_data = NULL;
+	vc_mgr_client_get_service_state_changed_cb(g_vc_m, &callback, &service_user_data);
+
+	if (NULL != callback) {
+		vc_mgr_client_use_callback(g_vc_m);
+		callback(before_state, current_state, service_user_data);
+		vc_mgr_client_not_use_callback(g_vc_m);
+		SLOG(LOG_DEBUG, TAG_VCM, "Service state changed callback is called");
+	} else {
+		SLOG(LOG_WARN, TAG_VCM, "[WARNING] Service state changed callback is null");
+	}
 
 	return 0;
 }

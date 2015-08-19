@@ -31,6 +31,8 @@ extern int __vc_cb_error(int pid, int reason);
 
 extern void __vc_cb_result();
 
+extern int __vc_cb_service_state(int state);
+
 
 static Eina_Bool listener_event_callback(void* data, Ecore_Fd_Handler *fd_handler)
 {
@@ -38,129 +40,120 @@ static Eina_Bool listener_event_callback(void* data, Ecore_Fd_Handler *fd_handle
 
 	dbus_connection_read_write_dispatch(g_conn_listener, 50);
 
-	DBusMessage* msg = NULL;
-	msg = dbus_connection_pop_message(g_conn_listener);
+	while (1) {
+		DBusMessage* msg = NULL;
+		msg = dbus_connection_pop_message(g_conn_listener);
 
-	/* loop again if we haven't read a message */
-	if (NULL == msg) { 
-		return ECORE_CALLBACK_RENEW;
-	}
-
-	DBusError err;
-	dbus_error_init(&err);
-
-	char if_name[64];
-	snprintf(if_name, 64, "%s", VC_CLIENT_SERVICE_INTERFACE);
-
-	if (dbus_message_is_method_call(msg, if_name, VCD_METHOD_HELLO)) {
-		SLOG(LOG_DEBUG, TAG_VCC, "===== Get Hello");
-		int pid = 0;
-		int response = -1;
-
-		dbus_message_get_args(msg, &err, DBUS_TYPE_INT32, &pid, DBUS_TYPE_INVALID);
-
-		if (dbus_error_is_set(&err)) {
-			SLOG(LOG_ERROR, TAG_VCC, "[ERROR] Dbus Error (%s)", err.message);
-			dbus_error_free(&err);
+		/* loop again if we haven't read a message */
+		if (NULL == msg) {
+			break;
 		}
 
-		if (pid > 0) {
-			SLOG(LOG_DEBUG, TAG_VCC, "<<<< vc get hello : pid(%d) ", pid);
-			response = 1;
+		DBusError err;
+		dbus_error_init(&err);
 
-		} else {
-			SLOG(LOG_ERROR, TAG_VCC, "<<<< vc get hello : invalid pid ");
-		}
+		char if_name[64] = {0, };
+		snprintf(if_name, 64, "%s", VC_CLIENT_SERVICE_INTERFACE);
 
-		DBusMessage* reply = NULL;
-		reply = dbus_message_new_method_return(msg);
+		if (dbus_message_is_method_call(msg, if_name, VCD_METHOD_HELLO)) {
+			SLOG(LOG_DEBUG, TAG_VCC, "===== Get Hello");
+			int pid = 0;
+			int response = -1;
+
+			dbus_message_get_args(msg, &err, DBUS_TYPE_INT32, &pid, DBUS_TYPE_INVALID);
+
+			if (dbus_error_is_set(&err)) {
+				SLOG(LOG_ERROR, TAG_VCC, "[ERROR] Dbus Error (%s)", err.message);
+				dbus_error_free(&err);
+			}
+
+			if (pid > 0) {
+				SLOG(LOG_DEBUG, TAG_VCC, "<<<< vc get hello : pid(%d) ", pid);
+				response = 1;
+			} else {
+				SLOG(LOG_ERROR, TAG_VCC, "<<<< vc get hello : invalid pid ");
+			}
+
+			DBusMessage* reply = NULL;
+			reply = dbus_message_new_method_return(msg);
+
+			if (NULL != reply) {
+				dbus_message_append_args(reply, DBUS_TYPE_INT32, &response, DBUS_TYPE_INVALID);
+
+				if (!dbus_connection_send(g_conn_listener, reply, NULL))
+					SLOG(LOG_ERROR, TAG_VCC, ">>>> vc get hello : fail to send reply");
+				else
+					SLOG(LOG_DEBUG, TAG_VCC, ">>>> vc get hello : result(%d)", response);
+
+				dbus_connection_flush(g_conn_listener);
+				dbus_message_unref(reply);
+			} else {
+				SLOG(LOG_ERROR, TAG_VCC, ">>>> vc get hello : fail to create reply message");
+			}
+
+			SLOG(LOG_DEBUG, TAG_VCC, "=====");
+			SLOG(LOG_DEBUG, TAG_VCC, " ");
+		} /* VCD_METHOD_HELLO */
+
+		else if (dbus_message_is_signal(msg, if_name, VCD_METHOD_SET_SERVICE_STATE)) {
+			int state = 0;
+
+			dbus_message_get_args(msg, &err, DBUS_TYPE_INT32, &state, DBUS_TYPE_INVALID);
+			if (dbus_error_is_set(&err)) {
+				SLOG(LOG_ERROR, TAG_VCC, "[ERROR] Get arguments error (%s)", err.message);
+				dbus_error_free(&err);
+			}
+
+			SLOG(LOG_DEBUG, TAG_VCC, "<<<< state changed : %d", state);
+
+			__vc_cb_service_state(state);
+
+		} /* VCD_METHOD_SET_SERVICE_STATE */
+
+		else if (dbus_message_is_method_call(msg, if_name, VCD_METHOD_RESULT)) {
+			SLOG(LOG_DEBUG, TAG_VCC, "===== Get Client Result");
+
+			__vc_cb_result();
+
+			SLOG(LOG_DEBUG, TAG_VCC, "=====");
+			SLOG(LOG_DEBUG, TAG_VCC, " ");
+
+		} /* VCD_METHOD_RESULT */
+
+		else if (dbus_message_is_method_call(msg, if_name, VCD_METHOD_ERROR)) {
+			SLOG(LOG_DEBUG, TAG_VCC, "===== Get Error");
+			int pid;
+			int reason;
+			char* err_msg;
+
+			dbus_message_get_args(msg, &err,
+				DBUS_TYPE_INT32, &pid,
+				DBUS_TYPE_INT32, &reason,
+				DBUS_TYPE_STRING, &err_msg,
+				DBUS_TYPE_INVALID);
+
+			if (dbus_error_is_set(&err)) {
+				SLOG(LOG_ERROR, TAG_VCC, "<<<< vc Get Error message : Get arguments error (%s)", err.message);
+				dbus_error_free(&err);
+			}
+			else {
+				SLOG(LOG_DEBUG, TAG_VCC, "<<<< vc Get Error message : pid(%d), reason(%d), msg(%s)", pid, reason, err_msg);
+				__vc_cb_error(pid, reason);
+			}
+
+			SLOG(LOG_DEBUG, TAG_VCC, "=====");
+			SLOG(LOG_DEBUG, TAG_VCC, " ");
+		} /* VCD_METHOD_ERROR */
 		
-		if (NULL != reply) {
-			dbus_message_append_args(reply, DBUS_TYPE_INT32, &response, DBUS_TYPE_INVALID);
-
-			if (!dbus_connection_send(g_conn_listener, reply, NULL))
-				SLOG(LOG_ERROR, TAG_VCC, ">>>> vc get hello : fail to send reply");
-			else 
-				SLOG(LOG_DEBUG, TAG_VCC, ">>>> vc get hello : result(%d)", response);
-
-			dbus_connection_flush(g_conn_listener);
-			dbus_message_unref(reply);
-		} else {
-			SLOG(LOG_ERROR, TAG_VCC, ">>>> vc get hello : fail to create reply message");
-		}
-		
-		SLOG(LOG_DEBUG, TAG_VCC, "=====");
-		SLOG(LOG_DEBUG, TAG_VCC, " ");
-	} /* VCD_METHOD_HELLO */
-
-	else if (dbus_message_is_method_call(msg, if_name, VCD_METHOD_RESULT)) {
-		SLOG(LOG_DEBUG, TAG_VCC, "===== Get Client Result");
-
-		__vc_cb_result();
-
-		/*
-		reply = dbus_message_new_method_return(msg);
-
-		if (NULL != reply) {
-			if (!dbus_connection_send(g_conn_listener, reply, NULL))
-				SLOG(LOG_ERROR, TAG_VCC, ">>>> vc get result : fail to send reply");
-			else 
-				SLOG(LOG_DEBUG, TAG_VCC, ">>>> vc get result");
-
-			dbus_connection_flush(g_conn_listener);
-			dbus_message_unref(reply);
-		} else {
-			SLOG(LOG_ERROR, TAG_VCC, ">>>> vc get result : fail to create reply message");
-		}
-		*/
-
-		SLOG(LOG_DEBUG, TAG_VCC, "=====");
-		SLOG(LOG_DEBUG, TAG_VCC, " ");
-
-	}/* VCD_METHOD_RESULT */
-
-	else if (dbus_message_is_method_call(msg, if_name, VCD_METHOD_ERROR)) {
-		SLOG(LOG_DEBUG, TAG_VCC, "===== Get Error");
-		int pid;
-		int reason;
-		char* err_msg;
-
-		dbus_message_get_args(msg, &err,
-			DBUS_TYPE_INT32, &pid,
-			DBUS_TYPE_INT32, &reason,
-			DBUS_TYPE_STRING, &err_msg,
-			DBUS_TYPE_INVALID);
-
-		if (dbus_error_is_set(&err)) { 
-			SLOG(LOG_ERROR, TAG_VCC, "<<<< vc Get Error message : Get arguments error (%s)", err.message);
-			dbus_error_free(&err); 
-		} else {
-			SLOG(LOG_DEBUG, TAG_VCC, "<<<< vc Get Error message : pid(%d), reason(%d), msg(%s)", pid, reason, err_msg);
-			__vc_cb_error(pid, reason);
+		else {
+			SLOG(LOG_DEBUG, TAG_VCC, "Message is NOT valid");
+			dbus_message_unref(msg);
+			break;
 		}
 
-		/*
-		reply = dbus_message_new_method_return(msg);
-
-		if (NULL != reply) {
-			if (!dbus_connection_send(g_conn_listener, reply, NULL))
-				SLOG(LOG_ERROR, TAG_VCC, ">>>> vc Error message : fail to send reply");
-			else 
-				SLOG(LOG_DEBUG, TAG_VCC, ">>>> vc Error message");
-
-			dbus_connection_flush(g_conn_listener);
-			dbus_message_unref(reply);
-		} else {
-			SLOG(LOG_ERROR, TAG_VCC, ">>>> vc Error message : fail to create reply message");
-		}
-		*/
-
-		SLOG(LOG_DEBUG, TAG_VCC, "=====");
-		SLOG(LOG_DEBUG, TAG_VCC, " ");
-	}/* VCD_METHOD_ERROR */
-
-	/* free the message */
-	dbus_message_unref(msg);
+		/* free the message */
+		dbus_message_unref(msg);
+	} /* while(1) */
 
 	return ECORE_CALLBACK_PASS_ON;
 }
@@ -202,8 +195,6 @@ int vc_dbus_open_connection()
 		SLOG(LOG_ERROR, TAG_VCC, "Fail to get dbus connection ");
 		return VC_ERROR_OPERATION_FAILED;
 	}
-
-	int pid = getpid();
 
 	char service_name[64];
 	memset(service_name, '\0', 64);
@@ -349,7 +340,7 @@ int vc_dbus_request_hello()
 }
 
 
-int vc_dbus_request_initialize(int pid, int* mgr_pid)
+int vc_dbus_request_initialize(int pid, int* mgr_pid, int* service_state)
 {
 	DBusMessage* msg;
 
@@ -386,9 +377,11 @@ int vc_dbus_request_initialize(int pid, int* mgr_pid)
 
 	if (NULL != result_msg) {
 		int tmp = -1;
-		dbus_message_get_args(result_msg, &err, 
+		int tmp_service_state = 0;
+		dbus_message_get_args(result_msg, &err,
 			DBUS_TYPE_INT32, &result,
 			DBUS_TYPE_INT32, &tmp,
+			DBUS_TYPE_INT32, &tmp_service_state,
 			DBUS_TYPE_INVALID);
 
 		if (dbus_error_is_set(&err)) {
@@ -401,7 +394,8 @@ int vc_dbus_request_initialize(int pid, int* mgr_pid)
 
 		if (0 == result) {
 			*mgr_pid = tmp;
-			SLOG(LOG_DEBUG, TAG_VCC, "<<<< vc initialize : result = %d mgr = %d", result, *mgr_pid);
+			*service_state = tmp_service_state;
+			SLOG(LOG_DEBUG, TAG_VCC, "<<<< vc initialize : result = %d mgr = %d service = %d", result, *mgr_pid, *service_state);
 		} else {
 			SLOG(LOG_ERROR, TAG_VCC, "<<<< vc initialize : result = %d", result);
 		}

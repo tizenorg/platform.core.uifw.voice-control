@@ -30,7 +30,7 @@ int vc_mgr_dbus_close_connection();
 
 int vc_mgr_dbus_request_hello();
 
-int vc_mgr_dbus_request_initialize(int pid);
+int vc_mgr_dbus_request_initialize(int pid, int* service_state);
 
 int vc_mgr_dbus_request_finalize(int pid);
 
@@ -46,7 +46,7 @@ int vc_mgr_dbus_request_get_audio_type(int pid, char** audio_type);
 
 int vc_mgr_dbus_request_set_client_info(int pid);
 
-int vc_mgr_dbus_request_start(int pid, int silence, bool exclusive_command_option, bool start_by_client);
+int vc_mgr_dbus_request_start(int pid, int recognition_mode, bool exclusive_command_option, bool start_by_client);
 
 int vc_mgr_dbus_request_stop(int pid);
 

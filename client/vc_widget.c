@@ -94,30 +94,6 @@ static void __vc_widget_lang_changed_cb(const char* before_lang, const char* cur
 	return;
 }
 
-static void __vc_widget_service_state_changed_cb(int before_state, int current_state)
-{
-	SECURE_SLOG(LOG_DEBUG, TAG_VCW, "Service State changed : Before(%d) Current(%d)", 
-		before_state, current_state);
-
-	/* Save service state */
-	vc_widget_client_set_service_state(g_vc_w, (vc_service_state_e)current_state);
-
-	vc_service_state_changed_cb service_callback = NULL;
-	void* service_user_data;
-	vc_widget_client_get_service_state_changed_cb(g_vc_w, &service_callback, &service_user_data);
-
-	if (NULL != service_callback) {
-		vc_widget_client_use_callback(g_vc_w);
-		service_callback((vc_service_state_e)before_state, (vc_service_state_e)current_state, service_user_data);
-		vc_widget_client_not_use_callback(g_vc_w);
-		SLOG(LOG_DEBUG, TAG_VCW, "Service state changed callback is called");
-	} else {
-		SLOG(LOG_WARN, TAG_VCW, "[WARNING] State changed callback is null");
-	}
-
-	return;
-}
-
 int vc_widget_initialize()
 {
 	SLOG(LOG_DEBUG, TAG_VCW, "===== [Widget] Initialize");
@@ -158,25 +134,6 @@ int vc_widget_initialize()
 		vc_widget_client_destroy(g_vc_w);
 		return __vc_widget_convert_config_error_code(ret);
 	}
-
-	ret = vc_config_mgr_set_service_state_cb(g_vc_w->handle + VC_WIDGET_CONFIG_HANDLE, __vc_widget_service_state_changed_cb);
-	if (0 != ret) {
-		SLOG(LOG_ERROR, TAG_VCW, "[ERROR] Fail to set service state callback : %d", ret);
-		vc_config_mgr_unset_lang_cb(g_vc_w->handle + VC_WIDGET_CONFIG_HANDLE);
-		vc_config_mgr_finalize(g_vc_w->handle + VC_WIDGET_CONFIG_HANDLE);
-		vc_widget_client_destroy(g_vc_w);
-		return __vc_widget_convert_config_error_code(ret);
-	}
-
-	int service_state = -1;
-	if (0 != vc_config_mgr_get_service_state(&service_state)) {
-		SLOG(LOG_ERROR, TAG_VCW, "[ERROR] Fail to get service state");
-		vc_config_mgr_finalize(g_vc_w->handle + VC_WIDGET_CONFIG_HANDLE);
-		vc_widget_client_destroy(g_vc_w);
-		return __vc_widget_convert_config_error_code(ret);
-	}
-
-	vc_widget_client_set_service_state(g_vc_w, service_state);
 
 	SLOG(LOG_DEBUG, TAG_VCW, "[Success] pid(%d)", g_vc_w->handle);
 
@@ -223,7 +180,6 @@ int vc_widget_deinitialize()
 			ecore_timer_del(g_w_connect_timer);
 		}
 
-		vc_config_mgr_unset_service_state_cb(g_vc_w->handle + VC_WIDGET_CONFIG_HANDLE);
 		vc_config_mgr_unset_lang_cb(g_vc_w->handle + VC_WIDGET_CONFIG_HANDLE);
 		vc_config_mgr_finalize(g_vc_w->handle + VC_WIDGET_CONFIG_HANDLE);
 
@@ -260,7 +216,8 @@ static Eina_Bool __vc_widget_connect_daemon(void *data)
 
 	/* request initialization */
 	int ret = -1;
-	ret = vc_widget_dbus_request_initialize(g_vc_w->handle);
+	int service_state = 0;
+	ret = vc_widget_dbus_request_initialize(g_vc_w->handle, &service_state);
 
 	if (VC_ERROR_ENGINE_NOT_FOUND == ret) {
 		SLOG(LOG_ERROR, TAG_VCW, "[ERROR] Fail to initialize : %s", __vc_widget_get_error_code(ret));
@@ -282,6 +239,8 @@ static Eina_Bool __vc_widget_connect_daemon(void *data)
 		SLOG(LOG_DEBUG, TAG_VCW, "  ");
 		return EINA_FALSE;
 	}
+
+	vc_widget_client_set_service_state(g_vc_w, (vc_service_state_e)service_state);
 
 	vc_widget_client_set_state(g_vc_w, VC_STATE_READY);
 	ecore_timer_add(0, __vc_widget_notify_state_changed, g_vc_w);
@@ -738,7 +697,6 @@ int vc_widget_stop()
 }
 #endif
 
-#if 0
 int vc_widget_cancel()
 {
 	SLOG(LOG_DEBUG, TAG_VCW, "===== [Widget] Cancel Recognition");
@@ -769,19 +727,9 @@ int vc_widget_cancel()
 		return VC_ERROR_INVALID_STATE;
 	}
 
-	int ret = vc_widget_client_set_command_group(g_vc_w, NULL);
-	if (0 != ret) {
-		SLOG(LOG_ERROR, TAG_VCW, "[ERROR] Fail to set command to client : %d", ret);
-		return ret;
-	}
-
-	ret = vc_cmd_parser_delete_file(getpid(), VC_COMMAND_TYPE_WIDGET);
-	if (0 != ret) {
-		ret = vc_config_convert_error_code((vc_config_error_e)ret);
-		SLOG(LOG_ERROR, TAG_VCW, "[ERROR] Fail to delete command group : %s", __vc_widget_get_error_code(ret));
-	}
-
 	int count = 0;
+	int ret = -1;
+
 	do {
 		ret = vc_widget_dbus_request_cancel(g_vc_w->handle);
 		if (0 != ret) {
@@ -804,7 +752,6 @@ int vc_widget_cancel()
 
 	return 0;
 }
-#endif
 
 static Eina_Bool __vc_widget_notify_error(void *data)
 {
@@ -1133,6 +1080,39 @@ int vc_widget_unsset_send_current_command_list_cb()
 	}
 
 	vc_widget_client_set_send_command_list_cb(g_vc_w, NULL, NULL);
+
+	return 0;
+}
+
+int __vc_widget_cb_service_state(int state)
+{
+	vc_service_state_e current_state = (vc_service_state_e)state;
+	vc_service_state_e before_state;
+	vc_widget_client_get_service_state(g_vc_w, &before_state);
+
+	if (current_state == before_state) {
+		return 0;
+	}
+
+	SLOG(LOG_DEBUG, TAG_VCW, "Service State changed : Before(%d) Current(%d)",
+		before_state, current_state);
+
+	/* Save service state */
+	vc_widget_client_set_service_state(g_vc_w, current_state);
+
+	vc_service_state_changed_cb callback = NULL;
+	void* service_user_data = NULL;
+	vc_widget_client_get_service_state_changed_cb(g_vc_w, &callback, &service_user_data);
+
+	if (NULL != callback) {
+		vc_widget_client_use_callback(g_vc_w);
+		callback((vc_service_state_e)before_state, (vc_service_state_e)current_state, service_user_data);
+		vc_widget_client_not_use_callback(g_vc_w);
+		SLOG(LOG_DEBUG, TAG_VCW, "Service state changed callback is called");
+	}
+	else {
+		SLOG(LOG_WARN, TAG_VCW, "[WARNING] Service state changed callback is null");
+	}
 
 	return 0;
 }

@@ -103,11 +103,6 @@ int vcd_config_set_service_state(vcd_state_e state)
 {
 	g_state = state;
 
-	if (0 != vc_config_mgr_set_service_state((int)state)) {
-		SLOG(LOG_ERROR, TAG_VCD, "[Config ERROR] Fail to set service state");
-		return VCD_ERROR_OPERATION_FAILED;
-	}
-
 	SLOG(LOG_DEBUG, TAG_VCD, "[Config] Config is changed : %d", g_state);
 
 	return 0;

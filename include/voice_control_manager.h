@@ -61,6 +61,16 @@ extern "C"
 #define VC_RESULT_MESSAGE_ERROR_TOO_LOUD	"vc.result.message.error.too.loud"
 
 /**
+* @brief Enumerations of recognition mode.
+*/
+typedef enum {
+	VC_RECOGNITION_MODE_STOP_BY_SILENCE,		/**< Default mode */
+	VC_RECOGNITION_MODE_RESTART_AFTER_REJECT,	/**< Restart recognition after rejected result */
+	VC_RECOGNITION_MODE_RESTART_CONTINUOUSLY,	/**< Continuously restart recognition - not support yet*/
+	VC_RECOGNITION_MODE_MANUAL			/**< Start and stop manually without silence */
+} vc_recognition_mode_e;
+
+/**
 * @brief Called when client gets the all recognition results from vc-daemon.
 *
 * @remark temp_command is valid in callback function.
@@ -359,6 +369,38 @@ int vc_mgr_set_audio_type(const char* audio_id);
 * @see vc_mgr_set_audio_type()
 */
 int vc_mgr_get_audio_type(char** audio_id);
+
+/**
+* @brief Sets recognition mode.
+*
+* @param[in] mode recognition mode (e.g. #VC_RECOGNITION_MODE_SILENCE_DETECTION_ONE_TURN is default value)
+*
+* @return 0 on success, otherwise a negative error value
+* @retval #VC_ERROR_NONE Successful
+* @retval #VC_ERROR_INVALID_PARAMETER Invalid parameter
+* @retval #VC_ERROR_INVALID_STATE Invalid state
+*
+* @pre The state should be #VC_STATE_READY and the service state should be #VC_SERVICE_STATE_READY.
+*
+* @see vc_mgr_set_recognition_mode()
+*/
+int vc_mgr_set_recognition_mode(vc_recognition_mode_e mode);
+
+/**
+* @brief Gets recognition mode.
+*
+* @param[out] mode recognition mode
+*
+* @return 0 on success, otherwise a negative error value
+* @retval #VC_ERROR_NONE Successful
+* @retval #VC_ERROR_INVALID_PARAMETER Invalid parameter
+* @retval #VC_ERROR_INVALID_STATE Invalid state
+*
+* @pre The state should be #VC_STATE_READY.
+*
+* @see vc_mgr_get_recognition_mode()
+*/
+int vc_mgr_get_recognition_mode(vc_recognition_mode_e* mode);
 
 /**
 * @brief Starts recognition.

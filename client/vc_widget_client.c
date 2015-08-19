@@ -165,6 +165,9 @@ int vc_widget_client_destroy(vc_h vc)
 				free(data);
 				free(vc);
 
+				data = NULL;
+				vc = NULL;
+
 				return 0;
 			}
 		}

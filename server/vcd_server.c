@@ -59,10 +59,36 @@ static Eina_Bool __cancel_by_interrupt(void *data)
 	return EINA_FALSE;
 }
 
+static Eina_Bool __restart_engine(void *data)
+{
+	SLOG(LOG_DEBUG, TAG_VCD, "===== Restart by no result");
+
+	/* Restart recognition */
+	int ret = vcd_engine_recognize_start(true);
+	if (0 != ret) {
+		SLOG(LOG_ERROR, TAG_VCD, "[Server ERROR] Fail to restart recognition : result(%d)", ret);
+		return EINA_FALSE;
+	}
+
+	SLOG(LOG_DEBUG, TAG_VCD, "[Server Success] Start engine");
+
+	if (VCD_RECOGNITION_MODE_RESTART_AFTER_REJECT == vcd_client_get_recognition_mode()) {
+		vcd_config_set_service_state(VCD_STATE_RECORDING);
+		vcdc_send_service_state(VCD_STATE_RECORDING);
+	}
+
+	SLOG(LOG_DEBUG, TAG_VCD, "[Server Success] Restart recognition");
+
+	SLOG(LOG_DEBUG, TAG_VCD, "=====");
+	SLOG(LOG_DEBUG, TAG_VCD, "  ");
+	return EINA_FALSE;
+}
+
 static int __server_recorder_callback(const void* data, const unsigned int length)
 {
 	vcd_state_e state = vcd_config_get_service_state();
 	if (VCD_STATE_RECORDING != state) {
+		SLOG(LOG_DEBUG, TAG_VCD, "[Server] Skip by engine processing");
 		return 0;
 	}
 
@@ -85,9 +111,27 @@ static int __server_recorder_callback(const void* data, const unsigned int lengt
 				SLOG(LOG_WARN, TAG_VCD, "[Server WARNING] Fail to send speech detected");
 			}
 		}
-	} else if (VCP_SPEECH_DETECT_END == speech_detected && vcd_client_get_slience_detection()) {
-		/* silence detected */
-		ecore_timer_add(0, __stop_by_silence, NULL);
+	} else if (VCP_SPEECH_DETECT_END == speech_detected) {
+		if (VCD_RECOGNITION_MODE_STOP_BY_SILENCE == vcd_client_get_recognition_mode()) {
+			/* silence detected */
+			ecore_timer_add(0, __stop_by_silence, NULL);
+		} else if (VCD_RECOGNITION_MODE_RESTART_AFTER_REJECT == vcd_client_get_recognition_mode()) {
+			/* Stop engine recognition */
+			int ret = vcd_engine_recognize_stop();
+			if (0 != ret) {
+				SLOG(LOG_ERROR, TAG_VCD, "[Server ERROR] Fail to stop recognition : %d", ret);
+			}
+			vcd_config_set_service_state(VCD_STATE_PROCESSING);
+			vcdc_send_service_state(VCD_STATE_PROCESSING);
+
+			SLOG(LOG_DEBUG, TAG_VCD, "[Server] Stop engine only by silence");
+		} else if (VCD_RECOGNITION_MODE_RESTART_CONTINUOUSLY == vcd_client_get_recognition_mode()) {
+			/* Stop engine recognition */
+			int ret = vcd_engine_recognize_stop();
+			if (0 != ret) {
+				SLOG(LOG_ERROR, TAG_VCD, "[Server ERROR] Fail to stop recognition : %d", ret);
+			}
+		}
 	}
 
 	return 0;
@@ -190,22 +234,58 @@ static Eina_Bool __vcd_send_selected_result(void *data)
 		}
 	}
 
-	vcd_config_set_service_state(VCD_STATE_READY);
+	if (VCD_RECOGNITION_MODE_RESTART_CONTINUOUSLY != vcd_client_get_recognition_mode()) {
+		vcd_config_set_service_state(VCD_STATE_READY);
+		vcdc_send_service_state(VCD_STATE_READY);
+	}
 
 	return EINA_FALSE;
 }
 
-static void __vcd_server_result_cb(vcp_result_event_e event, int* result_id, int count, 
-				   const char* all_result, const char* non_fixed_result, const char* msg, void *user_data)
+static void __vcd_server_result_cb(vcp_result_event_e event, int* result_id, int count, const char* all_result,
+								   const char* non_fixed_result, const char* msg, void *user_data)
 {
 	if (VCD_STATE_PROCESSING != vcd_config_get_service_state()) {
-		SLOG(LOG_ERROR, TAG_VCD, "[Server ERROR] Current state is not 'Processing'");
-		return;
+		if (VCD_RECOGNITION_MODE_RESTART_CONTINUOUSLY != vcd_client_get_recognition_mode()) {
+			SLOG(LOG_ERROR, TAG_VCD, "[Server ERROR] Current state is not 'Processing' and mode is not 'Restart continuously'");
+			return;
+		}
 	}
 
 	vc_info_parser_unset_result(vcd_client_manager_get_exclusive());
 
-	SLOG(LOG_DEBUG, TAG_VCD, "[Server] Event(%d), Text(%s) Nonfixed(%s) Msg(%s) Result count(%d)", event, all_result, non_fixed_result, msg, count);
+	SLOG(LOG_DEBUG, TAG_VCD, "[Server] Event(%d), Text(%s) Nonfixed(%s) Msg(%s) Result count(%d)", 
+		event, all_result, non_fixed_result, msg, count);
+
+	if (VCD_RECOGNITION_MODE_RESTART_AFTER_REJECT == vcd_client_get_recognition_mode()) {
+		if (VCP_RESULT_EVENT_REJECTED == event) {
+			SLOG(LOG_DEBUG, TAG_VCD, "[Server] Restart by no or rejected result");
+			/* If no result and restart option is ON */
+			/* Send reject message */
+			bool temp = vcd_client_manager_get_exclusive();
+			vc_info_parser_set_result(all_result, event, msg, NULL, temp);
+			if (0 != vcdc_send_result_to_manager(vcd_client_manager_get_pid(), VC_RESULT_TYPE_NOTIFICATION)) {
+				SLOG(LOG_WARN, TAG_VCD, "[Server WARNING] Fail to send result");
+			}
+
+			ecore_timer_add(0, __restart_engine, NULL);
+			return;
+		}
+		SLOG(LOG_DEBUG, TAG_VCD, "[Server] Stop recorder due to success");
+		vcd_recorder_stop();
+	} else if (VCD_RECOGNITION_MODE_RESTART_CONTINUOUSLY == vcd_client_get_recognition_mode()) {
+		SLOG(LOG_DEBUG, TAG_VCD, "[Server] Restart continuously");
+		/* Restart option is ON */
+		ecore_timer_add(0, __restart_engine, NULL);
+		if (VCP_RESULT_EVENT_REJECTED == event) {
+			bool temp = vcd_client_manager_get_exclusive();
+			vc_info_parser_set_result(all_result, event, msg, NULL, temp);
+			if (0 != vcdc_send_result_to_manager(vcd_client_manager_get_pid(), VC_RESULT_TYPE_NOTIFICATION)) {
+				SLOG(LOG_WARN, TAG_VCD, "[Server WARNING] Fail to send result");
+			}
+			return;
+		}
+	}
 
 	/* No result */
 	if (NULL == result_id) {
@@ -230,7 +310,7 @@ static void __vcd_server_result_cb(vcp_result_event_e event, int* result_id, int
 
 		if (-1 != vcd_client_manager_get_pid()) {
 			/* Manager client is available */
-			if (0 != vcdc_send_result_to_manager(vcd_client_manager_get_pid())) {
+			if (0 != vcdc_send_result_to_manager(vcd_client_manager_get_pid(), VC_RESULT_TYPE_NORMAL)) {
 				SLOG(LOG_WARN, TAG_VCD, "[Server WARNING] Fail to send result");
 			}
 		}
@@ -251,6 +331,7 @@ static void __vcd_server_result_cb(vcp_result_event_e event, int* result_id, int
 		SLOG(LOG_DEBUG, TAG_VCD, "[Server] Fail to create command list");
 		vcd_client_manager_set_exclusive(false);
 		vcd_config_set_service_state(VCD_STATE_READY);
+		vcdc_send_service_state(VCD_STATE_READY);
 		return;
 	}
 
@@ -320,7 +401,7 @@ static void __vcd_server_result_cb(vcp_result_event_e event, int* result_id, int
 
 		if (-1 != vcd_client_manager_get_pid()) {
 			/* Manager client is available */
-			if (0 != vcdc_send_result_to_manager(vcd_client_manager_get_pid())) {
+			if (0 != vcdc_send_result_to_manager(vcd_client_manager_get_pid(), VC_RESULT_TYPE_NORMAL)) {
 				SLOG(LOG_WARN, TAG_VCD, "[Server WARNING] Fail to send result");
 			}
 		} else {
@@ -334,7 +415,7 @@ static void __vcd_server_result_cb(vcp_result_event_e event, int* result_id, int
 
 		if (-1 != vcd_client_manager_get_pid()) {
 			/* Manager client is available */
-			if (0 != vcdc_send_result_to_manager(vcd_client_manager_get_pid())) {
+			if (0 != vcdc_send_result_to_manager(vcd_client_manager_get_pid(), VC_RESULT_TYPE_NORMAL)) {
 				SLOG(LOG_WARN, TAG_VCD, "[Server WARNING] Fail to send result");
 			}
 		} else {
@@ -444,6 +525,7 @@ int vcd_initialize()
 	vcd_client_manager_unset();
 
 	vcd_config_set_service_state(VCD_STATE_READY);
+	vcdc_send_service_state(VCD_STATE_READY);
 
 	SLOG(LOG_DEBUG, TAG_VCD, "[Server SUCCESS] initialize");
 
@@ -472,6 +554,7 @@ void vcd_finalize()
 	}
 
 	vcd_config_set_service_state(VCD_STATE_NONE);
+	vcdc_send_service_state(VCD_STATE_NONE);
 
 	SLOG(LOG_DEBUG, TAG_VCD, "[Server] mode finalize");
 
@@ -514,6 +597,8 @@ Eina_Bool vcd_cleanup_client(void *data)
 		client_list = NULL;
 	}
 
+#if 0
+	/* If app is in background state, app cannot response message. */
 	if (0 == vcd_client_widget_get_list(&client_list, &client_count)) {
 		SLOG(LOG_DEBUG, TAG_VCD, "===== Clean up widget");
 		if (NULL != client_list && client_count > 0) {
@@ -536,10 +621,16 @@ Eina_Bool vcd_cleanup_client(void *data)
 		free(client_list);
 		client_list = NULL;
 	}
+#endif
 
 	/* manager */
 
 	return EINA_TRUE;
+}
+
+int vcd_server_get_service_state()
+{
+	return vcd_config_get_service_state();
 }
 
 /*
@@ -744,6 +835,7 @@ static int __start_internal_recognition()
 	}
 
 	vcd_config_set_service_state(VCD_STATE_RECORDING);
+	vcdc_send_service_state(VCD_STATE_RECORDING);
 
 	SLOG(LOG_DEBUG, TAG_VCD, "[Server Success] Start recognition");
 
@@ -761,7 +853,7 @@ static Eina_Bool __vcd_request_show_tooltip(void *data)
 	return EINA_FALSE;
 }
 
-int vcd_server_mgr_start(bool stop_by_silence, bool exclusive_cmd, bool start_by_client)
+int vcd_server_mgr_start(vcd_recognition_mode_e recognition_mode, bool exclusive_cmd, bool start_by_client)
 {
 	/* 1. check current state */
 	vcd_state_e state = vcd_config_get_service_state();
@@ -771,7 +863,8 @@ int vcd_server_mgr_start(bool stop_by_silence, bool exclusive_cmd, bool start_by
 		return VCD_ERROR_INVALID_STATE;
 	}
 
-	vcd_client_set_slience_detection(stop_by_silence);
+	SLOG(LOG_DEBUG, TAG_VCD, "[Server] set recognition mode = %d", recognition_mode);
+	vcd_client_set_recognition_mode(recognition_mode);
 
 	if (false == exclusive_cmd) {
 		/* Notify show tooltip */
@@ -830,6 +923,7 @@ int vcd_server_mgr_stop()
 
 	/* 4. Set original mode */
 	vcd_config_set_service_state(VCD_STATE_PROCESSING);
+	vcdc_send_service_state(VCD_STATE_PROCESSING);
 
 	return VCD_ERROR_NONE;
 }
@@ -863,6 +957,7 @@ int vcd_server_mgr_cancel()
 
 	/* 4. Set state */
 	vcd_config_set_service_state(VCD_STATE_READY);
+	vcdc_send_service_state(VCD_STATE_READY);
 
 	return VCD_ERROR_NONE;
 }
@@ -870,7 +965,7 @@ int vcd_server_mgr_cancel()
 
 int vcd_server_mgr_result_select()
 {
-	ecore_timer_add(0.01, __vcd_send_selected_result, NULL);
+	__vcd_send_selected_result(NULL);
 
 	return VCD_ERROR_NONE;
 }
@@ -1247,8 +1342,8 @@ int vcd_server_widget_cancel(int pid)
 
 	ret = vcd_server_mgr_cancel();
 	if (0 != ret) {
-		SLOG(LOG_DEBUG, TAG_VCD, "[Server] Fail to start recognition");
-		return VCD_ERROR_OPERATION_FAILED;
+		SLOG(LOG_DEBUG, TAG_VCD, "[Server] Fail to cancel recognition : %d", ret);
+		return ret;
 	}
 
 	return VCD_ERROR_NONE;

@@ -39,7 +39,6 @@ typedef struct {
 	int	uid;
 	vc_config_lang_changed_cb	lang_cb;
 	vc_config_foreground_changed_cb foreground_cb;
-	vc_config_state_changed_cb	state_cb;
 	vc_config_enabled_cb		enabled_cb;
 } vc_config_client_s;
 
@@ -55,19 +54,12 @@ static GSList* g_config_client_list = NULL;
 
 static vc_config_s* g_config_info;
 
-static int g_service_state;
-
 static int g_foreground_pid;
 
 static int g_lang_ref_count;
 static Ecore_Fd_Handler* g_fd_handler_lang = NULL;
 static int g_fd_lang;
 static int g_wd_lang;
-
-static int g_state_ref_count;
-static Ecore_Fd_Handler* g_fd_handler_state = NULL;
-static int g_fd_state;
-static int g_wd_state;
 
 static int g_fore_ref_count;
 static Ecore_Fd_Handler* g_fd_handler_fore = NULL;
@@ -639,14 +631,6 @@ int vc_config_mgr_initialize(int uid)
 	SLOG(LOG_DEBUG, vc_config_tag(), " language : %s", g_config_info->language);
 	SLOG(LOG_DEBUG, vc_config_tag(), "===================");
 
-	/* Get service state */
-	if (0 != vc_parser_get_service_state(&g_service_state)) {
-		SLOG(LOG_ERROR, vc_config_tag(), "[ERROR] Fail to get state");
-		return VC_CONFIG_ERROR_OPERATION_FAILED;
-	}
-
-	SLOG(LOG_DEBUG, vc_config_tag(), "Current service state : %d", g_service_state);
-
 	if (0 != vc_parser_get_foreground(&g_foreground_pid)) {
 		SLOG(LOG_ERROR, vc_config_tag(), "[ERROR] Fail to get foreground pid");
 		return VC_CONFIG_ERROR_OPERATION_FAILED;
@@ -655,7 +639,6 @@ int vc_config_mgr_initialize(int uid)
 	SLOG(LOG_DEBUG, vc_config_tag(), "Current foreground pid : %d", g_foreground_pid);
 
 	g_lang_ref_count = 0;
-	g_state_ref_count = 0;
 	g_fore_ref_count = 0;
 
 	/* Register to detect display language change */
@@ -842,162 +825,6 @@ int vc_config_mgr_unset_lang_cb(int uid)
 	}
 
 	return 0;
-}
-
-Eina_Bool vc_config_mgr_inotify_state_cb(void* data, Ecore_Fd_Handler *fd_handler)
-{
-	SLOG(LOG_DEBUG, vc_config_tag(), "===== State changed callback event");
-
-	int length;
-	struct inotify_event event;
-	memset(&event, '\0', sizeof(struct inotify_event));
-
-	length = read(g_fd_state, &event, sizeof(struct inotify_event));
-	if (0 > length) {
-		SLOG(LOG_ERROR, vc_config_tag(), "[ERROR] Empty Inotify event");
-		SLOG(LOG_DEBUG, vc_config_tag(), "=====");
-		SLOG(LOG_DEBUG, vc_config_tag(), " ");
-		return ECORE_CALLBACK_PASS_ON;
-	}
-
-	if (IN_CLOSE_WRITE == event.mask) {
-		int state = -1;
-		if (0 != vc_parser_get_service_state(&state)) {
-			SLOG(LOG_ERROR, vc_config_tag(), "Fail to get state");
-			return ECORE_CALLBACK_PASS_ON;
-		}
-
-		SLOG(LOG_DEBUG, vc_config_tag(), "Previous state(%d) Current state(%d)", g_service_state, state);
-
-		/* If state is not changed */
-		if (g_service_state != state) {
-			int previous_state = g_service_state;
-			g_service_state = state;
-
-			GSList *iter = NULL;
-			vc_config_client_s* temp_client = NULL;
-
-			/* Call all callbacks of client*/
-			iter = g_slist_nth(g_config_client_list, 0);
-
-			while (NULL != iter) {
-				temp_client = iter->data;
-
-				if (NULL != temp_client) {
-					if (NULL != temp_client->state_cb) {
-						temp_client->state_cb(previous_state, g_service_state);
-					}
-				}
-
-				iter = g_slist_next(iter);
-			}
-		}
-	} else {
-		SLOG(LOG_ERROR, vc_config_tag(), "[ERROR] Undefined event");
-	}
-
-	SLOG(LOG_DEBUG, vc_config_tag(), "=====");
-	SLOG(LOG_DEBUG, vc_config_tag(), " ");
-
-	return ECORE_CALLBACK_PASS_ON;
-}
-
-int __vc_config_mgr_register_state_event()
-{
-	if (0 == g_state_ref_count) {
-		/* get file notification handler */
-		int fd;
-		int wd;
-
-		fd = inotify_init();
-		if (fd < 0) {
-			SLOG(LOG_ERROR, vc_config_tag(), "[ERROR] Fail get inotify fd");
-			return -1;
-		}
-		g_fd_state = fd;
-
-		wd = inotify_add_watch(fd, VC_RUNTIME_INFO_SERVICE_STATE, IN_CLOSE_WRITE);
-		g_wd_state = wd;
-
-		g_fd_handler_state = ecore_main_fd_handler_add(fd, ECORE_FD_READ, (Ecore_Fd_Cb)vc_config_mgr_inotify_state_cb, NULL, NULL, NULL);		
-		if (NULL == g_fd_handler_state) {
-			SLOG(LOG_ERROR, vc_config_tag(), "[ERROR] Fail to get handler for state");
-			return -1;
-		}
-	}
-	g_state_ref_count++;
-
-	return 0;
-}
-
-int __vc_config_mgr_unregister_state_event()
-{
-	if (0 == g_state_ref_count) {
-		SLOG(LOG_ERROR, vc_config_tag(), "[ERROR] State ref count is 0");
-		return VC_CONFIG_ERROR_INVALID_STATE;
-	}
-
-	g_state_ref_count--;
-	if (0 == g_state_ref_count) {
-		/* delete inotify variable */
-		ecore_main_fd_handler_del(g_fd_handler_state);
-		inotify_rm_watch(g_fd_state, g_wd_state);
-		close(g_fd_state);
-	}
-	return 0;
-}
-
-int vc_config_mgr_set_service_state_cb(int uid, vc_config_state_changed_cb state_cb)
-{
-	if (NULL == state_cb) {
-		SLOG(LOG_ERROR, vc_config_tag(), "State changed cb is NULL : uid(%d) ", uid);
-		return VC_CONFIG_ERROR_INVALID_PARAMETER;
-	}
-
-	GSList *iter = NULL;
-	vc_config_client_s* temp_client = NULL;
-
-	/* Call all callbacks of client*/
-	iter = g_slist_nth(g_config_client_list, 0);
-
-	while (NULL != iter) {
-		temp_client = iter->data;
-
-		if (NULL != temp_client) {
-			if (uid == temp_client->uid) {
-				temp_client->state_cb = state_cb;
-				__vc_config_mgr_register_state_event();
-				return VC_CONFIG_ERROR_NONE;
-			}
-		}
-		iter = g_slist_next(iter);
-	}
-
-	return VC_CONFIG_ERROR_INVALID_PARAMETER;
-}
-
-int vc_config_mgr_unset_service_state_cb(int uid)
-{
-	GSList *iter = NULL;
-	vc_config_client_s* temp_client = NULL;
-
-	/* Call all callbacks of client*/
-	iter = g_slist_nth(g_config_client_list, 0);
-
-	while (NULL != iter) {
-		temp_client = iter->data;
-
-		if (NULL != temp_client) {
-			if (uid == temp_client->uid) {
-				temp_client->state_cb = NULL;
-				__vc_config_mgr_unregister_state_event();
-				return 0;
-			}
-		}
-		iter = g_slist_next(iter);
-	}
-
-	return VC_CONFIG_ERROR_INVALID_PARAMETER;
 }
 
 Eina_Bool vc_config_mgr_inotify_foreground_cb(void* data, Ecore_Fd_Handler *fd_handler)
@@ -1522,26 +1349,6 @@ bool vc_config_check_default_language_is_valid(const char* language)
 	}
 
 	return false;
-}
-
-int vc_config_mgr_set_service_state(int state)
-{
-	if (0 >= g_slist_length(g_config_client_list)) {
-		SLOG(LOG_ERROR, vc_config_tag(), "Not initialized");
-		return -1;
-	}
-
-	return vc_parser_set_service_state(state);
-}
-
-int vc_config_mgr_get_service_state(int* state)
-{
-	if (0 >= g_slist_length(g_config_client_list)) {
-		SLOG(LOG_ERROR, vc_config_tag(), "Not initialized");
-		return -1;
-	}
-
-	return vc_parser_get_service_state(state);
 }
 
 int vc_config_mgr_set_foreground(int pid, bool value)
