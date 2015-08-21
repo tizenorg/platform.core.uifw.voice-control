@@ -149,7 +149,7 @@ static Eina_Bool vc_mgr_listener_event_callback(void* data, Ecore_Fd_Handler *fd
 
 		} /* VCD_MANAGER_METHOD_SET_SERVICE_STATE */
 
-		else if (dbus_message_is_method_call(msg, if_name, VCD_MANAGER_METHOD_SPEECH_DETECTED)) {
+		else if (dbus_message_is_signal(msg, if_name, VCD_MANAGER_METHOD_SPEECH_DETECTED)) {
 			SLOG(LOG_DEBUG, TAG_VCM, "===== Get Speech detected");
 
 			__vc_mgr_cb_speech_detected();
@@ -159,7 +159,7 @@ static Eina_Bool vc_mgr_listener_event_callback(void* data, Ecore_Fd_Handler *fd
 
 		} /* VCD_MANAGER_METHOD_SPEECH_DETECTED */
 
-		else if (dbus_message_is_method_call(msg, if_name, VCD_MANAGER_METHOD_ALL_RESULT)) {
+		else if (dbus_message_is_signal(msg, if_name, VCD_MANAGER_METHOD_ALL_RESULT)) {
 			SLOG(LOG_DEBUG, TAG_VCM, "===== Get All Result");
 			int result_type = 0;
 
@@ -172,7 +172,7 @@ static Eina_Bool vc_mgr_listener_event_callback(void* data, Ecore_Fd_Handler *fd
 
 		} /* VCD_MANAGER_METHOD_ALL_RESULT */
 
-		else if (dbus_message_is_method_call(msg, if_name, VCD_MANAGER_METHOD_RESULT)) {
+		else if (dbus_message_is_signal(msg, if_name, VCD_MANAGER_METHOD_RESULT)) {
 			SLOG(LOG_DEBUG, TAG_VCM, "===== Get System Result");
 
 			__vc_mgr_cb_system_result();
@@ -182,7 +182,7 @@ static Eina_Bool vc_mgr_listener_event_callback(void* data, Ecore_Fd_Handler *fd
 
 		} /* VCD_MANAGER_METHOD_RESULT */
 
-		else if (dbus_message_is_method_call(msg, if_name, VCD_MANAGER_METHOD_ERROR)) {
+		else if (dbus_message_is_signal(msg, if_name, VCD_MANAGER_METHOD_ERROR)) {
 			SLOG(LOG_DEBUG, TAG_VCM, "===== Get Error");
 			int pid;
 			int reason;
@@ -197,8 +197,7 @@ static Eina_Bool vc_mgr_listener_event_callback(void* data, Ecore_Fd_Handler *fd
 			if (dbus_error_is_set(&err)) {
 				SLOG(LOG_ERROR, TAG_VCM, "<<<< vc mgr Get Error message : Get arguments error (%s)", err.message);
 				dbus_error_free(&err);
-			}
-			else {
+			} else {
 				SLOG(LOG_DEBUG, TAG_VCM, "<<<< vc mgr Get Error message : pid(%d), reason(%d), msg(%s)", pid, reason, err_msg);
 				__vc_mgr_cb_error(pid, reason);
 			}
@@ -300,8 +299,7 @@ static Eina_Bool vc_mgr_listener_event_callback(void* data, Ecore_Fd_Handler *fd
 			if (dbus_error_is_set(&err)) {
 				SLOG(LOG_ERROR, TAG_VCM, "<<<< vc mgr request auth start : Get arguments error (%s)", err.message);
 				dbus_error_free(&err);
-			}
-			else {
+			} else {
 				SLOG(LOG_DEBUG, TAG_VCM, "<<<< vc mgr request auth start : pid(%d)", pid);
 				ret = __vc_mgr_request_auth_start(pid);
 			}
@@ -319,8 +317,7 @@ static Eina_Bool vc_mgr_listener_event_callback(void* data, Ecore_Fd_Handler *fd
 					SLOG(LOG_DEBUG, TAG_VCM, ">>>> vc mgr request auth start : ret(%d)", ret);
 				dbus_connection_flush(g_m_conn_listener);
 				dbus_message_unref(reply);
-			}
-			else {
+			} else {
 				SLOG(LOG_ERROR, TAG_VCM, ">>>> vc mgr request auth start : fail to create reply message");
 			}
 
@@ -340,8 +337,7 @@ static Eina_Bool vc_mgr_listener_event_callback(void* data, Ecore_Fd_Handler *fd
 			if (dbus_error_is_set(&err)) {
 				SLOG(LOG_ERROR, TAG_VCM, "<<<< vc mgr request auth stop : Get arguments error (%s)", err.message);
 				dbus_error_free(&err);
-			}
-			else {
+			} else {
 				SLOG(LOG_DEBUG, TAG_VCM, "<<<< vc mgr request auth stop : pid(%d)", pid);
 				ret = __vc_mgr_request_auth_stop(pid);
 			}
@@ -359,8 +355,7 @@ static Eina_Bool vc_mgr_listener_event_callback(void* data, Ecore_Fd_Handler *fd
 					SLOG(LOG_DEBUG, TAG_VCM, ">>>> vc mgr request auth stop : ret(%d)", ret);
 				dbus_connection_flush(g_m_conn_listener);
 				dbus_message_unref(reply);
-			}
-			else {
+			} else {
 				SLOG(LOG_ERROR, TAG_VCM, ">>>> vc mgr request auth stop : fail to create reply message");
 			}
 
@@ -380,8 +375,7 @@ static Eina_Bool vc_mgr_listener_event_callback(void* data, Ecore_Fd_Handler *fd
 			if (dbus_error_is_set(&err)) {
 				SLOG(LOG_ERROR, TAG_VCM, "<<<< vc mgr request auth cancel : Get arguments error (%s)", err.message);
 				dbus_error_free(&err);
-			}
-			else {
+			} else {
 				SLOG(LOG_DEBUG, TAG_VCM, "<<<< vc mgr request auth cancel : pid(%d)", pid);
 				ret = __vc_mgr_request_auth_cancel(pid);
 			}
@@ -399,8 +393,7 @@ static Eina_Bool vc_mgr_listener_event_callback(void* data, Ecore_Fd_Handler *fd
 					SLOG(LOG_DEBUG, TAG_VCM, ">>>> vc request auth cancel : ret(%d)", ret);
 				dbus_connection_flush(g_m_conn_listener);
 				dbus_message_unref(reply);
-			}
-			else {
+			} else {
 				SLOG(LOG_ERROR, TAG_VCM, ">>>> vc mgr request auth cancel : fail to create reply message");
 			}
 
@@ -435,7 +428,7 @@ int vc_mgr_dbus_open_connection()
 	dbus_error_init(&err);
 
 	/* connect to the DBUS system bus, and check for errors */
-	g_m_conn_sender = dbus_bus_get_private(DBUS_BUS_SYSTEM, &err);
+	g_m_conn_sender = dbus_bus_get(DBUS_BUS_SESSION, &err);
 
 	if (dbus_error_is_set(&err)) {
 		SLOG(LOG_ERROR, TAG_VCM, "Dbus Connection Error (%s)", err.message);
@@ -448,7 +441,7 @@ int vc_mgr_dbus_open_connection()
 	}
 
 	/* connect to the DBUS system bus, and check for errors */
-	g_m_conn_listener = dbus_bus_get_private(DBUS_BUS_SYSTEM, &err);
+	g_m_conn_listener = dbus_bus_get(DBUS_BUS_SESSION, &err);
 
 	if (dbus_error_is_set(&err)) {
 		SLOG(LOG_ERROR, TAG_VCM, "Dbus Connection Error (%s)", err.message);

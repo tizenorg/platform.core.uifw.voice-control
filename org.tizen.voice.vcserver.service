@@ -1,5 +1,4 @@
 [D-BUS Service]
 Name=org.tizen.voice.vcserver
 Exec=/usr/bin/vc-daemon
-User=system
-Group=system
+

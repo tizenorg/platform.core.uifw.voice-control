@@ -570,6 +570,7 @@ static Eina_Bool __finalize_quit_ecore_loop(void *data)
 
 Eina_Bool vcd_cleanup_client(void *data)
 {
+#if 0
 	int* client_list = NULL;
 	int client_count = 0;
 	int result;
@@ -596,6 +597,7 @@ Eina_Bool vcd_cleanup_client(void *data)
 		free(client_list);
 		client_list = NULL;
 	}
+#endif
 
 #if 0
 	/* If app is in background state, app cannot response message. */

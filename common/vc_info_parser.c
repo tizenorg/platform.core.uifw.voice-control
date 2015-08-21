@@ -77,12 +77,7 @@ static int __vc_info_parser_set_file_mode(const char* filename)
 
 	if (0 > chmod(filename, 0666)) {
 		SLOG(LOG_ERROR, vc_info_tag(), "[ERROR] Fail to change file mode");
-		return -1;
-	}
-
-	if (0 > chown(filename, 5000, 5000)) {
-		SLOG(LOG_ERROR, vc_info_tag(), "[ERROR] Fail to change file owner");
-		return -1;
+		/*return -1;*/
 	}
 
 	return 0;

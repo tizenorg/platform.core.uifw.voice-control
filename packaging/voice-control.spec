@@ -109,9 +109,8 @@ mkdir -p /usr/share/voice/vc
 %{_libdir}/libvc_widget.so
 %{_libdir}/libvc_manager.so
 %{_bindir}/vc-daemon
-/usr/share/dbus-1/system-services/org.tizen.voice*
-/etc/dbus-1/system.d/vc-server.conf
-/usr/lib/voice/vc/1.0/vc-config.xml
+/usr/share/dbus-1/services/org.tizen.voice*
+/usr/share/voice/vc/vc-config.xml
 /usr/share/license/%{name}
 
 %files devel

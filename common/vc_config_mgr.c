@@ -529,7 +529,26 @@ int vc_config_mgr_initialize(int uid)
 		SLOG(LOG_WARN, vc_config_tag(), "[CONFIG] Add uid(%d) but config has already initialized", uid);
 
 		__vc_config_mgr_print_client_info();
+
 		return 0;
+	}
+
+	if (0 != access(VC_CONFIG_BASE, F_OK)) {
+		if (0 != mkdir(VC_CONFIG_BASE, S_IRUSR | S_IWUSR | S_IXUSR | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH)) {
+			SLOG(LOG_ERROR, vc_config_tag(), "[ERROR] Fail to make directory : %s", VC_CONFIG_BASE);
+			return -1;
+		} else {
+			SLOG(LOG_DEBUG, vc_config_tag(), "Success to make directory : %s", VC_CONFIG_BASE);
+		}
+	}
+
+	if (0 != access(VC_RUNTIME_INFO_ROOT, F_OK)) {
+		if (0 != mkdir(VC_RUNTIME_INFO_ROOT, S_IRUSR | S_IWUSR | S_IXUSR | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH)) {
+			SLOG(LOG_ERROR, vc_config_tag(), "[ERROR] Fail to make directory : %s", VC_RUNTIME_INFO_ROOT);
+			return -1;
+		} else {
+			SLOG(LOG_DEBUG, vc_config_tag(), "Success to make directory : %s", VC_RUNTIME_INFO_ROOT);
+		}
 	}
 
 	/* Get file name from default engine directory */

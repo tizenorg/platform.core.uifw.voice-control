@@ -777,7 +777,7 @@ static Eina_Bool __vc_widget_notify_error(void *data)
 int __vc_widget_cb_error(int pid, int reason)
 {
 	if (0 != vc_widget_client_get_handle(pid, &g_vc_w)) {
-		SLOG(LOG_ERROR, TAG_VCW, "Handle is not valid");
+		SLOG(LOG_ERROR, TAG_VCW, "Handle is not valid : pid(%d)", pid);
 		return -1;
 	}
 
@@ -884,7 +884,7 @@ static Eina_Bool __vc_widget_notify_tooltip(void *data)
 void __vc_widget_cb_show_tooltip(int pid, bool show)
 {
 	if (0 != vc_widget_client_get_handle(pid, &g_vc_w)) {
-		SLOG(LOG_ERROR, TAG_VCW, "Handle is not valid");
+		SLOG(LOG_ERROR, TAG_VCW, "Handle is not valid : pid(%d)", pid);
 		return;
 	}
 
@@ -934,8 +934,13 @@ static Eina_Bool __vc_widget_notify_result(void *data)
 	return EINA_FALSE;
 }
 
-void __vc_widget_cb_result()
+void __vc_widget_cb_result(int pid)
 {
+	if (0 != vc_widget_client_get_handle(pid, &g_vc_w)) {
+		SLOG(LOG_ERROR, TAG_VCW, "Handle is not valid : pid(%d)", pid);
+		return;
+	}
+
 	ecore_timer_add(0, __vc_widget_notify_result, NULL);
 
 	return;

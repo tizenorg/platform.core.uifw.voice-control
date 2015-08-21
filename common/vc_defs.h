@@ -140,9 +140,10 @@ extern "C" {
 
 #define VC_DAEMON_PATH			"/usr/bin/vc-daemon"
 
-#define VC_CONFIG_DEFAULT		"/usr/lib/voice/vc/1.0/vc-config.xml"
+#define VC_CONFIG_DEFAULT		"/usr/share/voice/vc/vc-config.xml"
 
-#define VC_CONFIG			tzplatform_mkpath(TZ_USER_HOME, ".voice/vc-config.xml")
+#define VC_CONFIG_BASE			tzplatform_mkpath(TZ_USER_HOME, "share/voice")
+#define VC_CONFIG			tzplatform_mkpath(TZ_USER_HOME, "share/voice/vc-config.xml")
 
 #define VC_DEFAULT_ENGINE_INFO		"/usr/lib/voice/vc/1.0/engine-info"
 
@@ -153,23 +154,17 @@ extern "C" {
 #define VC_RETRY_COUNT			5
 
 
-#define VC_CONFIG_ROOT			tzplatform_mkpath(TZ_USER_HOME, ".voice")
+#define VC_RUNTIME_INFO_ROOT		tzplatform_mkpath(TZ_USER_HOME, "share/voice/vc")
 
-#define VC_RUNTIME_INFO_ROOT		tzplatform_mkpath(TZ_USER_HOME, ".voice/vc")
+#define VC_RUNTIME_INFO_FOREGROUND	tzplatform_mkpath(TZ_USER_HOME, "share/voice/vc/vc-info-foreground.xml")
 
-#define VC_RUNTIME_INFO_AUDIO_VOLUME	tzplatform_mkpath(TZ_USER_HOME, ".voice/vc/vc_vol")
+#define VC_RUNTIME_INFO_DEMANDABLE_LIST	tzplatform_mkpath(TZ_USER_HOME, "share/voice/vc/vc-demandable-client.xml")
 
-#define VC_RUNTIME_INFO_FOREGROUND	tzplatform_mkpath(TZ_USER_HOME, ".voice/vc/vc-info-foreground.xml")
+#define VC_RUNTIME_INFO_RESULT		tzplatform_mkpath(TZ_USER_HOME, "share/voice/vc/vc-result.xml")
 
-#define VC_RUNTIME_INFO_SERVICE_STATE	tzplatform_mkpath(TZ_USER_HOME, ".voice/vc/vc-info-state.xml")
+#define VC_RUNTIME_INFO_EX_RESULT	tzplatform_mkpath(TZ_USER_HOME, "share/voice/vc/vc-ex-result.xml")
 
-#define VC_RUNTIME_INFO_DEMANDABLE_LIST	tzplatform_mkpath(TZ_USER_HOME, ".voice/vc/vc-demandable-client.xml")
-
-#define VC_RUNTIME_INFO_RESULT		tzplatform_mkpath(TZ_USER_HOME, ".voice/vc/vc-result.xml")
-
-#define VC_RUNTIME_INFO_EX_RESULT	tzplatform_mkpath(TZ_USER_HOME, ".voice/vc/vc-ex-result.xml")
-
-#define VC_RUNTIME_INFO_CLIENT		tzplatform_mkpath(TZ_USER_HOME, ".voice/vc/vc-client-info.xml")
+#define VC_RUNTIME_INFO_CLIENT		tzplatform_mkpath(TZ_USER_HOME, "share/voice/vc/vc-client-info.xml")
 
 /******************************************************************************************
 * Defines for common enum

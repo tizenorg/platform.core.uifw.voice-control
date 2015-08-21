@@ -26,8 +26,6 @@ static DBusConnection* g_conn_listener = NULL;
 
 static Ecore_Fd_Handler* g_dbus_fd_handler = NULL;
 
-static int g_waiting_time = 3000;
-
 
 static DBusMessage* __get_message(int pid, const char* method, vcd_client_type_e type)
 {
@@ -38,7 +36,7 @@ static DBusMessage* __get_message(int pid, const char* method, vcd_client_type_e
 	if (VCD_CLIENT_TYPE_NORMAL == type) {
 		snprintf(service_name, 64, "%s", VC_CLIENT_SERVICE_NAME);
 		snprintf(object_path, 64, "%s", VC_CLIENT_SERVICE_OBJECT_PATH);
-		snprintf(target_if_name, 128, "%s", VC_CLIENT_SERVICE_NAME);
+		snprintf(target_if_name, 128, "%s", VC_CLIENT_SERVICE_INTERFACE);
 
 	} else if (VCD_CLIENT_TYPE_WIDGET == type) {
 		snprintf(service_name, 64, "%s", VC_WIDGET_SERVICE_NAME);
@@ -53,11 +51,12 @@ static DBusMessage* __get_message(int pid, const char* method, vcd_client_type_e
 		return NULL;
 	}
 
-	return dbus_message_new_method_call(service_name, object_path, target_if_name, method);
+	return dbus_message_new_signal(object_path, target_if_name, method);
 }
 
 int vcdc_send_hello(int pid, vcd_client_type_e type)
 {
+#if 0
 	DBusMessage* msg = NULL;
 
 	if (VCD_CLIENT_TYPE_NORMAL == type) {
@@ -108,6 +107,8 @@ int vcdc_send_hello(int pid, vcd_client_type_e type)
 	}
 
 	return result;
+#endif
+	return 1;
 }
 
 int vcdc_send_show_tooltip(int pid, bool show)
@@ -117,22 +118,14 @@ int vcdc_send_show_tooltip(int pid, bool show)
 		return -1;
 	}
 
-	char service_name[64] = {0, };
-	memset(service_name, 0, 64);
-	snprintf(service_name, 64, "%s", VC_WIDGET_SERVICE_NAME);
-
-	char target_if_name[128] = {0, };
-	snprintf(target_if_name, sizeof(target_if_name), "%s", VC_WIDGET_SERVICE_INTERFACE);
-
 	DBusMessage* msg;
 
 	SLOG(LOG_DEBUG, TAG_VCD, "[Dbus] send widget show tooltip signal : pid(%d) show(%d)", pid, show);
 
-	msg = dbus_message_new_method_call(
-			  service_name,
-			  VC_WIDGET_SERVICE_OBJECT_PATH,
-			  target_if_name,
-			  VCD_WIDGET_METHOD_SHOW_TOOLTIP);
+	msg = dbus_message_new_signal(
+			VC_WIDGET_SERVICE_OBJECT_PATH,
+			VC_WIDGET_SERVICE_INTERFACE,
+			VCD_WIDGET_METHOD_SHOW_TOOLTIP);
 
 	if (NULL == msg) {
 		SLOG(LOG_ERROR, TAG_VCD, "[Dbus ERROR] Fail to create message");
@@ -147,8 +140,6 @@ int vcdc_send_show_tooltip(int pid, bool show)
 	/* Append pid & type */
 	dbus_message_iter_append_basic(&args, DBUS_TYPE_INT32, &pid);
 	dbus_message_iter_append_basic(&args, DBUS_TYPE_INT32, &(temp));
-
-	dbus_message_set_no_reply(msg, TRUE);
 
 	if (1 != dbus_connection_send(g_conn_sender, msg, NULL)) {
 		SLOG(LOG_ERROR, TAG_VCD, "[Dbus ERROR] Fail to Send");
@@ -225,7 +216,7 @@ int vcdc_send_result(int pid, int cmd_type)
 		return VCD_ERROR_OUT_OF_MEMORY;
 	}
 
-	dbus_message_set_no_reply(msg, TRUE);
+	dbus_message_append_args(msg, DBUS_TYPE_INT32, &pid, DBUS_TYPE_INVALID);
 
 	if (1 != dbus_connection_send(g_conn_sender, msg, NULL)) {
 		SLOG(LOG_ERROR, TAG_VCD, "[Dbus ERROR] Fail to Send");
@@ -258,8 +249,6 @@ int vcdc_send_result_to_manager(int manger_pid, int result_type)
 
 	dbus_message_append_args(msg, DBUS_TYPE_INT32, &result_type, DBUS_TYPE_INVALID);
 
-	dbus_message_set_no_reply(msg, TRUE);
-
 	if (1 != dbus_connection_send(g_conn_sender, msg, NULL)) {
 		SLOG(LOG_ERROR, TAG_VCD, "[Dbus ERROR] Fail to Send");
 		return VCD_ERROR_OPERATION_FAILED;
@@ -287,8 +276,6 @@ int vcdc_send_speech_detected(int manger_pid)
 		SLOG(LOG_ERROR, TAG_VCD, "[Dbus ERROR] Message is NULL");
 		return VCD_ERROR_OUT_OF_MEMORY;
 	}
-
-	dbus_message_set_no_reply(msg, TRUE);
 
 	if (1 != dbus_connection_send(g_conn_sender, msg, NULL)) {
 		SLOG(LOG_ERROR, TAG_VCD, "[Dbus ERROR] Fail to Send");
@@ -392,18 +379,13 @@ int vcdc_send_error_signal(int pid, int reason, char *err_msg)
 		return VCD_ERROR_INVALID_PARAMETER;
 	}
 
-	char service_name[64];
-	memset(service_name, 0, 64);
-	snprintf(service_name, 64, "%s", VC_CLIENT_SERVICE_NAME);
-
 	DBusMessage* msg;
 	SLOG(LOG_DEBUG, TAG_VCD, "[Dbus] send error signal : reason(%d), Error Msg(%s)", reason, err_msg);
 
-	msg = dbus_message_new_method_call(
-			  service_name,
-			  VC_CLIENT_SERVICE_OBJECT_PATH,
-			  VC_CLIENT_SERVICE_INTERFACE,
-			  VCD_METHOD_ERROR);
+	msg = dbus_message_new_signal(
+			VC_CLIENT_SERVICE_OBJECT_PATH,
+			VC_CLIENT_SERVICE_INTERFACE,
+			VCD_METHOD_ERROR);
 
 	if (NULL == msg) {
 		SLOG(LOG_ERROR, TAG_VCD, "[Dbus ERROR] Fail to create message");
@@ -411,12 +393,10 @@ int vcdc_send_error_signal(int pid, int reason, char *err_msg)
 	}
 
 	dbus_message_append_args(msg,
-							 DBUS_TYPE_INT32, &pid,
-							 DBUS_TYPE_INT32, &reason,
-							 DBUS_TYPE_STRING, &err_msg,
-							 DBUS_TYPE_INVALID);
-
-	dbus_message_set_no_reply(msg, TRUE);
+		DBUS_TYPE_INT32, &pid,
+		DBUS_TYPE_INT32, &reason,
+		DBUS_TYPE_STRING, &err_msg,
+		DBUS_TYPE_INVALID);
 
 	if (1 != dbus_connection_send(g_conn_sender, msg, NULL)) {
 		SLOG(LOG_ERROR, TAG_VCD, "[Dbus ERROR] Fail to Send");
@@ -548,7 +528,7 @@ int vcd_dbus_open_connection()
 	int ret;
 
 	/* Create connection for sender */
-	g_conn_sender = dbus_bus_get(DBUS_BUS_SYSTEM, &err);
+	g_conn_sender = dbus_bus_get(DBUS_BUS_SESSION, &err);
 
 	if (dbus_error_is_set(&err)) {
 		SLOG(LOG_ERROR, TAG_VCD, "[Dbus ERROR] Fail dbus_bus_get : %s", err.message);
@@ -561,7 +541,7 @@ int vcd_dbus_open_connection()
 	}
 
 	/* connect to the bus and check for errors */
-	g_conn_listener = dbus_bus_get(DBUS_BUS_SYSTEM, &err);
+	g_conn_listener = dbus_bus_get(DBUS_BUS_SESSION, &err);
 
 	if (dbus_error_is_set(&err)) {
 		SLOG(LOG_ERROR, TAG_VCD, "[Dbus ERROR] Fail dbus_bus_get : %s", err.message);

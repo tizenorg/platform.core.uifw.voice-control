@@ -29,7 +29,7 @@ static DBusConnection* g_conn_listener = NULL;
 
 extern int __vc_cb_error(int pid, int reason);
 
-extern void __vc_cb_result();
+extern void __vc_cb_result(int pid);
 
 extern int __vc_cb_service_state(int state);
 
@@ -110,17 +110,20 @@ static Eina_Bool listener_event_callback(void* data, Ecore_Fd_Handler *fd_handle
 
 		} /* VCD_METHOD_SET_SERVICE_STATE */
 
-		else if (dbus_message_is_method_call(msg, if_name, VCD_METHOD_RESULT)) {
+		else if (dbus_message_is_signal(msg, if_name, VCD_METHOD_RESULT)) {
 			SLOG(LOG_DEBUG, TAG_VCC, "===== Get Client Result");
 
-			__vc_cb_result();
+			int pid = 0;
+			dbus_message_get_args(msg, &err, DBUS_TYPE_INT32, &pid, DBUS_TYPE_INVALID);
+
+			__vc_cb_result(pid);
 
 			SLOG(LOG_DEBUG, TAG_VCC, "=====");
 			SLOG(LOG_DEBUG, TAG_VCC, " ");
 
 		} /* VCD_METHOD_RESULT */
 
-		else if (dbus_message_is_method_call(msg, if_name, VCD_METHOD_ERROR)) {
+		else if (dbus_message_is_signal(msg, if_name, VCD_METHOD_ERROR)) {
 			SLOG(LOG_DEBUG, TAG_VCC, "===== Get Error");
 			int pid;
 			int reason;
@@ -166,13 +169,12 @@ int vc_dbus_open_connection()
 	}
 
 	DBusError err;
-	int ret;
 
 	/* initialise the error value */
 	dbus_error_init(&err);
 
 	/* connect to the DBUS system bus, and check for errors */
-	g_conn_sender = dbus_bus_get_private(DBUS_BUS_SYSTEM, &err);
+	g_conn_sender = dbus_bus_get(DBUS_BUS_SESSION, &err);
 
 	if (dbus_error_is_set(&err)) {
 		SLOG(LOG_ERROR, TAG_VCC, "Dbus Connection Error (%s)", err.message);
@@ -184,7 +186,7 @@ int vc_dbus_open_connection()
 		return VC_ERROR_OPERATION_FAILED;
 	}
 
-	g_conn_listener = dbus_bus_get_private(DBUS_BUS_SYSTEM, &err);
+	g_conn_listener = dbus_bus_get(DBUS_BUS_SESSION, &err);
 
 	if (dbus_error_is_set(&err)) {
 		SLOG(LOG_ERROR, TAG_VCC, "Dbus Connection Error (%s)", err.message);
@@ -194,25 +196,6 @@ int vc_dbus_open_connection()
 	if (NULL == g_conn_listener) {
 		SLOG(LOG_ERROR, TAG_VCC, "Fail to get dbus connection ");
 		return VC_ERROR_OPERATION_FAILED;
-	}
-
-	char service_name[64];
-	memset(service_name, '\0', 64);
-	snprintf(service_name, 64, "%s", VC_CLIENT_SERVICE_NAME);
-
-	SLOG(LOG_DEBUG, TAG_VCC, "service name is %s", service_name);
-
-	/* register our name on the bus, and check for errors */
-	ret = dbus_bus_request_name(g_conn_listener, service_name, DBUS_NAME_FLAG_REPLACE_EXISTING, &err);
-
-	if (dbus_error_is_set(&err)) {
-		SLOG(LOG_ERROR, TAG_VCC, "Name Error (%s)", err.message);
-		dbus_error_free(&err);
-	}
-
-	if (DBUS_REQUEST_NAME_REPLY_PRIMARY_OWNER != ret) {
-		SLOG(LOG_ERROR, TAG_VCC, "fail dbus_bus_request_name()");
-		return -2;
 	}
 
 	if (NULL != g_fd_handler) {
@@ -260,18 +243,6 @@ int vc_dbus_close_connection()
 		g_fd_handler = NULL;
 	}
 
-	int pid = getpid();
-
-	char service_name[64];
-	memset(service_name, '\0', 64);
-	snprintf(service_name, 64, "%s", VC_CLIENT_SERVICE_NAME);
-
-	dbus_bus_release_name(g_conn_listener, service_name, &err);
-
-	if (dbus_error_is_set(&err)) {
-		SLOG(LOG_ERROR, TAG_VCC, "[ERROR] Dbus Error (%s)", err.message);
-		dbus_error_free(&err);
-	}
 
 	g_conn_sender = NULL;
 	g_conn_listener = NULL;

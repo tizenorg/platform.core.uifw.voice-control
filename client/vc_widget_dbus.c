@@ -31,7 +31,7 @@ extern int __vc_widget_cb_error(int pid, int reason);
 
 extern void __vc_widget_cb_show_tooltip(int pid, bool show);
 
-extern void __vc_widget_cb_result();
+extern void __vc_widget_cb_result(int pid);
 
 extern int __vc_widget_cb_service_state(int state);
 
@@ -114,15 +114,15 @@ static Eina_Bool widget_listener_event_callback(void* data, Ecore_Fd_Handler *fd
 
 		} /* VCD_WIDGET_METHOD_SET_SERVICE_STATE */
 
-		else if (dbus_message_is_method_call(msg, if_name, VCD_WIDGET_METHOD_SHOW_TOOLTIP)) {
+		else if (dbus_message_is_signal(msg, if_name, VCD_WIDGET_METHOD_SHOW_TOOLTIP)) {
 			SLOG(LOG_DEBUG, TAG_VCW, "===== Show / Hide tooltip");
 			int pid = 0;
 			int show = 0;
 
 			dbus_message_get_args(msg, &err,
-								  DBUS_TYPE_INT32, &pid,
-								  DBUS_TYPE_INT32, &show,
-								  DBUS_TYPE_INVALID);
+					DBUS_TYPE_INT32, &pid,
+					DBUS_TYPE_INT32, &show,
+					DBUS_TYPE_INVALID);
 
 			if (dbus_error_is_set(&err)) {
 				SLOG(LOG_ERROR, TAG_VCW, "[ERROR] Dbus Error (%s)", err.message);
@@ -131,7 +131,6 @@ static Eina_Bool widget_listener_event_callback(void* data, Ecore_Fd_Handler *fd
 
 			if (pid > 0) {
 				SLOG(LOG_DEBUG, TAG_VCW, "<<<< vc widget show tooltip : pid(%d), show(%d)", pid, show);
-
 				__vc_widget_cb_show_tooltip(pid, (bool)show);
 			} else {
 				SLOG(LOG_ERROR, TAG_VCW, "<<<< vc widget show tooltip : invalid pid");
@@ -141,10 +140,13 @@ static Eina_Bool widget_listener_event_callback(void* data, Ecore_Fd_Handler *fd
 			SLOG(LOG_DEBUG, TAG_VCW, " ");
 		} /* VCD_WIDGET_METHOD_SHOW_TOOLTIP */
 
-		else if (dbus_message_is_method_call(msg, if_name, VCD_WIDGET_METHOD_RESULT)) {
+		else if (dbus_message_is_signal(msg, if_name, VCD_WIDGET_METHOD_RESULT)) {
 			SLOG(LOG_DEBUG, TAG_VCW, "===== Get widget result");
 
-			__vc_widget_cb_result();
+			int pid = 0;
+			dbus_message_get_args(msg, &err, DBUS_TYPE_INT32, &pid, DBUS_TYPE_INVALID);
+
+			__vc_widget_cb_result(pid);
 
 			/*
 			reply = dbus_message_new_method_return(msg);
@@ -167,17 +169,17 @@ static Eina_Bool widget_listener_event_callback(void* data, Ecore_Fd_Handler *fd
 
 		} /* VCD_WIDGET_METHOD_RESULT */
 
-		else if (dbus_message_is_method_call(msg, if_name, VCD_WIDGET_METHOD_ERROR)) {
+		else if (dbus_message_is_signal(msg, if_name, VCD_WIDGET_METHOD_ERROR)) {
 			SLOG(LOG_DEBUG, TAG_VCW, "===== Get widget error");
 			int pid;
 			int reason;
 			char* err_msg;
 
 			dbus_message_get_args(msg, &err,
-								  DBUS_TYPE_INT32, &pid,
-								  DBUS_TYPE_INT32, &reason,
-								  DBUS_TYPE_STRING, &err_msg,
-								  DBUS_TYPE_INVALID);
+				DBUS_TYPE_INT32, &pid,
+				DBUS_TYPE_INT32, &reason,
+				DBUS_TYPE_STRING, &err_msg,
+				DBUS_TYPE_INVALID);
 
 			if (dbus_error_is_set(&err)) {
 				SLOG(LOG_ERROR, TAG_VCW, "<<<< vc widget get error message : Get arguments error (%s)", err.message);
@@ -228,13 +230,12 @@ int vc_widget_dbus_open_connection()
 	}
 
 	DBusError err;
-	int ret;
 
 	/* initialise the error value */
 	dbus_error_init(&err);
 
 	/* connect to the DBUS system bus, and check for errors */
-	g_w_conn_sender = dbus_bus_get_private(DBUS_BUS_SYSTEM, &err);
+	g_w_conn_sender = dbus_bus_get(DBUS_BUS_SESSION, &err);
 
 	if (dbus_error_is_set(&err)) {
 		SLOG(LOG_ERROR, TAG_VCW, "Dbus Connection Error (%s)", err.message);
@@ -246,7 +247,7 @@ int vc_widget_dbus_open_connection()
 		return VC_ERROR_OPERATION_FAILED;
 	}
 
-	g_w_conn_listener = dbus_bus_get_private(DBUS_BUS_SYSTEM, &err);
+	g_w_conn_listener = dbus_bus_get(DBUS_BUS_SESSION, &err);
 
 	if (dbus_error_is_set(&err)) {
 		SLOG(LOG_ERROR, TAG_VCW, "Dbus Connection Error (%s)", err.message);
@@ -256,21 +257,6 @@ int vc_widget_dbus_open_connection()
 	if (NULL == g_w_conn_listener) {
 		SLOG(LOG_ERROR, TAG_VCW, "Fail to get dbus connection ");
 		return VC_ERROR_OPERATION_FAILED;
-	}
-
-	SLOG(LOG_DEBUG, TAG_VCW, "service name is %s", VC_WIDGET_SERVICE_NAME);
-
-	/* register our name on the bus, and check for errors */
-	ret = dbus_bus_request_name(g_w_conn_listener, VC_WIDGET_SERVICE_NAME, DBUS_NAME_FLAG_REPLACE_EXISTING , &err);
-
-	if (dbus_error_is_set(&err)) {
-		SLOG(LOG_ERROR, TAG_VCW, "Name Error (%s)", err.message);
-		dbus_error_free(&err);
-	}
-
-	if (DBUS_REQUEST_NAME_REPLY_PRIMARY_OWNER != ret) {
-		SLOG(LOG_ERROR, TAG_VCW, "fail dbus_bus_request_name()");
-		return -2;
 	}
 
 	if (NULL != g_w_fd_handler) {
@@ -317,13 +303,6 @@ int vc_widget_dbus_close_connection()
 	if (NULL != g_w_fd_handler) {
 		ecore_main_fd_handler_del(g_w_fd_handler);
 		g_w_fd_handler = NULL;
-	}
-
-	dbus_bus_release_name(g_w_conn_listener, VC_WIDGET_SERVICE_NAME, &err);
-
-	if (dbus_error_is_set(&err)) {
-		SLOG(LOG_ERROR, TAG_VCW, "[ERROR] Dbus Error (%s)", err.message);
-		dbus_error_free(&err);
 	}
 
 	g_w_conn_sender = NULL;
