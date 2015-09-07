@@ -166,6 +166,9 @@ extern "C" {
 
 #define VC_RUNTIME_INFO_CLIENT		tzplatform_mkpath(TZ_USER_HOME, "share/voice/vc/vc-client-info.xml")
 
+#define VC_FEATURE_PATH			"tizen.org/feature/speech.control"
+#define VC_MIC_FEATURE_PATH		"tizen.org/feature/microphone"
+
 /******************************************************************************************
 * Defines for common enum
 *******************************************************************************************/

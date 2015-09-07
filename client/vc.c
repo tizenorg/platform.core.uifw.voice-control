@@ -15,6 +15,7 @@
 */
 
 #include <aul.h>
+#include <system_info.h>
 
 #include "vc_client.h"
 #include "vc_command.h"
@@ -33,6 +34,8 @@ static Ecore_Timer* g_connect_timer = NULL;
 
 static vc_h g_vc = NULL;
 
+static int g_feature_enabled = -1;
+
 #if 0
 static Ecore_Event_Handler* g_focus_in_hander = NULL;
 static Ecore_Event_Handler* g_focus_out_hander = NULL;
@@ -41,6 +44,29 @@ static Ecore_Event_Handler* g_focus_out_hander = NULL;
 Eina_Bool __vc_notify_state_changed(void *data);
 Eina_Bool __vc_notify_error(void *data);
 
+static int __vc_get_feature_enabled()
+{
+	if (0 == g_feature_enabled) {
+		SLOG(LOG_ERROR, TAG_VCC, "[ERROR] Voice control feature NOT supported");
+		return VC_ERROR_NOT_SUPPORTED;
+	} else if (-1 == g_feature_enabled) {
+		bool vc_supported = false;
+		bool mic_supported = false;
+		if (0 == system_info_get_platform_bool(VC_FEATURE_PATH, &vc_supported)) {
+			if (0 == system_info_get_platform_bool(VC_MIC_FEATURE_PATH, &mic_supported)) {
+				if (false == vc_supported || false == mic_supported) {
+					SLOG(LOG_ERROR, TAG_VCC, "[ERROR] Voice control feature NOT supported");
+					g_feature_enabled = 0;
+					return VC_ERROR_NOT_SUPPORTED;
+				}
+
+				g_feature_enabled = 1;
+			}
+		}
+	}
+
+	return 0;
+}
 
 static const char* __vc_get_error_code(vc_error_e err)
 {
@@ -122,6 +148,10 @@ static Eina_Bool __notify_auth_changed_cb(void *data)
 
 int vc_initialize(void)
 {
+	if (0 != __vc_get_feature_enabled()) {
+		return VC_ERROR_NOT_SUPPORTED;
+	}
+
 	SLOG(LOG_DEBUG, TAG_VCC, "===== [Client] Initialize");
 
 	/* check handle */
@@ -202,6 +232,10 @@ static void __vc_internal_unprepare(void)
 
 int vc_deinitialize(void)
 {
+	if (0 != __vc_get_feature_enabled()) {
+		return VC_ERROR_NOT_SUPPORTED;
+	}
+
 	SLOG(LOG_DEBUG, TAG_VCC, "===== [Client] Deinitialize");
 
 	if (false == vc_client_is_valid(g_vc)) {
@@ -381,6 +415,10 @@ static Eina_Bool __vc_connect_daemon(void *data)
 
 int vc_prepare(void)
 {
+	if (0 != __vc_get_feature_enabled()) {
+		return VC_ERROR_NOT_SUPPORTED;
+	}
+
 	SLOG(LOG_DEBUG, TAG_VCC, "===== [Client] Prepare");
 
 	vc_state_e state;
@@ -409,6 +447,10 @@ int vc_prepare(void)
 
 int vc_unprepare(void)
 {
+	if (0 != __vc_get_feature_enabled()) {
+		return VC_ERROR_NOT_SUPPORTED;
+	}
+
 	SLOG(LOG_DEBUG, TAG_VCC, "===== [Client] Unprepare");
 
 	vc_state_e state;
@@ -440,6 +482,10 @@ int vc_unprepare(void)
 
 int vc_foreach_supported_languages(vc_supported_language_cb callback, void* user_data)
 {
+	if (0 != __vc_get_feature_enabled()) {
+		return VC_ERROR_NOT_SUPPORTED;
+	}
+
 	SLOG(LOG_DEBUG, TAG_VCC, "===== [Client] Foreach Supported Language");
 
 	if (NULL == callback) {
@@ -473,6 +519,10 @@ int vc_foreach_supported_languages(vc_supported_language_cb callback, void* user
 
 int vc_get_current_language(char** language)
 {
+	if (0 != __vc_get_feature_enabled()) {
+		return VC_ERROR_NOT_SUPPORTED;
+	}
+
 	SLOG(LOG_DEBUG, TAG_VCC, "===== [Client] Get Current Language");
 
 	if (NULL == language) {
@@ -505,6 +555,10 @@ int vc_get_current_language(char** language)
 
 int vc_get_state(vc_state_e* state)
 {
+	if (0 != __vc_get_feature_enabled()) {
+		return VC_ERROR_NOT_SUPPORTED;
+	}
+
 	SLOG(LOG_DEBUG, TAG_VCC, "===== [Client] Get State");
 
 	if (NULL == state) {
@@ -537,6 +591,10 @@ int vc_get_state(vc_state_e* state)
 
 int vc_get_service_state(vc_service_state_e* state)
 {
+	if (0 != __vc_get_feature_enabled()) {
+		return VC_ERROR_NOT_SUPPORTED;
+	}
+
 	SLOG(LOG_DEBUG, TAG_VCC, "===== [Client] Get Service State");
 
 	if (NULL == state) {
@@ -720,6 +778,10 @@ int vc_is_command_format_supported(vc_cmd_format_e format, bool* support)
 
 int vc_set_command_list(vc_cmd_list_h vc_cmd_list, int type)
 {
+	if (0 != __vc_get_feature_enabled()) {
+		return VC_ERROR_NOT_SUPPORTED;
+	}
+
 	SLOG(LOG_DEBUG, TAG_VCC, "===== [Client] Set Command list");
 
 	if (NULL == vc_cmd_list) {
@@ -787,6 +849,10 @@ int vc_set_command_list(vc_cmd_list_h vc_cmd_list, int type)
 
 int vc_unset_command_list(int type)
 {
+	if (0 != __vc_get_feature_enabled()) {
+		return VC_ERROR_NOT_SUPPORTED;
+	}
+
 	SLOG(LOG_DEBUG, TAG_VCC, "===== [Client] Unset Command list");
 
 	vc_state_e state;
@@ -874,6 +940,10 @@ int vc_get_exclusive_command_option(bool* value)
 
 int vc_set_exclusive_command_option(bool value)
 {
+	if (0 != __vc_get_feature_enabled()) {
+		return VC_ERROR_NOT_SUPPORTED;
+	}
+
 	SLOG(LOG_DEBUG, TAG_VCC, "===== [Client] Set exclusive command");
 
 	vc_state_e state;
@@ -1225,6 +1295,10 @@ void __vc_cb_result(int pid)
 
 int vc_set_result_cb(vc_result_cb callback, void* user_data)
 {
+	if (0 != __vc_get_feature_enabled()) {
+		return VC_ERROR_NOT_SUPPORTED;
+	}
+
 	if (NULL == callback)
 		return VC_ERROR_INVALID_PARAMETER;
 
@@ -1247,6 +1321,10 @@ int vc_set_result_cb(vc_result_cb callback, void* user_data)
 
 int vc_unset_result_cb(void)
 {
+	if (0 != __vc_get_feature_enabled()) {
+		return VC_ERROR_NOT_SUPPORTED;
+	}
+
 	vc_state_e state;
 	if (0 != vc_client_get_client_state(g_vc, &state)) {
 		SLOG(LOG_ERROR, TAG_VCC, "[ERROR] Unset result callback : A handle is not available");
@@ -1298,6 +1376,10 @@ int __vc_cb_service_state(int state)
 
 int vc_set_service_state_changed_cb(vc_service_state_changed_cb callback, void* user_data)
 {
+	if (0 != __vc_get_feature_enabled()) {
+		return VC_ERROR_NOT_SUPPORTED;
+	}
+
 	if (NULL == callback)
 		return VC_ERROR_INVALID_PARAMETER;
 
@@ -1320,6 +1402,10 @@ int vc_set_service_state_changed_cb(vc_service_state_changed_cb callback, void* 
 
 int vc_unset_service_state_changed_cb(void)
 {
+	if (0 != __vc_get_feature_enabled()) {
+		return VC_ERROR_NOT_SUPPORTED;
+	}
+
 	vc_state_e state;
 	if (0 != vc_client_get_client_state(g_vc, &state)) {
 		SLOG(LOG_ERROR, TAG_VCC, "[ERROR] Unset result callback : A handle is not available");
@@ -1339,6 +1425,10 @@ int vc_unset_service_state_changed_cb(void)
 
 int vc_set_state_changed_cb(vc_state_changed_cb callback, void* user_data)
 {
+	if (0 != __vc_get_feature_enabled()) {
+		return VC_ERROR_NOT_SUPPORTED;
+	}
+
 	if (callback == NULL)
 		return VC_ERROR_INVALID_PARAMETER;
 
@@ -1361,6 +1451,10 @@ int vc_set_state_changed_cb(vc_state_changed_cb callback, void* user_data)
 
 int vc_unset_state_changed_cb(void)
 {
+	if (0 != __vc_get_feature_enabled()) {
+		return VC_ERROR_NOT_SUPPORTED;
+	}
+
 	vc_state_e state;
 	if (0 != vc_client_get_client_state(g_vc, &state)) {
 		SLOG(LOG_ERROR, TAG_VCC, "[ERROR] Unset state changed callback : A handle is not available");
@@ -1380,6 +1474,10 @@ int vc_unset_state_changed_cb(void)
 
 int vc_set_current_language_changed_cb(vc_current_language_changed_cb callback, void* user_data)
 {
+	if (0 != __vc_get_feature_enabled()) {
+		return VC_ERROR_NOT_SUPPORTED;
+	}
+
 	if (NULL == callback)
 		return VC_ERROR_INVALID_PARAMETER;
 
@@ -1402,6 +1500,10 @@ int vc_set_current_language_changed_cb(vc_current_language_changed_cb callback, 
 
 int vc_unset_current_language_changed_cb(void)
 {
+	if (0 != __vc_get_feature_enabled()) {
+		return VC_ERROR_NOT_SUPPORTED;
+	}
+
 	vc_state_e state;
 	if (0 != vc_client_get_client_state(g_vc, &state)) {
 		SLOG(LOG_ERROR, TAG_VCC, "[ERROR] Unset current language changed : A handle is not available");
@@ -1421,6 +1523,10 @@ int vc_unset_current_language_changed_cb(void)
 
 int vc_set_error_cb(vc_error_cb callback, void* user_data)
 {
+	if (0 != __vc_get_feature_enabled()) {
+		return VC_ERROR_NOT_SUPPORTED;
+	}
+
 	if (NULL == callback)
 		return VC_ERROR_INVALID_PARAMETER;
 
@@ -1443,6 +1549,10 @@ int vc_set_error_cb(vc_error_cb callback, void* user_data)
 
 int vc_unset_error_cb(void)
 {
+	if (0 != __vc_get_feature_enabled()) {
+		return VC_ERROR_NOT_SUPPORTED;
+	}
+
 	vc_state_e state;
 	if (0 != vc_client_get_client_state(g_vc, &state)) {
 		SLOG(LOG_ERROR, TAG_VCC, "[ERROR] Unset error callback : A handle is not available");

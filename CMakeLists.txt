@@ -26,7 +26,7 @@ PROJECT(vc)
 
 SET(PREFIX ${CMAKE_INSTALL_PREFIX})
 SET(EXEC_PREFIX "${PREFIX}")
-SET(VERSION 0.2.9)
+SET(VERSION 0.2.10)
 
 # pkg config tool
 INCLUDE(FindPkgConfig)
@@ -38,7 +38,7 @@ INCLUDE_DIRECTORIES("${CMAKE_SOURCE_DIR}/include")
 ## Dependent packages ##
 INCLUDE(FindPkgConfig)
 pkg_check_modules(pkgs REQUIRED
-    aul capi-base-common capi-media-audio-io capi-media-sound-manager capi-network-bluetooth
+    aul capi-base-common capi-media-audio-io capi-media-sound-manager capi-network-bluetooth capi-system-info
     dbus-1 dlog ecore glib-2.0 libprivilege-control libxml-2.0 vconf
 )
 

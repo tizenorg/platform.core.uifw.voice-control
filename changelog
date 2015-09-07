@@ -1,3 +1,7 @@
+voice-control (0.2.10) -- Thu, 27 Aug 2015
+
+  * Add tizen.org/feature/speech.control feature check (Dongyeol Lee <dy3.lee@samsung.com>)
+
 voice-control (0.2.9) -- Mon, 6 Jul 2015
 
   * Update daemon start by dbus activation (Dongyeol Lee <dy3.lee@samsung.com>)

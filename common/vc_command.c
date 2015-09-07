@@ -17,6 +17,7 @@
 
 #include <libintl.h>
 #include <stdlib.h>
+#include <system_info.h>
 
 #include "vc_command.h"
 #include "vc_main.h"
@@ -25,9 +26,38 @@
 #include "voice_control_common.h"
 #include "voice_control_key_defines.h"
 
+static int g_feature_enabled = -1;
+
+static int __vc_cmd_get_feature_enabled()
+{
+	if (0 == g_feature_enabled) {
+		SLOG(LOG_ERROR, TAG_VCC, "[ERROR] Voice control feature NOT supported");
+		return VC_ERROR_NOT_SUPPORTED;
+	} else if (-1 == g_feature_enabled) {
+		bool vc_supported = false;
+		bool mic_supported = false;
+		if (0 == system_info_get_platform_bool(VC_FEATURE_PATH, &vc_supported)) {
+			if (0 == system_info_get_platform_bool(VC_MIC_FEATURE_PATH, &mic_supported)) {
+				if (false == vc_supported || false == mic_supported) {
+					SLOG(LOG_ERROR, TAG_VCC, "[ERROR] Voice control feature NOT supported");
+					g_feature_enabled = 0;
+					return VC_ERROR_NOT_SUPPORTED;
+				}
+
+				g_feature_enabled = 1;
+			}
+		}
+	}
+
+	return 0;
+}
 
 int vc_cmd_list_create(vc_cmd_list_h* vc_cmd_list)
 {
+	if (0 != __vc_cmd_get_feature_enabled()) {
+		return VC_ERROR_NOT_SUPPORTED;
+	}
+
 	if (NULL == vc_cmd_list) {
 		SLOG(LOG_ERROR, TAG_VCCMD, "[ERROR] Input parameter is NULL");
 		return VC_ERROR_INVALID_PARAMETER;
@@ -52,6 +82,10 @@ int vc_cmd_list_create(vc_cmd_list_h* vc_cmd_list)
 
 int vc_cmd_list_destroy(vc_cmd_list_h vc_cmd_list, bool release_command)
 {
+	if (0 != __vc_cmd_get_feature_enabled()) {
+		return VC_ERROR_NOT_SUPPORTED;
+	}
+
 	if (NULL == vc_cmd_list) {
 		SLOG(LOG_ERROR, TAG_VCCMD, "[ERROR] Input parameter is NULL");
 		return VC_ERROR_INVALID_PARAMETER;
@@ -74,6 +108,10 @@ int vc_cmd_list_destroy(vc_cmd_list_h vc_cmd_list, bool release_command)
 
 int vc_cmd_list_get_count(vc_cmd_list_h vc_cmd_list, int* count)
 {
+	if (0 != __vc_cmd_get_feature_enabled()) {
+		return VC_ERROR_NOT_SUPPORTED;
+	}
+
 	if (NULL == vc_cmd_list || NULL == count) {
 		SLOG(LOG_ERROR, TAG_VCCMD, "[ERROR] Get command count : Input parameter is NULL");
 		return VC_ERROR_INVALID_PARAMETER;
@@ -91,6 +129,10 @@ int vc_cmd_list_get_count(vc_cmd_list_h vc_cmd_list, int* count)
 
 int vc_cmd_list_add(vc_cmd_list_h vc_cmd_list, vc_cmd_h vc_command)
 {
+	if (0 != __vc_cmd_get_feature_enabled()) {
+		return VC_ERROR_NOT_SUPPORTED;
+	}
+
 	if (NULL == vc_cmd_list || NULL == vc_command) {
 		SLOG(LOG_ERROR, TAG_VCCMD, "[ERROR] Input parameter is NULL");
 		return VC_ERROR_INVALID_PARAMETER;
@@ -115,6 +157,10 @@ int vc_cmd_list_add(vc_cmd_list_h vc_cmd_list, vc_cmd_h vc_command)
 
 int vc_cmd_list_remove(vc_cmd_list_h vc_cmd_list, vc_cmd_h vc_command)
 {
+	if (0 != __vc_cmd_get_feature_enabled()) {
+		return VC_ERROR_NOT_SUPPORTED;
+	}
+
 	if (NULL == vc_cmd_list || NULL == vc_command) {
 		SLOG(LOG_ERROR, TAG_VCCMD, "[ERROR] Input parameter is NULL");
 		return VC_ERROR_INVALID_PARAMETER;
@@ -165,6 +211,10 @@ int vc_cmd_list_remove(vc_cmd_list_h vc_cmd_list, vc_cmd_h vc_command)
 
 int vc_cmd_list_remove_all(vc_cmd_list_h vc_cmd_list, bool release_command)
 {
+	if (0 != __vc_cmd_get_feature_enabled()) {
+		return VC_ERROR_NOT_SUPPORTED;
+	}
+
 	SLOG(LOG_DEBUG, TAG_VCCMD, "===== Destroy all command");
 
 	if (NULL == vc_cmd_list) {
@@ -209,6 +259,10 @@ int vc_cmd_list_remove_all(vc_cmd_list_h vc_cmd_list, bool release_command)
 
 int vc_cmd_list_foreach_commands(vc_cmd_list_h vc_cmd_list, vc_cmd_list_cb callback, void* user_data)
 {
+	if (0 != __vc_cmd_get_feature_enabled()) {
+		return VC_ERROR_NOT_SUPPORTED;
+	}
+
 	if (NULL == vc_cmd_list) {
 		SLOG(LOG_ERROR, TAG_VCCMD, "[ERROR] Input parameter is NULL");
 		return VC_ERROR_INVALID_PARAMETER;
@@ -244,6 +298,10 @@ int vc_cmd_list_foreach_commands(vc_cmd_list_h vc_cmd_list, vc_cmd_list_cb callb
 
 int vc_cmd_list_first(vc_cmd_list_h vc_cmd_list)
 {
+	if (0 != __vc_cmd_get_feature_enabled()) {
+		return VC_ERROR_NOT_SUPPORTED;
+	}
+
 	if (NULL == vc_cmd_list) {
 		SLOG(LOG_ERROR, TAG_VCCMD, "[ERROR] Input parameter is NULL");
 		return VC_ERROR_INVALID_PARAMETER;
@@ -264,6 +322,10 @@ int vc_cmd_list_first(vc_cmd_list_h vc_cmd_list)
 
 int vc_cmd_list_last(vc_cmd_list_h vc_cmd_list)
 {
+	if (0 != __vc_cmd_get_feature_enabled()) {
+		return VC_ERROR_NOT_SUPPORTED;
+	}
+
 	if (NULL == vc_cmd_list) {
 		SLOG(LOG_ERROR, TAG_VCCMD, "[ERROR] Input parameter is NULL");
 		return VC_ERROR_INVALID_PARAMETER;
@@ -287,6 +349,10 @@ int vc_cmd_list_last(vc_cmd_list_h vc_cmd_list)
 
 int vc_cmd_list_next(vc_cmd_list_h vc_cmd_list)
 {
+	if (0 != __vc_cmd_get_feature_enabled()) {
+		return VC_ERROR_NOT_SUPPORTED;
+	}
+
 	if (NULL == vc_cmd_list) {
 		SLOG(LOG_ERROR, TAG_VCCMD, "[ERROR] Input parameter is NULL");
 		return VC_ERROR_INVALID_PARAMETER;
@@ -310,6 +376,10 @@ int vc_cmd_list_next(vc_cmd_list_h vc_cmd_list)
 
 int vc_cmd_list_prev(vc_cmd_list_h vc_cmd_list)
 {
+	if (0 != __vc_cmd_get_feature_enabled()) {
+		return VC_ERROR_NOT_SUPPORTED;
+	}
+
 	if (NULL == vc_cmd_list) {
 		SLOG(LOG_ERROR, TAG_VCCMD, "[ERROR] Input parameter is NULL");
 		return VC_ERROR_INVALID_PARAMETER;
@@ -331,6 +401,10 @@ int vc_cmd_list_prev(vc_cmd_list_h vc_cmd_list)
 
 int vc_cmd_list_get_current(vc_cmd_list_h vc_cmd_list, vc_cmd_h* vc_command)
 {
+	if (0 != __vc_cmd_get_feature_enabled()) {
+		return VC_ERROR_NOT_SUPPORTED;
+	}
+
 	if (NULL == vc_cmd_list || NULL == vc_command) {
 		SLOG(LOG_ERROR, TAG_VCCMD, "[ERROR] Input parameter is NULL");
 		return VC_ERROR_INVALID_PARAMETER;
@@ -360,6 +434,10 @@ int vc_cmd_list_get_current(vc_cmd_list_h vc_cmd_list, vc_cmd_h* vc_command)
 
 int vc_cmd_create(vc_cmd_h* vc_command)
 {
+	if (0 != __vc_cmd_get_feature_enabled()) {
+		return VC_ERROR_NOT_SUPPORTED;
+	}
+
 	if (NULL == vc_command) {
 		SLOG(LOG_ERROR, TAG_VCCMD, "[ERROR] Input parameter is NULL");
 		return VC_ERROR_INVALID_PARAMETER;
@@ -392,6 +470,10 @@ int vc_cmd_create(vc_cmd_h* vc_command)
 
 int vc_cmd_destroy(vc_cmd_h vc_command)
 {
+	if (0 != __vc_cmd_get_feature_enabled()) {
+		return VC_ERROR_NOT_SUPPORTED;
+	}
+
 	if (NULL == vc_command) {
 		SLOG(LOG_ERROR, TAG_VCCMD, "[ERROR] Input parameter is NULL");
 		return VC_ERROR_INVALID_PARAMETER;
@@ -414,6 +496,10 @@ int vc_cmd_destroy(vc_cmd_h vc_command)
 
 int vc_cmd_set_id(vc_cmd_h vc_command, int id)
 {
+	if (0 != __vc_cmd_get_feature_enabled()) {
+		return VC_ERROR_NOT_SUPPORTED;
+	}
+
 	if (NULL == vc_command) {
 		SLOG(LOG_ERROR, TAG_VCCMD, "[ERROR] Invalid parameter ");
 		return VC_ERROR_INVALID_PARAMETER;
@@ -432,6 +518,10 @@ int vc_cmd_set_id(vc_cmd_h vc_command, int id)
 
 int vc_cmd_get_id(vc_cmd_h vc_command, int* id)
 {
+	if (0 != __vc_cmd_get_feature_enabled()) {
+		return VC_ERROR_NOT_SUPPORTED;
+	}
+
 	if (NULL == vc_command || NULL == id) {
 		SLOG(LOG_ERROR, TAG_VCCMD, "[ERROR] Invalid handle ");
 		return VC_ERROR_INVALID_PARAMETER;
@@ -450,6 +540,10 @@ int vc_cmd_get_id(vc_cmd_h vc_command, int* id)
 
 int vc_cmd_set_command(vc_cmd_h vc_command, const char* command)
 {
+	if (0 != __vc_cmd_get_feature_enabled()) {
+		return VC_ERROR_NOT_SUPPORTED;
+	}
+
 	if (NULL == vc_command) {
 		SLOG(LOG_ERROR, TAG_VCCMD, "[ERROR] Invalid parameter ");
 		return VC_ERROR_INVALID_PARAMETER;
@@ -475,6 +569,10 @@ int vc_cmd_set_command(vc_cmd_h vc_command, const char* command)
 
 int vc_cmd_get_command(vc_cmd_h vc_command, char** command)
 {
+	if (0 != __vc_cmd_get_feature_enabled()) {
+		return VC_ERROR_NOT_SUPPORTED;
+	}
+
 	if (NULL == vc_command || NULL == command) {
 		SLOG(LOG_ERROR, TAG_VCCMD, "[ERROR] Invalid handle ");
 		return VC_ERROR_INVALID_PARAMETER;
@@ -494,6 +592,10 @@ int vc_cmd_get_command(vc_cmd_h vc_command, char** command)
 
 int vc_cmd_set_unfixed_command(vc_cmd_h vc_command, const char* command)
 {
+	if (0 != __vc_cmd_get_feature_enabled()) {
+		return VC_ERROR_NOT_SUPPORTED;
+	}
+
 	if (NULL == vc_command) {
 		SLOG(LOG_ERROR, TAG_VCCMD, "[ERROR] Invalid parameter ");
 		return VC_ERROR_INVALID_PARAMETER;
@@ -518,6 +620,10 @@ int vc_cmd_set_unfixed_command(vc_cmd_h vc_command, const char* command)
 
 int vc_cmd_get_unfixed_command(vc_cmd_h vc_command, char** command)
 {
+	if (0 != __vc_cmd_get_feature_enabled()) {
+		return VC_ERROR_NOT_SUPPORTED;
+	}
+
 	if (NULL == vc_command || NULL == command) {
 		SLOG(LOG_ERROR, TAG_VCCMD, "[ERROR] Invalid handle ");
 		return VC_ERROR_INVALID_PARAMETER;
@@ -536,6 +642,10 @@ int vc_cmd_get_unfixed_command(vc_cmd_h vc_command, char** command)
 
 int vc_cmd_set_type(vc_cmd_h vc_command, int type)
 {
+	if (0 != __vc_cmd_get_feature_enabled()) {
+		return VC_ERROR_NOT_SUPPORTED;
+	}
+
 	if (NULL == vc_command) {
 		SLOG(LOG_ERROR, TAG_VCCMD, "[ERROR] Invalid parameter ");
 		return VC_ERROR_INVALID_PARAMETER;
@@ -553,6 +663,10 @@ int vc_cmd_set_type(vc_cmd_h vc_command, int type)
 
 int vc_cmd_get_type(vc_cmd_h vc_command, int* type)
 {
+	if (0 != __vc_cmd_get_feature_enabled()) {
+		return VC_ERROR_NOT_SUPPORTED;
+	}
+
 	if (NULL == vc_command || NULL == type) {
 		SLOG(LOG_ERROR, TAG_VCCMD, "[ERROR] Invalid parameter ");
 		return VC_ERROR_INVALID_PARAMETER;
@@ -570,6 +684,10 @@ int vc_cmd_get_type(vc_cmd_h vc_command, int* type)
 
 int vc_cmd_set_format(vc_cmd_h vc_command, vc_cmd_format_e format)
 {
+	if (0 != __vc_cmd_get_feature_enabled()) {
+		return VC_ERROR_NOT_SUPPORTED;
+	}
+
 	if (NULL == vc_command) {
 		SLOG(LOG_ERROR, TAG_VCCMD, "[ERROR] Invalid parameter ");
 		return VC_ERROR_INVALID_PARAMETER;
@@ -587,6 +705,10 @@ int vc_cmd_set_format(vc_cmd_h vc_command, vc_cmd_format_e format)
 
 int vc_cmd_get_format(vc_cmd_h vc_command, vc_cmd_format_e* format)
 {
+	if (0 != __vc_cmd_get_feature_enabled()) {
+		return VC_ERROR_NOT_SUPPORTED;
+	}
+
 	if (NULL == vc_command || NULL == format) {
 		SLOG(LOG_ERROR, TAG_VCCMD, "[ERROR] Invalid parameter ");
 		return VC_ERROR_INVALID_PARAMETER;
@@ -604,6 +726,10 @@ int vc_cmd_get_format(vc_cmd_h vc_command, vc_cmd_format_e* format)
 
 int vc_cmd_set_pid(vc_cmd_h vc_command, int pid)
 {
+	if (0 != __vc_cmd_get_feature_enabled()) {
+		return VC_ERROR_NOT_SUPPORTED;
+	}
+
 	if (NULL == vc_command) {
 		SLOG(LOG_ERROR, TAG_VCCMD, "[ERROR] Invalid parameter ");
 		return VC_ERROR_INVALID_PARAMETER;
@@ -621,6 +747,10 @@ int vc_cmd_set_pid(vc_cmd_h vc_command, int pid)
 
 int vc_cmd_get_pid(vc_cmd_h vc_command, int* pid)
 {
+	if (0 != __vc_cmd_get_feature_enabled()) {
+		return VC_ERROR_NOT_SUPPORTED;
+	}
+
 	if (NULL == vc_command || NULL == pid) {
 		SLOG(LOG_ERROR, TAG_VCCMD, "[ERROR] Invalid parameter ");
 		return VC_ERROR_INVALID_PARAMETER;
@@ -638,6 +768,10 @@ int vc_cmd_get_pid(vc_cmd_h vc_command, int* pid)
 
 int vc_cmd_set_domain(vc_cmd_h vc_command, int domain)
 {
+	if (0 != __vc_cmd_get_feature_enabled()) {
+		return VC_ERROR_NOT_SUPPORTED;
+	}
+
 	if (NULL == vc_command) {
 		SLOG(LOG_ERROR, TAG_VCCMD, "[ERROR] Invalid parameter ");
 		return VC_ERROR_INVALID_PARAMETER;
@@ -655,6 +789,10 @@ int vc_cmd_set_domain(vc_cmd_h vc_command, int domain)
 
 int vc_cmd_get_domain(vc_cmd_h vc_command, int* domain)
 {
+	if (0 != __vc_cmd_get_feature_enabled()) {
+		return VC_ERROR_NOT_SUPPORTED;
+	}
+
 	if (NULL == vc_command || NULL == domain) {
 		SLOG(LOG_ERROR, TAG_VCCMD, "[ERROR] Invalid parameter ");
 		return VC_ERROR_INVALID_PARAMETER;

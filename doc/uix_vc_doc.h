@@ -11,7 +11,7 @@
  * distributed under the License is distributed on an AS IS BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
- * limitations under the License. 
+ * limitations under the License.
  */
 
 
@@ -22,35 +22,34 @@
  * @defgroup CAPI_UIX_VOICE_CONTROL_MODULE Voice control
  * @ingroup CAPI_UIX_FRAMEWORK
  * @brief The @ref CAPI_UIX_VOICE_CONTROL_MODULE API provides functions for registering command and getting notification when registered command is recognized.
- * 
+ *
  * @section CAPI_UIX_VOICE_CONTROL_MODULE_HEADER Required Header
  *   \#include <voice_control.h><br>
- * 
+ *
  * @section CAPI_UIX_VOICE_CONTROL_MODULE_OVERVIEW Overview
  * A main function of Voice Control API register command and gets notification for recognition result.
  * Applications can add their own commands and be provided result when their command is recognized by user voice input.
- * 
- * To use of Voice Control, use the following steps:
+ *
+ * To use of Voice Control, use the following steps: <br>
  * 1. Initialize <br>
- * 2. Register callback functions for notifications <br> 
+ * 2. Register callback functions for notifications <br>
  * 3. Connect to voice control service asynchronously. The state should be changed to Ready <br>
- * 4. Make command list as the following step <br>
+ * 4. Make command list as the following step and Step 4 is called repeatedly for each command which an application wants <br>
  * 4-1. Create command list handle <br>
  * 4-2. Create command handle <br>
  * 4-3. Set command and type for command handle <br>
  * 4-4. Add command handle to command list <br>
- * Step 4 is called repeatedly for each command which an application wants <br>
  * 5. Set command list for recognition <br>
  * 6. If an application wants to finish voice control,<br>
  * 6-1. Destroy command and command list handle <br>
  * 6-2. Deinitialize <br>
  *
- * An application can obtain command handle from command list, and also get information from handle. 
+ * An application can obtain command handle from command list, and also get information from handle.
  *
  *
- * The Voice Control API also notifies you (by callback mechanism) when the states of client and service are changed, 
+ * The Voice Control API also notifies you (by callback mechanism) when the states of client and service are changed,
  * command is recognized, current language is changed or error occurred.
- * An application should register callback functions: vc_state_changed_cb(), vc_service_state_changed_cb(), vc_result_cb(), 
+ * An application should register callback functions: vc_state_changed_cb(), vc_service_state_changed_cb(), vc_result_cb(),
  * vc_current_language_changed_cb(), vc_error_cb().
  *
  * @section CAPI_UIX_VOICE_CONTROL_MODULE_STATE_DIAGRAM State Diagram
@@ -100,7 +99,7 @@
  * The following table shows state-dependent function calls.
  * It is forbidden to call functions listed below in wrong states.
  * Violation of this rule may result in an unpredictable behavior.
- * 
+ *
  * <table>
  * <tr>
  * <th>FUNCTION</th>
@@ -173,10 +172,11 @@
  * <td> All callback function should be registered in Initialized state </td>
  * </tr>
  * </table>
- * 
- * @section CAPI_UIX_STT_MODULE_FEATURE Related Features
+ *
+ * @section CAPI_UIX_VOICE_CONTROL_MODULE Related Features
  * This API is related with the following features:<br>
  *  - http://tizen.org/feature/microphone<br>
+ *  - http://tizen.org/feature/speech.control<br>
  *
  * It is recommended to design feature related codes in your application for reliability.<br>
  * You can check if a device supports the related features for this API by using @ref CAPI_SYSTEM_SYSTEM_INFO_MODULE, thereby controlling the procedure of your application.<br>

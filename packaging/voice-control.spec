@@ -1,6 +1,6 @@
 Name:       voice-control
 Summary:    Voice control client library and daemon
-Version:    0.2.9
+Version:    0.2.10
 Release:    1
 Group:      Graphics & UI Framework/Voice Framework
 License:    Apache-2.0
@@ -15,6 +15,7 @@ BuildRequires:  pkgconfig(capi-base-common)
 BuildRequires:  pkgconfig(capi-media-audio-io)
 BuildRequires:  pkgconfig(capi-media-sound-manager)
 BuildRequires:  pkgconfig(capi-network-bluetooth)
+BuildRequires:  pkgconfig(capi-system-info)
 BuildRequires:  pkgconfig(dbus-1)
 BuildRequires:  pkgconfig(dlog)
 BuildRequires:  pkgconfig(ecore)
