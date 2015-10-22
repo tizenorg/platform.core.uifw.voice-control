@@ -26,12 +26,6 @@
 #include "vcd_main.h"
 #include "voice_control_plugin_engine.h"
 
-/* Multi session enable */
-/*#define AUDIO_MULTI_SESSION */
-
-/* TV BT enable */
-/*#define TV_BT_MODE */
-
 #define FRAME_LENGTH 160
 #define BUFFER_LENGTH FRAME_LENGTH * 2
 
@@ -59,10 +53,6 @@ static bool	g_is_valid_bt_in = false;
 
 static char*	g_current_audio_type = NULL;
 
-#ifdef AUDIO_MULTI_SESSION
-static sound_multi_session_h	g_session = NULL;
-#endif
-
 static int	g_buffer_count;
 
 /* Sound buf save */
@@ -78,84 +68,6 @@ static int g_count = 1;
 
 static float get_volume_decibel(char* data, int size);
 
-#ifdef TV_BT_MODE
-static int g_bt_extend_count;
-
-#define SMART_CONTROL_EXTEND_CMD	0x03
-#define SMART_CONTROL_START_CMD		0x04
-
-static void _bt_cb_hid_state_changed(int result, bool connected, const char *remote_address, void *user_data)
-{
-	SLOG(LOG_DEBUG, TAG_VCD, "[Recorder] Bluetooth Event [%d] Received address [%s]", result, remote_address);
-	return;
-}
-
-static void _bt_hid_audio_data_receive_cb(bt_hid_voice_data_s *voice_data, void *user_data)
-{
-	if (VCD_RECORDER_STATE_RECORDING != g_recorder_state) {
-		/*SLOG(LOG_DEBUG, TAG_VCD, "[Recorder] Exit audio reading normal func");*/
-		return;
-	}
-
-	if (NULL != g_audio_cb) {
-		if (0 != g_audio_cb((void*)voice_data->audio_buf, (unsigned int)voice_data->length)) {
-			SLOG(LOG_ERROR, TAG_VCD, "[Recorder ERROR] Fail to read audio");
-			vcd_recorder_stop();
-		}
-	}
-
-	/* Set volume */
-	if (0 == g_buffer_count % 30) {
-		float vol_db = get_volume_decibel((char*)voice_data->audio_buf, (unsigned int)voice_data->length);
-		if (0 != vcdc_send_set_volume(vcd_client_manager_get_pid(), vol_db)) {
-			SLOG(LOG_ERROR, TAG_VCD, "[Recorder] Fail to send recording volume(%f)", vol_db);
-		}
-	}
-
-	if (0 == g_buffer_count || 0 == g_buffer_count % 50) {
-		SLOG(LOG_WARN, TAG_VCD, "[Recorder][%d] Recording... : read_size(%d)", g_buffer_count, voice_data->length);
-
-		if (0 == g_bt_extend_count % 5) {
-			const unsigned char input_data[2] = {SMART_CONTROL_EXTEND_CMD, 0x00 };
-			if (BT_ERROR_NONE != bt_hid_send_rc_command(NULL, input_data, sizeof(input_data))) {
-				SLOG(LOG_ERROR, TAG_VCD, "[Recorder ERROR] Fail bt_hid_send_rc_command(NULL, %s, %d)", input_data, sizeof(input_data));
-			} else {
-				SLOG(LOG_DEBUG, TAG_VCD, "[Recorder] Extend bt audio recorder");
-			}
-		}
-		g_bt_extend_count++;
-
-		if (100000 == g_buffer_count) {
-			g_buffer_count = 0;
-		}
-	}
-
-	g_buffer_count++;
-
-#ifdef BUF_SAVE_MODE
-	/* write pcm buffer */
-	fwrite(voice_data->audio_buf, 1, voice_data->length, g_normal_file);
-#endif
-	return;
-}
-
-#endif
-
-#ifdef AUDIO_MULTI_SESSION
-void __vcd_recorder_sound_interrupted_cb(sound_interrupted_code_e code, void *user_data)
-{
-	SLOG(LOG_DEBUG, TAG_VCD, "[Recorder] Get the interrupt code from sound mgr : %d", code);
-
-	if (SOUND_INTERRUPTED_BY_CALL == code) {
-		if (NULL != g_interrupt_cb) {
-			g_interrupt_cb();
-		}
-	}
-
-	return;
-}
-#endif
-
 int vcd_recorder_create(vcd_recoder_audio_cb audio_cb, vcd_recorder_interrupt_cb interrupt_cb)
 {
 	if (NULL == audio_cb || NULL == interrupt_cb) {
@@ -164,29 +76,7 @@ int vcd_recorder_create(vcd_recoder_audio_cb audio_cb, vcd_recorder_interrupt_cb
 	}
 
 	int ret = 0;
-#ifdef AUDIO_MULTI_SESSION
-	g_session = NULL;
-	ret = sound_manager_multi_session_create(SOUND_MULTI_SESSION_TYPE_VOICE_RECOGNITION, &g_session);
-	if (0 != ret) {
-		SLOG(LOG_ERROR, TAG_VCD, "[Recorder ERROR] Fail to create multi session : %d", ret);
-		return VCD_ERROR_OPERATION_FAILED;
-	}
 
-	ret = sound_manager_set_interrupted_cb(__vcd_recorder_sound_interrupted_cb, NULL);
-	if (0 != ret) {
-		SLOG(LOG_ERROR, TAG_VCD, "[Recorder ERROR] Fail to set interrupt callback : %d", ret);
-		sound_manager_multi_session_destroy(g_session);
-		return VCD_ERROR_OPERATION_FAILED;
-	}
-
-	ret = sound_manager_multi_session_set_mode(g_session, SOUND_MULTI_SESSION_MODE_VR_NORMAL);
-	if (0 != ret) {
-		SLOG(LOG_ERROR, TAG_VCD, "[Recorder ERROR] Fail to set mode : %d", ret);
-		sound_manager_unset_interrupted_cb();
-		sound_manager_multi_session_destroy(g_session);
-		return VCD_ERROR_OPERATION_FAILED;
-	}
-#endif
 	/* set init value */
 	g_is_valid_audio_in = false;
 	g_is_valid_bt_in = false;
@@ -217,18 +107,9 @@ int vcd_recorder_create(vcd_recoder_audio_cb audio_cb, vcd_recorder_interrupt_cb
 		break;
 	}
 
-	/*
-	ret = audio_in_create_ex(sample_rate, audio_ch, audio_type, &g_audio_h, AUDIO_IO_SOURCE_TYPE_VOICECONTROL);
-	*/
 	ret = audio_in_create(g_audio_rate, audio_ch, audio_type, &g_audio_h);
 	if (AUDIO_IO_ERROR_NONE == ret) {
 		g_is_valid_audio_in = true;
-		/*
-		ret = audio_in_ignore_session(g_audio_h);
-		if (AUDIO_IO_ERROR_NONE != ret) {
-			SLOG(LOG_ERROR, TAG_VCD, "[Recorder ERROR] Fail to ignore session : %d", ret);
-		}
-		*/
 	} else {
 		SLOG(LOG_ERROR, TAG_VCD, "[Recorder ERROR] Rate(%d) Channel(%d) Type(%d)", g_audio_rate, audio_ch, audio_type);
 		SLOG(LOG_ERROR, TAG_VCD, "[Recorder ERROR] Fail to create audio handle : %d", ret);
@@ -239,31 +120,6 @@ int vcd_recorder_create(vcd_recoder_audio_cb audio_cb, vcd_recorder_interrupt_cb
 	g_interrupt_cb = interrupt_cb;
 	g_recorder_state = VCD_RECORDER_STATE_READY;
 
-#ifdef TV_BT_MODE
-
-	bool is_bt_failed = false;
-
-	if (false == is_bt_failed && BT_ERROR_NONE != bt_initialize()) {
-		SLOG(LOG_ERROR, TAG_VCD, "[Recorder ERROR] Fail to init bt");
-		is_bt_failed = true;
-	}
-
-	if (false == is_bt_failed && BT_ERROR_NONE != bt_hid_host_initialize(_bt_cb_hid_state_changed, NULL)) {
-		SLOG(LOG_ERROR, TAG_VCD, "[Recorder ERROR] Fail bt_hid_host_initialize()");
-		is_bt_failed = true;
-	}
-
-	if (false == is_bt_failed && BT_ERROR_NONE != bt_hid_set_audio_data_receive_cb(_bt_hid_audio_data_receive_cb, NULL)) {
-		SLOG(LOG_ERROR, TAG_VCD, "[Recorder ERROR] Fail bt_hid_set_audio_data_receive_cb()");
-		is_bt_failed = true;
-	}
-
-
-	if (false == is_bt_failed) {
-		SLOG(LOG_DEBUG, TAG_VCD, "[Recorder] Bluetooth is available");
-		g_is_valid_bt_in = true;
-	}
-#endif
 	/* Select default audio type */
 	if (true == g_is_valid_bt_in) {
 		g_current_audio_type = strdup(VCP_AUDIO_ID_BLUETOOTH);
@@ -281,28 +137,11 @@ int vcd_recorder_destroy()
 	if (VCD_RECORDER_STATE_RECORDING == g_recorder_state) {
 		if (0 != strncmp(VCP_AUDIO_ID_BLUETOOTH, g_current_audio_type, strlen(VCP_AUDIO_ID_BLUETOOTH))) {
 			audio_in_unprepare(g_audio_h);
-		} else {
-#ifdef TV_BT_MODE
-			bt_hid_unset_audio_data_receive_cb();
-#endif
 		}
 		g_recorder_state = VCD_RECORDER_STATE_READY;
 	}
 
 	audio_in_destroy(g_audio_h);
-
-#ifdef AUDIO_MULTI_SESSION
-	sound_manager_unset_interrupted_cb();
-	sound_manager_multi_session_destroy(g_session);
-#endif
-
-#ifdef TV_BT_MODE
-	bt_hid_unset_audio_data_receive_cb();
-
-	bt_hid_host_deinitialize();
-
-	bt_deinitialize();
-#endif
 
 	g_audio_cb = NULL;
 
@@ -387,29 +226,6 @@ int vcd_recorder_set(const char* audio_type, vcp_audio_type_e type, int rate, in
 			g_audio_rate = rate;
 			g_audio_channel = channel;
 		}
-
-#ifdef TV_BT_MODE
-		char* temp_type = NULL;
-		temp_type = strdup(audio_type);
-
-		ret = audio_in_set_device(g_audio_h, temp_type);
-		if (0 != ret) {
-			SLOG(LOG_ERROR, TAG_VCD, "[Recorder] Audio type is NOT valid :%s", temp_type);
-			if (NULL != temp_type)
-				free(temp_type);
-			return VCD_ERROR_OPERATION_REJECTED;
-		}
-
-		if (NULL != temp_type)
-			free(temp_type);
-
-		if (NULL != g_current_audio_type) {
-			free(g_current_audio_type);
-			g_current_audio_type = NULL;
-		}
-
-		g_current_audio_type = strdup(audio_type);
-#endif
 	}
 
 	SLOG(LOG_DEBUG, TAG_VCD, "[Recorder] Current audio type is changed : %s", g_current_audio_type);
@@ -522,42 +338,11 @@ int vcd_recorder_start()
 
 	if (VCD_RECORDER_STATE_RECORDING == g_recorder_state)	return 0;
 
-#ifdef AUDIO_MULTI_SESSION
-	ret = sound_manager_multi_session_set_option(g_session, SOUND_MULTI_SESSION_OPT_MIX_WITH_OTHERS);
-	if (0 != ret) {
-		if (SOUND_MANAGER_ERROR_POLICY_BLOCKED_BY_CALL == ret) {
-			SLOG(LOG_ERROR, TAG_VCD, "[Recorder ERROR] blocked to set option by call");
-		} else {
-			SLOG(LOG_ERROR, TAG_VCD, "[Recorder ERROR] Fail to set option : %d", ret);
-		}
-		return VCD_ERROR_RECORDER_BUSY;
-	}
-#endif
 	bool started = false;
-	if (NULL != g_current_audio_type) {
-		if (0 == strncmp(VCP_AUDIO_ID_BLUETOOTH, g_current_audio_type, strlen(VCP_AUDIO_ID_BLUETOOTH))) {
-#ifdef TV_BT_MODE
-			const unsigned char input_data[2] = {SMART_CONTROL_START_CMD, 0x00 };
-			if (BT_ERROR_NONE != bt_hid_send_rc_command(NULL, input_data, sizeof(input_data))) {
-				SLOG(LOG_ERROR, TAG_VCD, "[Recorder ERROR] Fail bt_hid_send_rc_command(NULL, %s, %d)", input_data, sizeof(input_data));
-			} else {
-				SLOG(LOG_DEBUG, TAG_VCD, "[Recorder] Start bt audio recorder");
-			}
-
-			started = true;
-
-			g_bt_extend_count = 0;
-#endif
-		}
-	}
-
 	if (false == started) {
 		ret = audio_in_prepare(g_audio_h);
 		if (AUDIO_IO_ERROR_NONE != ret) {
 			if (AUDIO_IO_ERROR_SOUND_POLICY == ret) {
-#ifdef AUDIO_MULTI_SESSION
-				sound_manager_multi_session_set_option(g_session, SOUND_MULTI_SESSION_OPT_RESUME_OTHERS);
-#endif
 				SLOG(LOG_ERROR, TAG_VCD, "[Recorder ERROR] Audio is busy.");
 				return VCD_ERROR_RECORDER_BUSY;
 			} else {
@@ -603,18 +388,6 @@ int vcd_recorder_stop()
 #endif
 
 	bool stoped = false;
-
-	if (NULL != g_current_audio_type) {
-		if (0 == strncmp(VCP_AUDIO_ID_BLUETOOTH, g_current_audio_type, strlen(VCP_AUDIO_ID_BLUETOOTH))) {
-#ifdef TV_BT_MODE
-			if (BT_ERROR_NONE != bt_hid_rc_stop_sending_voice(NULL)) {
-				SLOG(LOG_ERROR, TAG_VCD, "[Recorder ERROR] Fail bt_hid_rc_stop_sending_voice()");
-			}
-			stoped = true;
-#endif
-		}
-	}
-
 	if (false == stoped) {
 		ret = audio_in_unprepare(g_audio_h);
 		if (AUDIO_IO_ERROR_NONE != ret) {
@@ -622,14 +395,6 @@ int vcd_recorder_stop()
 			return VCD_ERROR_OPERATION_FAILED;
 		}
 	}
-
-#ifdef AUDIO_MULTI_SESSION
-	ret = sound_manager_multi_session_set_option(g_session, SOUND_MULTI_SESSION_OPT_RESUME_OTHERS);
-	if (0 != ret) {
-		SLOG(LOG_ERROR, TAG_VCD, "[Recorder ERROR] Fail to set option : %d", ret);
-		return VCD_ERROR_OPERATION_FAILED;
-	}
-#endif
 	return 0;
 }
 
