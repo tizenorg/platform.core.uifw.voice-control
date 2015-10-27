@@ -174,6 +174,7 @@ int vcdc_send_set_volume(int manger_pid, float volume)
 
 	if (1 != dbus_connection_send(g_conn_sender, msg, NULL)) {
 		SLOG(LOG_ERROR, TAG_VCD, "[Dbus ERROR] Fail to Send");
+		dbus_message_unref(msg);
 		return -1;
 	} else {
 		SLOG(LOG_DEBUG, TAG_VCD, "<<<< Send set volume : pid(%d), volume(%f)", manger_pid, volume);
@@ -528,7 +529,7 @@ int vcd_dbus_open_connection()
 	int ret;
 
 	/* Create connection for sender */
-	g_conn_sender = dbus_bus_get(DBUS_BUS_SESSION, &err);
+	g_conn_sender = dbus_bus_get_private(DBUS_BUS_SESSION, &err);
 
 	if (dbus_error_is_set(&err)) {
 		SLOG(LOG_ERROR, TAG_VCD, "[Dbus ERROR] Fail dbus_bus_get : %s", err.message);
@@ -541,7 +542,7 @@ int vcd_dbus_open_connection()
 	}
 
 	/* connect to the bus and check for errors */
-	g_conn_listener = dbus_bus_get(DBUS_BUS_SESSION, &err);
+	g_conn_listener = dbus_bus_get_private(DBUS_BUS_SESSION, &err);
 
 	if (dbus_error_is_set(&err)) {
 		SLOG(LOG_ERROR, TAG_VCD, "[Dbus ERROR] Fail dbus_bus_get : %s", err.message);
