@@ -138,8 +138,7 @@ static Eina_Bool listener_event_callback(void* data, Ecore_Fd_Handler *fd_handle
 			if (dbus_error_is_set(&err)) {
 				SLOG(LOG_ERROR, TAG_VCC, "<<<< vc Get Error message : Get arguments error (%s)", err.message);
 				dbus_error_free(&err);
-			}
-			else {
+			} else {
 				SLOG(LOG_DEBUG, TAG_VCC, "<<<< vc Get Error message : pid(%d), reason(%d), msg(%s)", pid, reason, err_msg);
 				__vc_cb_error(pid, reason);
 			}
@@ -147,7 +146,7 @@ static Eina_Bool listener_event_callback(void* data, Ecore_Fd_Handler *fd_handle
 			SLOG(LOG_DEBUG, TAG_VCC, "=====");
 			SLOG(LOG_DEBUG, TAG_VCC, " ");
 		} /* VCD_METHOD_ERROR */
-		
+
 		else {
 			SLOG(LOG_DEBUG, TAG_VCC, "Message is NOT valid");
 			dbus_message_unref(msg);

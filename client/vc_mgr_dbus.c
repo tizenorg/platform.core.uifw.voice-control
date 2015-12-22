@@ -89,8 +89,7 @@ static Eina_Bool vc_mgr_listener_event_callback(void* data, Ecore_Fd_Handler *fd
 			if (pid > 0) {
 				SLOG(LOG_DEBUG, TAG_VCM, "<<<< vc mgr get hello : pid(%d) ", pid);
 				response = 1;
-			}
-			else {
+			} else {
 				SLOG(LOG_ERROR, TAG_VCM, "<<<< vc mgr get hello : invalid pid ");
 			}
 
@@ -107,8 +106,7 @@ static Eina_Bool vc_mgr_listener_event_callback(void* data, Ecore_Fd_Handler *fd
 
 				dbus_connection_flush(g_m_conn_listener);
 				dbus_message_unref(reply);
-			}
-			else {
+			} else {
 				SLOG(LOG_ERROR, TAG_VCM, ">>>> vc mgr get hello : fail to create reply message");
 			}
 
@@ -219,8 +217,7 @@ static Eina_Bool vc_mgr_listener_event_callback(void* data, Ecore_Fd_Handler *fd
 			if (dbus_error_is_set(&err)) {
 				SLOG(LOG_ERROR, TAG_VCM, "<<<< vc mgr request auth enable : Get arguments error (%s)", err.message);
 				dbus_error_free(&err);
-			}
-			else {
+			} else {
 				SLOG(LOG_DEBUG, TAG_VCM, "<<<< vc mgr request auth enable : pid(%d)", pid);
 				ret = __vc_mgr_request_auth_enable(pid);
 			}
@@ -238,8 +235,7 @@ static Eina_Bool vc_mgr_listener_event_callback(void* data, Ecore_Fd_Handler *fd
 					SLOG(LOG_DEBUG, TAG_VCM, ">>>> vc mgr request auth enable : ret(%d)", ret);
 				dbus_connection_flush(g_m_conn_listener);
 				dbus_message_unref(reply);
-			}
-			else {
+			} else {
 				SLOG(LOG_ERROR, TAG_VCM, ">>>> vc mgr request auth enable : fail to create reply message");
 			}
 
@@ -259,8 +255,7 @@ static Eina_Bool vc_mgr_listener_event_callback(void* data, Ecore_Fd_Handler *fd
 			if (dbus_error_is_set(&err)) {
 				SLOG(LOG_ERROR, TAG_VCM, "<<<< vc mgr request auth disable : Get arguments error (%s)", err.message);
 				dbus_error_free(&err);
-			}
-			else {
+			} else {
 				SLOG(LOG_DEBUG, TAG_VCM, "<<<< vc mgr request auth disable : pid(%d)", pid);
 				ret = __vc_mgr_request_auth_disable(pid);
 			}
@@ -278,8 +273,7 @@ static Eina_Bool vc_mgr_listener_event_callback(void* data, Ecore_Fd_Handler *fd
 					SLOG(LOG_DEBUG, TAG_VCM, ">>>> vc mgr request auth disable : ret(%d)", ret);
 				dbus_connection_flush(g_m_conn_listener);
 				dbus_message_unref(reply);
-			}
-			else {
+			} else {
 				SLOG(LOG_ERROR, TAG_VCM, ">>>> vc mgr request auth disable : fail to create reply message");
 			}
 

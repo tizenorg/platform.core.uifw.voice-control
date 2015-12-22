@@ -1114,8 +1114,7 @@ int __vc_widget_cb_service_state(int state)
 		callback((vc_service_state_e)before_state, (vc_service_state_e)current_state, service_user_data);
 		vc_widget_client_not_use_callback(g_vc_w);
 		SLOG(LOG_DEBUG, TAG_VCW, "Service state changed callback is called");
-	}
-	else {
+	} else {
 		SLOG(LOG_WARN, TAG_VCW, "[WARNING] Service state changed callback is null");
 	}
 
