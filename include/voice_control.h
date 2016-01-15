@@ -221,7 +221,7 @@ int vc_get_state(vc_state_e* state);
 * @retval #VC_ERROR_PERMISSION_DENIED Permission denied
 * @retval #VC_ERROR_NOT_SUPPORTED Not supported
 *
-* @pre The state should be #VC_STATE_INITIALIZED or #VC_STATE_READY.
+* @pre The state should be #VC_STATE_READY.
 *
 * @see vc_request_start()
 * @see vc_request_stop()
