@@ -28,6 +28,8 @@ SET(PREFIX ${CMAKE_INSTALL_PREFIX})
 SET(EXEC_PREFIX "${PREFIX}")
 SET(VERSION 0.2.10)
 
+ADD_DEFINITIONS("-DVOICE_LIBDIR=\"${LIBDIR}\"")
+
 # pkg config tool
 INCLUDE(FindPkgConfig)
 
@@ -55,3 +57,5 @@ ADD_SUBDIRECTORY(server)
 INSTALL(FILES ${CMAKE_SOURCE_DIR}/vc-config.xml DESTINATION /usr/share/voice/vc/)
 
 INSTALL(FILES ${CMAKE_SOURCE_DIR}/org.tizen.voice.vcserver.service DESTINATION /usr/share/dbus-1/services)
+
+INSTALL(FILES ${CMAKE_SOURCE_DIR}/vc-server.conf DESTINATION /etc/dbus-1/session.d)

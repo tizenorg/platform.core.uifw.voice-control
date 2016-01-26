@@ -422,7 +422,7 @@ int vc_mgr_dbus_open_connection()
 	dbus_error_init(&err);
 
 	/* connect to the DBUS system bus, and check for errors */
-	g_m_conn_sender = dbus_bus_get(DBUS_BUS_SESSION, &err);
+	g_m_conn_sender = dbus_bus_get_private(DBUS_BUS_SESSION, &err);
 
 	if (dbus_error_is_set(&err)) {
 		SLOG(LOG_ERROR, TAG_VCM, "Dbus Connection Error (%s)", err.message);
@@ -435,7 +435,7 @@ int vc_mgr_dbus_open_connection()
 	}
 
 	/* connect to the DBUS system bus, and check for errors */
-	g_m_conn_listener = dbus_bus_get(DBUS_BUS_SESSION, &err);
+	g_m_conn_listener = dbus_bus_get_private(DBUS_BUS_SESSION, &err);
 
 	if (dbus_error_is_set(&err)) {
 		SLOG(LOG_ERROR, TAG_VCM, "Dbus Connection Error (%s)", err.message);

@@ -145,7 +145,7 @@ extern "C" {
 #define VC_CONFIG_BASE			tzplatform_mkpath(TZ_USER_HOME, "share/.voice")
 #define VC_CONFIG			tzplatform_mkpath(TZ_USER_HOME, "share/.voice/vc-config.xml")
 
-#define VC_DEFAULT_ENGINE_INFO		"/usr/lib/voice/vc/1.0/engine-info"
+#define VC_DEFAULT_ENGINE_INFO		VOICE_LIBDIR"/voice/vc/1.0/engine-info"
 
 #define VC_NO_FOREGROUND_PID		0
 
