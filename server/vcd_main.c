@@ -19,8 +19,6 @@
 #include "vcd_main.h"
 #include "vcd_server.h"
 
-#include <privilege-control.h>
-
 #define CLIENT_CLEAN_UP_TIME 500
 
 static Ecore_Timer* g_check_client_timer = NULL;
@@ -34,11 +32,6 @@ int main(int argc, char** argv)
 	if (!ecore_init()) {
 		SLOG(LOG_ERROR, TAG_VCD, "[ERROR] Fail ecore_init()");
 		return -1;
-	}
-
-	if (0 == setuid(0)) {
-		/* daemon has root previlege */
-		perm_app_set_privilege("voice-control", NULL, NULL);
 	}
 
 	if (0 != vcd_dbus_open_connection()) {

@@ -41,7 +41,7 @@ INCLUDE_DIRECTORIES("${CMAKE_SOURCE_DIR}/include")
 INCLUDE(FindPkgConfig)
 pkg_check_modules(pkgs REQUIRED
     aul capi-base-common capi-media-audio-io capi-media-sound-manager capi-network-bluetooth capi-system-info
-    dbus-1 dlog ecore glib-2.0 libprivilege-control libxml-2.0 vconf
+    dbus-1 dlog ecore glib-2.0 libxml-2.0 vconf
 )
 
 ## API ##
