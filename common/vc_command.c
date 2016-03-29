@@ -45,7 +45,13 @@ static int __vc_cmd_get_feature_enabled()
 				}
 
 				g_feature_enabled = 1;
+			} else {
+				SLOG(LOG_ERROR, TAG_VCC, "[ERROR] Fail to get feature value");
+				return VC_ERROR_NOT_SUPPORTED;
 			}
+		} else {
+			SLOG(LOG_ERROR, TAG_VCC, "[ERROR] Fail to get feature value");
+			return VC_ERROR_NOT_SUPPORTED;
 		}
 	}
 

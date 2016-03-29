@@ -38,7 +38,6 @@
 typedef struct {
 	int	uid;
 	vc_config_lang_changed_cb	lang_cb;
-	vc_config_foreground_changed_cb foreground_cb;
 	vc_config_enabled_cb		enabled_cb;
 } vc_config_client_s;
 
@@ -60,11 +59,6 @@ static int g_lang_ref_count;
 static Ecore_Fd_Handler* g_fd_handler_lang = NULL;
 static int g_fd_lang;
 static int g_wd_lang;
-
-static int g_fore_ref_count;
-static Ecore_Fd_Handler* g_fd_handler_fore = NULL;
-static int g_fd_fore;
-static int g_wd_fore;
 
 
 int __vc_config_mgr_print_engine_info();
@@ -529,26 +523,7 @@ int vc_config_mgr_initialize(int uid)
 		SLOG(LOG_WARN, vc_config_tag(), "[CONFIG] Add uid(%d) but config has already initialized", uid);
 
 		__vc_config_mgr_print_client_info();
-
 		return 0;
-	}
-
-	if (0 != access(VC_CONFIG_BASE, F_OK)) {
-		if (0 != mkdir(VC_CONFIG_BASE, S_IRUSR | S_IWUSR | S_IXUSR | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH)) {
-			SLOG(LOG_ERROR, vc_config_tag(), "[ERROR] Fail to make directory : %s", VC_CONFIG_BASE);
-			return -1;
-		} else {
-			SLOG(LOG_DEBUG, vc_config_tag(), "Success to make directory : %s", VC_CONFIG_BASE);
-		}
-	}
-
-	if (0 != access(VC_RUNTIME_INFO_ROOT, F_OK)) {
-		if (0 != mkdir(VC_RUNTIME_INFO_ROOT, S_IRUSR | S_IWUSR | S_IXUSR | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH)) {
-			SLOG(LOG_ERROR, vc_config_tag(), "[ERROR] Fail to make directory : %s", VC_RUNTIME_INFO_ROOT);
-			return -1;
-		} else {
-			SLOG(LOG_DEBUG, vc_config_tag(), "Success to make directory : %s", VC_RUNTIME_INFO_ROOT);
-		}
 	}
 
 	/* Get file name from default engine directory */
@@ -658,7 +633,6 @@ int vc_config_mgr_initialize(int uid)
 	SLOG(LOG_DEBUG, vc_config_tag(), "Current foreground pid : %d", g_foreground_pid);
 
 	g_lang_ref_count = 0;
-	g_fore_ref_count = 0;
 
 	/* Register to detect display language change */
 	vconf_notify_key_changed(VCONFKEY_LANGSET, __vc_config_language_changed_cb, NULL);
@@ -844,165 +818,6 @@ int vc_config_mgr_unset_lang_cb(int uid)
 	}
 
 	return 0;
-}
-
-Eina_Bool vc_config_mgr_inotify_foreground_cb(void* data, Ecore_Fd_Handler *fd_handler)
-{
-	SLOG(LOG_DEBUG, vc_config_tag(), "===== Foreground changed callback event");
-
-	int length;
-	struct inotify_event event;
-	memset(&event, '\0', sizeof(struct inotify_event));
-
-	length = read(g_fd_fore, &event, sizeof(struct inotify_event));
-	if (0 > length) {
-		SLOG(LOG_ERROR, vc_config_tag(), "[ERROR] Empty Inotify event");
-		SLOG(LOG_DEBUG, vc_config_tag(), "=====");
-		SLOG(LOG_DEBUG, vc_config_tag(), " ");
-		return ECORE_CALLBACK_PASS_ON;
-	}
-
-	if (IN_CLOSE_WRITE == event.mask) {
-		int foreground_pid = -1;
-		if (0 != vc_parser_get_foreground(&foreground_pid)) {
-			SLOG(LOG_ERROR, vc_config_tag(), "Fail to get state");
-			return ECORE_CALLBACK_PASS_ON;
-		}
-
-		SLOG(LOG_DEBUG, vc_config_tag(), "foreground pid (%d)", foreground_pid);
-
-		/* If foreground pid is changed */
-		if (g_foreground_pid != foreground_pid) {
-			int previous_pid = g_foreground_pid;
-			g_foreground_pid = foreground_pid;
-
-			GSList *iter = NULL;
-			vc_config_client_s* temp_client = NULL;
-
-			/* Call all callbacks of client*/
-			iter = g_slist_nth(g_config_client_list, 0);
-
-			while (NULL != iter) {
-				temp_client = iter->data;
-
-				if (NULL != temp_client) {
-					if (NULL != temp_client->foreground_cb) {
-						temp_client->foreground_cb(previous_pid, g_foreground_pid);
-					}
-				}
-
-				iter = g_slist_next(iter);
-			}
-		}
-	} else {
-		SLOG(LOG_ERROR, vc_config_tag(), "[ERROR] Undefined event");
-	}
-
-	SLOG(LOG_DEBUG, vc_config_tag(), "=====");
-	SLOG(LOG_DEBUG, vc_config_tag(), " ");
-
-	return ECORE_CALLBACK_PASS_ON;
-}
-
-int __vc_config_mgr_register_foreground_event()
-{
-	if (0 == g_fore_ref_count) {
-		/* get file notification handler */
-		int fd;
-		int wd;
-
-		fd = inotify_init();
-		if (fd < 0) {
-			SLOG(LOG_ERROR, vc_config_tag(), "[ERROR] Fail get inotify fd");
-			return -1;
-		}
-		g_fd_fore = fd;
-
-		wd = inotify_add_watch(g_fd_fore, VC_RUNTIME_INFO_FOREGROUND, IN_CLOSE_WRITE);
-		g_wd_fore = wd;
-
-		g_fd_handler_fore = ecore_main_fd_handler_add(g_fd_fore, ECORE_FD_READ, (Ecore_Fd_Cb)vc_config_mgr_inotify_foreground_cb, 
-													  NULL, NULL, NULL);
-		if (NULL == g_fd_handler_fore) {
-			SLOG(LOG_ERROR, vc_config_tag(), "[ERROR] Fail to get handler for foreground");
-			return -1;
-		}
-	}
-	g_fore_ref_count++;
-
-	return 0;
-}
-
-int __vc_config_mgr_unregister_foreground_event()
-{
-	if (0 == g_fore_ref_count) {
-		SLOG(LOG_ERROR, vc_config_tag(), "[ERROR] Foreground ref count is 0");
-		return VC_CONFIG_ERROR_INVALID_STATE;
-	}
-
-	g_fore_ref_count--;
-
-	if (0 == g_fore_ref_count) {
-		/* delete inotify variable */
-		ecore_main_fd_handler_del(g_fd_handler_fore);
-		inotify_rm_watch(g_fd_fore, g_wd_fore);
-		close(g_fd_fore);
-	}
-
-	return 0;
-}
-
-int vc_config_mgr_set_foreground_cb(int uid, vc_config_foreground_changed_cb foreground_cb)
-{
-	if (NULL == foreground_cb) {
-		SLOG(LOG_ERROR, vc_config_tag(), "Foreground changed cb is NULL : uid(%d) ", uid);
-		return VC_CONFIG_ERROR_INVALID_PARAMETER;
-	}
-
-	GSList *iter = NULL;
-	vc_config_client_s* temp_client = NULL;
-
-	/* Call all callbacks of client*/
-	iter = g_slist_nth(g_config_client_list, 0);
-
-	while (NULL != iter) {
-		temp_client = iter->data;
-
-		if (NULL != temp_client) {
-			if (uid == temp_client->uid) {
-				temp_client->foreground_cb = foreground_cb;
-				__vc_config_mgr_register_foreground_event();
-				return VC_CONFIG_ERROR_NONE;
-			}
-		}
-		iter = g_slist_next(iter);
-	}
-
-	return VC_CONFIG_ERROR_INVALID_PARAMETER;
-}
-
-int vc_config_mgr_unset_foreground_cb(int uid)
-{
-	GSList *iter = NULL;
-	vc_config_client_s* temp_client = NULL;
-
-	/* Call all callbacks of client*/
-	iter = g_slist_nth(g_config_client_list, 0);
-
-	while (NULL != iter) {
-		temp_client = iter->data;
-
-		if (NULL != temp_client) {
-			if (uid == temp_client->uid) {
-				temp_client->foreground_cb = NULL;
-				__vc_config_mgr_unregister_foreground_event();
-				return 0;
-			}
-		}
-		iter = g_slist_next(iter);
-	}
-
-	return VC_CONFIG_ERROR_INVALID_PARAMETER;
 }
 
 int vc_config_mgr_set_enabled_cb(int uid, vc_config_enabled_cb enabled_cb)

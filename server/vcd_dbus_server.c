@@ -89,6 +89,7 @@ int vcd_dbus_server_mgr_initialize(DBusConnection* conn, DBusMessage* msg)
 
 	int pid;
 	int service_state;
+	int foreground;
 	int ret = VCD_ERROR_OPERATION_FAILED;
 
 	dbus_message_get_args(msg, &err,
@@ -102,9 +103,11 @@ int vcd_dbus_server_mgr_initialize(DBusConnection* conn, DBusMessage* msg)
 		dbus_error_free(&err);
 		ret = VCD_ERROR_OPERATION_FAILED;
 	} else {
-		SLOG(LOG_DEBUG, TAG_VCD, "[IN] vcd mgr initialize : pid(%d)", pid);
 		ret =  vcd_server_mgr_initialize(pid);
 		service_state = vcd_server_get_service_state();
+		foreground = vcd_server_get_foreground();
+
+		SLOG(LOG_DEBUG, TAG_VCD, "[IN] vcd mgr initialize : pid(%d) service state(%d) foreground(%d)", pid, service_state, foreground);
 	}
 
 	DBusMessage* reply;
@@ -114,6 +117,7 @@ int vcd_dbus_server_mgr_initialize(DBusConnection* conn, DBusMessage* msg)
 		dbus_message_append_args(reply,
 			DBUS_TYPE_INT32, &ret,
 			DBUS_TYPE_INT32, &service_state,
+			DBUS_TYPE_INT32, &foreground,
 			DBUS_TYPE_INVALID);
 
 		if (0 == ret) {
@@ -976,6 +980,34 @@ int vcd_dbus_server_unset_command(DBusConnection* conn, DBusMessage* msg)
 		dbus_message_unref(reply);
 	} else {
 		SLOG(LOG_ERROR, TAG_VCD, "[OUT ERROR] Fail to create reply message!!");
+	}
+
+	SLOG(LOG_DEBUG, TAG_VCD, "<<<<<");
+	SLOG(LOG_DEBUG, TAG_VCD, "  ");
+
+	return 0;
+}
+
+int vcd_dbus_server_set_foreground(DBusConnection* conn, DBusMessage* msg)
+{
+	DBusError err;
+	dbus_error_init(&err);
+
+	int pid;
+	int value;
+
+	dbus_message_get_args(msg, &err, DBUS_TYPE_INT32, &pid, DBUS_TYPE_INT32, &value, DBUS_TYPE_INVALID);
+
+	SLOG(LOG_DEBUG, TAG_VCD, ">>>>> VCD set foreground");
+
+	if (dbus_error_is_set(&err)) {
+		SLOG(LOG_ERROR, TAG_VCD, "[IN ERROR] vcd set foreground : get arguments error (%s)", err.message);
+		dbus_error_free(&err);
+	} else {
+		bool tmp_value;
+		tmp_value = (bool)value;
+		SLOG(LOG_DEBUG, TAG_VCD, "[IN] vcd set foreground : pid(%d), value(%s)", pid, value ? "true" : "false");
+		vcd_server_set_foreground(pid, tmp_value);
 	}
 
 	SLOG(LOG_DEBUG, TAG_VCD, "<<<<<");

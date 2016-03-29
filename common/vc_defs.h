@@ -62,6 +62,7 @@ extern "C" {
 #define VC_METHOD_SET_EXCLUSIVE_CMD	"vc_method_set_exclusive_cmd"
 #define VC_METHOD_SET_COMMAND		"vc_method_set_command"
 #define VC_METHOD_UNSET_COMMAND		"vc_method_unset_command"
+#define VC_METHOD_SET_FOREGROUND	"vc_method_set_foreground"
 
 #define VCD_METHOD_RESULT		"vcd_method_result"
 #define VCD_METHOD_ERROR		"vcd_method_error"
@@ -133,6 +134,8 @@ extern "C" {
 
 #define VCD_MANAGER_METHOD_ERROR		"vcd_manager_method_error"
 
+#define VCC_MANAGER_METHOD_SET_FOREGROUND	"vcd_manager_method_set_foreground"
+
 
 /******************************************************************************************
 * Defines for configuration
@@ -140,7 +143,7 @@ extern "C" {
 
 #define VC_DAEMON_PATH			"/usr/bin/vc-daemon"
 
-#define VC_CONFIG_DEFAULT		"/usr/share/voice/vc/vc-config.xml"
+#define VC_CONFIG_DEFAULT		VOICE_LIBDIR"/voice/vc/1.0/vc-config.xml"
 
 #define VC_CONFIG_BASE			tzplatform_mkpath(TZ_USER_HOME, "share/.voice")
 #define VC_CONFIG			tzplatform_mkpath(TZ_USER_HOME, "share/.voice/vc-config.xml")
@@ -165,6 +168,8 @@ extern "C" {
 #define VC_RUNTIME_INFO_EX_RESULT	tzplatform_mkpath(TZ_USER_HOME, "share/.voice/vc/vc-ex-result.xml")
 
 #define VC_RUNTIME_INFO_CLIENT		tzplatform_mkpath(TZ_USER_HOME, "share/.voice/vc/vc-client-info.xml")
+
+#define VC_RUNTIME_INFO_NO_FOREGROUND	-1
 
 #define VC_FEATURE_PATH			"tizen.org/feature/speech.control"
 #define VC_MIC_FEATURE_PATH		"tizen.org/feature/microphone"

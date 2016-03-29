@@ -476,7 +476,7 @@ int vc_widget_set_foreground(bool value)
 	}
 
 	SLOG(LOG_DEBUG, TAG_VCW, "Set foreground : pid(%d) value(%s)", getpid(), value ? "true" : "false");
-	int ret = vc_config_mgr_set_foreground(getpid(), value);
+	int ret = vc_widget_dbus_set_foreground(getpid(), value);
 	if (0 != ret) {
 		ret = vc_config_convert_error_code((vc_config_error_e)ret);
 		SLOG(LOG_ERROR, TAG_VCW, "[ERROR] Fail to set foreground : %s", __vc_widget_get_error_code(ret));
@@ -934,13 +934,8 @@ static Eina_Bool __vc_widget_notify_result(void *data)
 	return EINA_FALSE;
 }
 
-void __vc_widget_cb_result(int pid)
+void __vc_widget_cb_result()
 {
-	if (0 != vc_widget_client_get_handle(pid, &g_vc_w)) {
-		SLOG(LOG_ERROR, TAG_VCW, "Handle is not valid : pid(%d)", pid);
-		return;
-	}
-
 	ecore_timer_add(0, __vc_widget_notify_result, NULL);
 
 	return;

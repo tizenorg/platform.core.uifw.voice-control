@@ -44,7 +44,7 @@ int main(int argc, char** argv)
 		return EXIT_FAILURE;
 	}
 
-	g_check_client_timer = ecore_timer_add(CLIENT_CLEAN_UP_TIME, vcd_cleanup_client, NULL);
+	g_check_client_timer = ecore_timer_add(CLIENT_CLEAN_UP_TIME, vcd_cleanup_client_all, NULL);
 	if (NULL == g_check_client_timer) {
 		SLOG(LOG_WARN, TAG_VCD, "[Main Warning] Fail to create timer of client check");
 	}

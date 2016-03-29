@@ -31,7 +31,7 @@ extern int __vc_widget_cb_error(int pid, int reason);
 
 extern void __vc_widget_cb_show_tooltip(int pid, bool show);
 
-extern void __vc_widget_cb_result(int pid);
+extern void __vc_widget_cb_result();
 
 extern int __vc_widget_cb_service_state(int state);
 
@@ -114,7 +114,7 @@ static Eina_Bool widget_listener_event_callback(void* data, Ecore_Fd_Handler *fd
 
 		} /* VCD_WIDGET_METHOD_SET_SERVICE_STATE */
 
-		else if (dbus_message_is_signal(msg, if_name, VCD_WIDGET_METHOD_SHOW_TOOLTIP)) {
+		else if (dbus_message_is_method_call(msg, if_name, VCD_WIDGET_METHOD_SHOW_TOOLTIP)) {
 			SLOG(LOG_DEBUG, TAG_VCW, "===== Show / Hide tooltip");
 			int pid = 0;
 			int show = 0;
@@ -140,13 +140,10 @@ static Eina_Bool widget_listener_event_callback(void* data, Ecore_Fd_Handler *fd
 			SLOG(LOG_DEBUG, TAG_VCW, " ");
 		} /* VCD_WIDGET_METHOD_SHOW_TOOLTIP */
 
-		else if (dbus_message_is_signal(msg, if_name, VCD_WIDGET_METHOD_RESULT)) {
+		else if (dbus_message_is_method_call(msg, if_name, VCD_WIDGET_METHOD_RESULT)) {
 			SLOG(LOG_DEBUG, TAG_VCW, "===== Get widget result");
 
-			int pid = 0;
-			dbus_message_get_args(msg, &err, DBUS_TYPE_INT32, &pid, DBUS_TYPE_INVALID);
-
-			__vc_widget_cb_result(pid);
+			__vc_widget_cb_result();
 
 			/*
 			reply = dbus_message_new_method_return(msg);
@@ -169,7 +166,7 @@ static Eina_Bool widget_listener_event_callback(void* data, Ecore_Fd_Handler *fd
 
 		} /* VCD_WIDGET_METHOD_RESULT */
 
-		else if (dbus_message_is_signal(msg, if_name, VCD_WIDGET_METHOD_ERROR)) {
+		else if (dbus_message_is_method_call(msg, if_name, VCD_WIDGET_METHOD_ERROR)) {
 			SLOG(LOG_DEBUG, TAG_VCW, "===== Get widget error");
 			int pid;
 			int reason;
@@ -230,12 +227,13 @@ int vc_widget_dbus_open_connection()
 	}
 
 	DBusError err;
+	int ret;
 
 	/* initialise the error value */
 	dbus_error_init(&err);
 
 	/* connect to the DBUS system bus, and check for errors */
-	g_w_conn_sender = dbus_bus_get(DBUS_BUS_SESSION, &err);
+	g_w_conn_sender = dbus_bus_get_private(DBUS_BUS_SESSION, &err);
 
 	if (dbus_error_is_set(&err)) {
 		SLOG(LOG_ERROR, TAG_VCW, "Dbus Connection Error (%s)", err.message);
@@ -247,7 +245,7 @@ int vc_widget_dbus_open_connection()
 		return VC_ERROR_OPERATION_FAILED;
 	}
 
-	g_w_conn_listener = dbus_bus_get(DBUS_BUS_SESSION, &err);
+	g_w_conn_listener = dbus_bus_get_private(DBUS_BUS_SESSION, &err);
 
 	if (dbus_error_is_set(&err)) {
 		SLOG(LOG_ERROR, TAG_VCW, "Dbus Connection Error (%s)", err.message);
@@ -257,6 +255,27 @@ int vc_widget_dbus_open_connection()
 	if (NULL == g_w_conn_listener) {
 		SLOG(LOG_ERROR, TAG_VCW, "Fail to get dbus connection ");
 		return VC_ERROR_OPERATION_FAILED;
+	}
+
+	int pid = getpid();
+
+	char service_name[64];
+	memset(service_name, '\0', 64);
+	snprintf(service_name, 64, "%s%d", VC_WIDGET_SERVICE_NAME, pid);
+
+	SLOG(LOG_DEBUG, TAG_VCW, "service name is %s", service_name);
+
+	/* register our name on the bus, and check for errors */
+	ret = dbus_bus_request_name(g_w_conn_listener, service_name, DBUS_NAME_FLAG_REPLACE_EXISTING , &err);
+
+	if (dbus_error_is_set(&err)) {
+		SLOG(LOG_ERROR, TAG_VCW, "Name Error (%s)", err.message);
+		dbus_error_free(&err);
+	}
+
+	if (DBUS_REQUEST_NAME_REPLY_PRIMARY_OWNER != ret) {
+		SLOG(LOG_ERROR, TAG_VCW, "fail dbus_bus_request_name()");
+		return -2;
 	}
 
 	if (NULL != g_w_fd_handler) {
@@ -305,6 +324,22 @@ int vc_widget_dbus_close_connection()
 		g_w_fd_handler = NULL;
 	}
 
+	int pid = getpid();
+
+	char service_name[64];
+	memset(service_name, '\0', 64);
+	snprintf(service_name, 64, "%s%d", VC_WIDGET_SERVICE_NAME, pid);
+
+	dbus_bus_release_name(g_w_conn_listener, service_name, &err);
+
+	if (dbus_error_is_set(&err)) {
+		SLOG(LOG_ERROR, TAG_VCW, "[ERROR] Dbus Error (%s)", err.message);
+		dbus_error_free(&err);
+	}
+
+	dbus_connection_close(g_w_conn_sender);
+	dbus_connection_close(g_w_conn_listener);
+	
 	g_w_conn_sender = NULL;
 	g_w_conn_listener = NULL;
 
@@ -558,6 +593,71 @@ int vc_widget_dbus_request_start_recording(int pid, bool command)
 
 	return result;
 }
+
+int vc_widget_dbus_set_foreground(int pid, bool value)
+{
+	DBusMessage* msg = NULL;
+	int tmp_value = 0;
+
+	tmp_value = (int)value;
+
+	msg = dbus_message_new_signal(
+		VC_MANAGER_SERVICE_OBJECT_PATH,
+		VC_MANAGER_SERVICE_INTERFACE,
+		VCC_MANAGER_METHOD_SET_FOREGROUND);
+
+	if (NULL == msg) {
+		SLOG(LOG_ERROR, TAG_VCW, ">>>> vc widget set foreground to manager : Fail to make message");
+		return VC_ERROR_OPERATION_FAILED;
+	} else {
+		SLOG(LOG_DEBUG, TAG_VCW, ">>>> vc widget set foreground to manager : client pid(%d), value(%s)", pid, tmp_value ? "true" : "false");
+	}
+
+	dbus_message_append_args(msg,
+		DBUS_TYPE_INT32, &pid,
+		DBUS_TYPE_INT32, &tmp_value,
+		DBUS_TYPE_INVALID);
+
+	if (1 != dbus_connection_send(g_w_conn_sender, msg, NULL)) {
+		SLOG(LOG_ERROR, TAG_VCW, "[Dbus ERROR] Fail to Send");
+		return VC_ERROR_OPERATION_FAILED;
+	}
+
+	dbus_message_unref(msg);
+
+	msg = NULL;
+	msg = dbus_message_new_method_call(
+		VC_SERVER_SERVICE_NAME,
+		VC_SERVER_SERVICE_OBJECT_PATH,
+		VC_SERVER_SERVICE_INTERFACE,
+		VC_METHOD_SET_FOREGROUND);
+
+	if (NULL == msg) {
+		SLOG(LOG_ERROR, TAG_VCW, ">>>> vc widget set foreground to daemon : Fail to make message");
+		return VC_ERROR_OPERATION_FAILED;
+	} else {
+		SLOG(LOG_DEBUG, TAG_VCW, ">>>> vc widget set foreground to daemon : client pid(%d), value(%s)", pid, tmp_value ? "true" : "false");
+	}
+
+	dbus_message_append_args(msg,
+		DBUS_TYPE_INT32, &pid,
+		DBUS_TYPE_INT32, &tmp_value,
+		DBUS_TYPE_INVALID);
+
+	dbus_message_set_no_reply(msg, TRUE);
+
+	if (1 != dbus_connection_send(g_w_conn_sender, msg, NULL)) {
+		SLOG(LOG_ERROR, TAG_VCW, "[Dbus ERROR] Fail to Send");
+		return VC_ERROR_OPERATION_FAILED;
+	}
+
+	dbus_connection_flush(g_w_conn_sender);
+
+	dbus_message_unref(msg);
+
+	return 0;
+}
+
 
 int vc_widget_dbus_request_start(int pid, int silence)
 {

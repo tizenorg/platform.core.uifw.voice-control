@@ -32,9 +32,11 @@ int vcd_initialize();
 
 void vcd_finalize();
 
-Eina_Bool vcd_cleanup_client(void *data);
+Eina_Bool vcd_cleanup_client_all(void *data);
 
 int vcd_server_get_service_state();
+
+int vcd_server_get_foreground();
 
 
 /*
@@ -75,9 +77,11 @@ int vcd_server_set_command(int pid, vc_cmd_type_e cmd_type);
 
 int vcd_server_unset_command(int pid, vc_cmd_type_e cmd_type);
 
-int vcd_server_set_exclusive_command(int pid, bool value);
+int vcd_server_set_foreground(int pid, bool value);
 
 #if 0
+int vcd_server_set_exclusive_command(int pid, bool value);
+
 int vcd_server_request_start(int pid, bool stop_by_silence);
 
 int vcd_server_request_stop(int pid);

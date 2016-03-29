@@ -56,9 +56,15 @@ static int __vc_config_parser_set_file_mode(const char* filename)
 
 	if (0 > chmod(filename, 0666)) {
 		SLOG(LOG_ERROR, vc_config_tag(), "[ERROR] Fail to change file mode");
-		/* return -1; */
+		return -1;
 	}
 
+#if 0 /*Does not need to change owner on Tizen 3.0*/
+	if (0 > chown(filename, 5000, 5000)) {
+		SLOG(LOG_ERROR, vc_config_tag(), "[ERROR] Fail to change file owner");
+		return -1;
+	}
+#endif
 	return 0;
 }
 

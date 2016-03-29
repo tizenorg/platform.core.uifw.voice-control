@@ -61,7 +61,13 @@ static int __vc_get_feature_enabled()
 				}
 
 				g_feature_enabled = 1;
+			} else {
+				SLOG(LOG_ERROR, TAG_VCC, "[ERROR] Fail to get feature value");
+				return VC_ERROR_NOT_SUPPORTED;
 			}
+		} else {
+			SLOG(LOG_ERROR, TAG_VCC, "[ERROR] Fail to get feature value");
+			return VC_ERROR_NOT_SUPPORTED;
 		}
 	}
 
@@ -145,6 +151,67 @@ static Eina_Bool __notify_auth_changed_cb(void *data)
 	return EINA_FALSE;
 }
 
+static int __vc_app_state_changed_cb(int app_state, void *data)
+{
+	int ret = -1;
+	SLOG(LOG_DEBUG, TAG_VCC, "===== [Client] app state changed");
+
+	/* Set current pid */
+	if (STATUS_VISIBLE == app_state) {
+		SLOG(LOG_DEBUG, TAG_VCC, "===== Set foreground");
+		ret = vc_dbus_set_foreground(getpid(), true);
+		if (0 != ret) {
+			SLOG(LOG_ERROR, TAG_VCC, "[ERROR] Fail to set foreground (true) : %d", ret);
+		}
+
+		ret = vc_client_set_is_foreground(g_vc, true);
+		if (0 != ret) {
+			SLOG(LOG_ERROR, TAG_VCC, "[ERROR] Fail to save is_foreground (true) : %d", ret);
+		}
+
+		/* set authority valid */
+		vc_auth_state_e state = VC_AUTH_STATE_NONE;
+		if (0 != vc_client_get_auth_state(g_vc, &state)) {
+			SLOG(LOG_ERROR, TAG_VCC, "[ERROR] Fail to get auth state");
+		}
+		if (VC_AUTH_STATE_INVALID == state) {
+			vc_client_set_auth_state(g_vc, VC_AUTH_STATE_VALID);
+
+			/* notify auth changed cb */
+			ecore_timer_add(0, __notify_auth_changed_cb, NULL);
+		}
+	} else if (STATUS_BG == app_state) {
+		SLOG(LOG_DEBUG, TAG_VCC, "===== Set background");
+		ret = vc_dbus_set_foreground(getpid(), false);
+		if (0 != ret) {
+			SLOG(LOG_ERROR, TAG_VCC, "[ERROR] Fail to set foreground (false) : %d", ret);
+		}
+
+		ret = vc_client_set_is_foreground(g_vc, false);
+		if (0 != ret) {
+			SLOG(LOG_ERROR, TAG_VCC, "[ERROR] Fail to save is_foreground (false) : %d", ret);
+		}
+
+		/* set authority valid */
+		vc_auth_state_e state = VC_AUTH_STATE_NONE;
+		if (0 != vc_client_get_auth_state(g_vc, &state)) {
+			SLOG(LOG_ERROR, TAG_VCC, "[ERROR] Fail to get auth state");
+		}
+		if (VC_AUTH_STATE_VALID == state) {
+			vc_client_set_auth_state(g_vc, VC_AUTH_STATE_INVALID);
+
+			/* notify authority changed cb */
+			ecore_timer_add(0, __notify_auth_changed_cb, NULL);
+		}
+	} else {
+		SLOG(LOG_DEBUG, TAG_VCC, "===== App state is NOT valid");
+	}
+
+	SLOG(LOG_DEBUG, TAG_VCC, "=====");
+	SLOG(LOG_DEBUG, TAG_VCC, " ");
+
+	return 0;
+}
 
 int vc_initialize(void)
 {
@@ -400,8 +467,12 @@ static Eina_Bool __vc_connect_daemon(void *data)
 #if 0
 	g_focus_in_hander = ecore_event_handler_add(ECORE_X_EVENT_WINDOW_FOCUS_IN, __vc_x_event_window_focus_in, NULL);
 	g_focus_out_hander = ecore_event_handler_add(ECORE_X_EVENT_WINDOW_FOCUS_OUT, __vc_x_event_window_focus_out, NULL);
+#else
+	ret = aul_add_status_local_cb(__vc_app_state_changed_cb, NULL);
+	if (0 != ret) {
+		SLOG(LOG_ERROR, TAG_VCC, "[ERROR] Fail to set app stae changed callback");
+	}
 #endif
-
 	vc_client_set_client_state(g_vc, VC_STATE_READY);
 	ecore_timer_add(0, __vc_notify_state_changed, g_vc);
 
@@ -605,6 +676,13 @@ int vc_get_service_state(vc_service_state_e* state)
 	vc_state_e temp;
 	if (0 != vc_client_get_client_state(g_vc, &temp)) {
 		SLOG(LOG_ERROR, TAG_VCC, "[ERROR] A handle is not available");
+		SLOG(LOG_DEBUG, TAG_VCC, "=====");
+		SLOG(LOG_DEBUG, TAG_VCC, " ");
+		return VC_ERROR_INVALID_STATE;
+	}
+
+	if (VC_STATE_READY != temp) {
+		SLOG(LOG_ERROR, TAG_VCC, "[ERROR] Invalid State: Current state is not 'READY'");
 		SLOG(LOG_DEBUG, TAG_VCC, "=====");
 		SLOG(LOG_DEBUG, TAG_VCC, " ");
 		return VC_ERROR_INVALID_STATE;
@@ -1281,13 +1359,8 @@ static Eina_Bool __vc_notify_result(void *data)
 	return EINA_FALSE;
 }
 
-void __vc_cb_result(int pid)
+void __vc_cb_result(void)
 {
-	if (0 != vc_client_get_handle(pid, &g_vc)) {
-		SLOG(LOG_ERROR, TAG_VCC, "Handle is not valid : pid(%d)", pid);
-		return;
-	}
-
 	ecore_timer_add(0, __vc_notify_result, NULL);
 
 	return;
@@ -1610,13 +1683,13 @@ int vc_auth_enable(void)
 	}
 
 	/* set authority into handle */
-	int fg_pid = -1;
-	if (0 != vc_config_mgr_get_foreground(&fg_pid)) {
-		SLOG(LOG_ERROR, TAG_VCC, "[ERROR] Fail to get foreground");
+	bool is_foreground = false;
+	if (0 != vc_client_get_is_foreground(g_vc, &is_foreground)) {
+		SLOG(LOG_ERROR, TAG_VCC, "[ERROR] Fail to get is_foreground");
 		return VC_ERROR_OPERATION_FAILED;
 	}
 
-	if (g_vc->handle == fg_pid) {
+	if (is_foreground) {
 		auth_state = VC_AUTH_STATE_VALID;
 	} else {
 		auth_state = VC_AUTH_STATE_INVALID;

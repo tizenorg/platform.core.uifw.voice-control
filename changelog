@@ -7,6 +7,7 @@ voice-control (0.2.9) -- Mon, 6 Jul 2015
   * Update daemon start by dbus activation (Dongyeol Lee <dy3.lee@samsung.com>)
   * Add audio header and Fix volume data (Kwangyoun Kim <ky85.kim@samsung.com>)
   * Update file IPC for service state to dbus IPC (Dongyeol Lee <dy3.lee@samsung.com>)
+  * Update file IPC for foreground app to dbus IPC (Dongyeol Lee <dy3.lee@samsung.com>)
 
 voice-control (0.2.8) -- Thu, 18 Jun 2015
 

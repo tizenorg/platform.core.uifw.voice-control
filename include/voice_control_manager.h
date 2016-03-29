@@ -39,6 +39,24 @@ extern "C"
 #define VC_AUDIO_TYPE_BLUETOOTH		"VC_AUDIO_ID_BLUETOOTH"		/**< Bluetooth audio type */
 
 /**
+* @brief Definitions for foreground command type.
+* @since_tizen 2.4
+*/
+#define VC_COMMAND_TYPE_FOREGROUND	1
+
+/**
+* @brief Definitions for background command type.
+* @since_tizen 2.4
+*/
+#define VC_COMMAND_TYPE_BACKGROUND	2
+
+/**
+* @brief Definitions for widget command type.
+* @since_tizen 2.4
+*/
+#define VC_COMMAND_TYPE_WIDGET		3
+
+/**
 * @brief Definitions for system command type.
 * @since_tizen 2.4
 */
@@ -228,7 +246,7 @@ int vc_mgr_get_state(vc_state_e* state);
 * @retval #VC_ERROR_NONE Successful
 * @retval #VC_ERROR_INVALID_PARAMETER Invalid parameter
 *
-* @pre The state should NOT be #VC_SERVICE_STATE_NONE.
+* @pre The state should be #VC_STATE_READY.
 *
 * @see vc_mgr_start()
 * @see vc_mgr_stop()
@@ -373,7 +391,7 @@ int vc_mgr_get_audio_type(char** audio_id);
 /**
 * @brief Sets recognition mode.
 *
-* @param[in] mode recognition mode (e.g. #VC_RECOGNITION_MODE_SILENCE_DETECTION_ONE_TURN is default value)
+* @param[in] mode recognition mode (e.g. #VC_RECOGNITION_MODE_STOP_BY_SILENCE is default value)
 *
 * @return 0 on success, otherwise a negative error value
 * @retval #VC_ERROR_NONE Successful
@@ -405,7 +423,9 @@ int vc_mgr_get_recognition_mode(vc_recognition_mode_e* mode);
 /**
 * @brief Starts recognition.
 *
-* @param[in] stop_by_silence Silence detection option
+* @remarks The default recognition mode is #VC_RECOGNITION_MODE_STOP_BY_SILENCE. \n
+* If you want to use other mode, you can set mode with vc_mgr_set_recognition_mode().
+*
 * @param[in] exclusive_command_option Exclusive command option
 *
 * @return 0 on success, otherwise a negative error value
@@ -421,8 +441,10 @@ int vc_mgr_get_recognition_mode(vc_recognition_mode_e* mode);
 * @see vc_mgr_stop()
 * @see vc_mgr_cancel()
 * @see vc_service_state_changed_cb()
+* @see vc_mgr_set_recognition_mode()
+* @see vc_mgr_get_recognition_mode()
 */
-int vc_mgr_start(bool stop_by_silence, bool exclusive_command_option);
+int vc_mgr_start(bool exclusive_command_option);
 
 /**
 * @brief Stop recognition.

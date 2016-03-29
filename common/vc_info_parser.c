@@ -77,8 +77,15 @@ static int __vc_info_parser_set_file_mode(const char* filename)
 
 	if (0 > chmod(filename, 0666)) {
 		SLOG(LOG_ERROR, vc_info_tag(), "[ERROR] Fail to change file mode");
-		/*return -1;*/
+		return -1;
 	}
+
+#if 0 /*Does not need to change owner on Tizen 3.0*/
+	if (0 > chown(filename, 5000, 5000)) {
+		SLOG(LOG_ERROR, vc_info_tag(), "[ERROR] Fail to change file owner");
+		return -1;
+	}
+#endif
 
 	return 0;
 }
@@ -219,7 +226,7 @@ int vc_cmd_parser_save_file(int pid, vc_cmd_type_e type, GSList* cmd_list)
 	if (0 < selected_count) {
 		int ret = xmlSaveFormatFile(filepath, doc, 1);
 		if (0 >= ret) {
-			SLOG(LOG_DEBUG, vc_info_tag(), "[ERROR] Fail to save command file : %d", ret);
+			SLOG(LOG_DEBUG, vc_info_tag(), "[ERROR] Fail to save command file : %d, filepath(%s)", ret, filepath);
 			free(filepath);
 			return -1;
 		}

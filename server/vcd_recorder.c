@@ -16,7 +16,6 @@
 
 
 #include <audio_io.h>
-#include <bluetooth.h>
 #include <math.h>
 #include <sound_manager.h>
 
