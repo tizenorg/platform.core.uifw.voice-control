@@ -36,6 +36,8 @@ int vc_widget_dbus_request_finalize(int pid);
 
 int vc_widget_dbus_request_start_recording(int pid, bool command);
 
+int vc_widget_dbus_set_foreground(int pid, bool value);
+
 
 int vc_widget_dbus_request_start(int pid, int silence);
 

@@ -41,7 +41,7 @@ INCLUDE_DIRECTORIES("${CMAKE_SOURCE_DIR}/include")
 INCLUDE(FindPkgConfig)
 pkg_check_modules(pkgs REQUIRED
     aul capi-base-common capi-media-audio-io capi-media-sound-manager capi-network-bluetooth capi-system-info
-    dbus-1 dlog ecore glib-2.0 libxml-2.0 vconf
+    dbus-1 dlog ecore glib-2.0 libtzplatform-config libxml-2.0 vconf
 )
 
 ## API ##
@@ -54,7 +54,7 @@ ADD_SUBDIRECTORY(client)
 ADD_SUBDIRECTORY(server)
 
 ## config ##
-INSTALL(FILES ${CMAKE_SOURCE_DIR}/vc-config.xml DESTINATION /usr/share/voice/vc/)
+INSTALL(FILES ${CMAKE_SOURCE_DIR}/vc-config.xml DESTINATION ${LIBDIR}/voice/vc/1.0)
 
 INSTALL(FILES ${CMAKE_SOURCE_DIR}/org.tizen.voice.vcserver.service DESTINATION /usr/share/dbus-1/services)
 

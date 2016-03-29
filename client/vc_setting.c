@@ -32,10 +32,13 @@ typedef enum {
 
 static vc_setting_state_e g_state = VC_SETTING_STATE_NONE;
 
-static vc_setting_enabled_changed_cb g_callback;
+static vc_setting_enabled_changed_cb g_callback = NULL;
 
-static void* g_user_data;
+static void* g_user_data = NULL;
 
+static vc_setting_current_language_changed_cb g_lang_callback = NULL;
+
+static void* g_lang_user_data = NULL;
 
 const char* vc_tag()
 {
@@ -45,6 +48,10 @@ const char* vc_tag()
 void __config_lang_changed_cb(const char* before_lang, const char* current_lang)
 {
 	SLOG(LOG_DEBUG, TAG_VCS, "Lang changed : before(%s) current(%s)", before_lang, current_lang);
+
+	if (NULL != g_lang_callback) {
+		g_lang_callback(before_lang, current_lang, g_lang_user_data);
+	}
 }
 
 void __vc_setting_state_changed_cb(int before_state, int current_state, void* user_data)
@@ -381,3 +388,51 @@ int vc_setting_unset_enabled_changed_cb()
 
 	return 0;
 }
+
+int vc_setting_set_current_language_changed_cb(vc_setting_current_language_changed_cb callback, void* user_data)
+{
+	SLOG(LOG_DEBUG, TAG_VCS, "===== Set current language changed callback");
+
+	if (VC_SETTING_STATE_NONE == g_state) {
+		SLOG(LOG_ERROR, TAG_VCS, "[ERROR] Not initialized");
+		SLOG(LOG_DEBUG, TAG_VCS, "=====");
+		SLOG(LOG_DEBUG, TAG_VCS, " ");
+		return VC_ERROR_INVALID_STATE;
+	}
+
+	if (NULL == callback) {
+		SLOG(LOG_ERROR, TAG_VCS, "[ERROR] Param is NULL");
+		SLOG(LOG_DEBUG, TAG_VCS, "=====");
+		SLOG(LOG_DEBUG, TAG_VCS, " ");
+		return VC_ERROR_INVALID_PARAMETER;
+	}
+
+	g_lang_callback = callback;
+	g_lang_user_data = user_data;
+
+	SLOG(LOG_DEBUG, TAG_VCS, "=====");
+	SLOG(LOG_DEBUG, TAG_VCS, " ");
+
+	return 0;
+}
+
+int vc_setting_unset_current_language_changed_cb()
+{
+	SLOG(LOG_DEBUG, TAG_VCS, "===== Unset current language changed callback");
+
+	if (VC_SETTING_STATE_NONE == g_state) {
+		SLOG(LOG_ERROR, TAG_VCS, "[ERROR] Not initialized");
+		SLOG(LOG_DEBUG, TAG_VCS, "=====");
+		SLOG(LOG_DEBUG, TAG_VCS, " ");
+		return VC_ERROR_INVALID_STATE;
+	}
+
+	g_lang_callback = NULL;
+	g_lang_user_data = NULL;
+
+	SLOG(LOG_DEBUG, TAG_VCS, "=====");
+	SLOG(LOG_DEBUG, TAG_VCS, " ");
+
+	return 0;
+}
+

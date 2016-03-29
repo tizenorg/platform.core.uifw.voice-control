@@ -22,11 +22,11 @@
 
 static vcd_config_lang_changed_cb g_lang_cb;
 
-static vcd_config_foreground_changed_cb g_fore_cb;
-
 static void* g_user_data;
 
 static vcd_state_e g_state;
+
+static int g_foreground_pid;
 
 
 void __vcd_config_lang_changed_cb(const char* before_lang, const char* current_lang)
@@ -37,13 +37,6 @@ void __vcd_config_lang_changed_cb(const char* before_lang, const char* current_l
 		SLOG(LOG_ERROR, TAG_VCD, "Language changed callback is NULL");
 }
 
-void __vcd_config_foreground_changed_cb(int previous, int current)
-{
-	if (NULL != g_fore_cb)
-		g_fore_cb(previous, current, g_user_data);
-	else
-		SLOG(LOG_ERROR, TAG_VCD, "Foreground changed callback is NULL");
-}
 
 int vcd_config_initialize(vcd_config_lang_changed_cb lang_cb, vcd_config_foreground_changed_cb fore_cb, void* user_data)
 {
@@ -65,22 +58,16 @@ int vcd_config_initialize(vcd_config_lang_changed_cb lang_cb, vcd_config_foregro
 		return VCD_ERROR_OPERATION_FAILED;
 	}
 
-	ret = vc_config_mgr_set_foreground_cb(getpid(), __vcd_config_foreground_changed_cb);
-	if (0 != ret) {
-		SLOG(LOG_ERROR, TAG_VCD, "[ERROR] Fail to set foreground changed callback : %d", ret);
-		return VCD_ERROR_OPERATION_FAILED;
-	}
-
 	g_lang_cb = lang_cb;
-	g_fore_cb = fore_cb;
 	g_user_data = user_data;
+
+	g_foreground_pid = VC_RUNTIME_INFO_NO_FOREGROUND;
 
 	return 0;
 }
 
 int vcd_config_finalize()
 {
-	vc_config_mgr_unset_foreground_cb(getpid());
 	vc_config_mgr_unset_lang_cb(getpid());
 	vc_config_mgr_finalize(getpid());
 	return 0;
@@ -115,5 +102,18 @@ vcd_state_e vcd_config_get_service_state()
 
 int vcd_config_get_foreground(int* pid)
 {
-	return vc_config_mgr_get_foreground(pid);
+	*pid = g_foreground_pid;
+	return 0;
+}
+
+int vcd_config_set_foreground(int pid, bool value)
+{
+	if (true == value) {
+		g_foreground_pid = pid;
+	} else {
+		if (pid == g_foreground_pid) {
+			g_foreground_pid = VC_RUNTIME_INFO_NO_FOREGROUND;
+		}
+	}
+	return 0;
 }

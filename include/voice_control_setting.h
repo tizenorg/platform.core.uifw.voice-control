@@ -62,6 +62,19 @@ typedef void (*vc_setting_enabled_changed_cb)(bool enabled, void* user_data);
 */
 typedef bool(*vc_setting_supported_language_cb)(const char* language, void* user_data);
 
+/**
+* @brief Called when default language is changed.
+* @since_tizen 2.4
+*
+* @param[in] previous Previous language
+* @param[in] current Current language
+* @param[in] user_data The user data passed from the callback registration function
+*
+* @pre An application registers this callback to detect changing mode.
+*
+* @see vc_setting_set_current_language_changed_cb()
+*/
+typedef void (*vc_setting_current_language_changed_cb)(const char* previous, const char* current, void* user_data);
 
 /**
 * @brief Initialize voice control setting
@@ -222,16 +235,47 @@ int vc_setting_set_enabled_changed_cb(vc_setting_enabled_changed_cb callback, vo
 * @brief Unsets the callback function.
 *
 * @return 0 on success, otherwise a negative error value
-* @retval #VC_ELM_ERROR_NONE Successful
-* @retval #VC_ELM_ERROR_INVALID_STATE Invalid state
-* @retval #VC_ELM_ERROR_PERMISSION_DENIED Permission denied
-* @retval #VC_ELM_ERROR_NOT_SUPPORTED Not supported
+* @retval #VC_ERROR_NONE Success.
+* @retval #VC_ERROR_INVALID_PARAMETER Invalid parameter.
+* @retval #VC_ERROR_INVALID_STATE VC Not initialized.
+* @retval #VC_ERROR_OPERATION_FAILED Operation failure.
 *
 * @pre vc_setting_initialize() should be successful.
 *
 * @see vc_setting_set_enabled_changed_cb()
 */
 int vc_setting_unset_enabled_changed_cb();
+
+/**
+* @brief Registers a callback function to be called when current language is changed.
+*
+* @param[in] callback Callback function to register
+* @param[in] user_data The user data to be passed to the callback function
+*
+* @return 0 on success, otherwise a negative error value
+* @retval #VC_ERROR_NONE Success.
+* @retval #VC_ERROR_INVALID_PARAMETER Invalid parameter.
+* @retval #VC_ERROR_INVALID_STATE VC Not initialized.
+*
+* @pre vc_setting_initialize() should be successful.
+*
+* @see vc_setting_unset_current_language_changed_cb()
+*/
+int vc_setting_set_current_language_changed_cb(vc_setting_current_language_changed_cb callback, void* user_data);
+
+/**
+* @brief Unregisters the callback function.
+*
+* @return 0 on success, otherwise a negative error value
+* @retval #VC_ERROR_NONE Success.
+* @retval #VC_ERROR_INVALID_PARAMETER Invalid parameter.
+* @retval #VC_ERROR_INVALID_STATE VC Not initialized.
+*
+* @pre vc_setting_initialize() should be successful.
+*
+* @see vc_setting_set_current_language_changed_cb()
+*/
+int vc_setting_unset_current_language_changed_cb();
 
 
 #ifdef __cplusplus

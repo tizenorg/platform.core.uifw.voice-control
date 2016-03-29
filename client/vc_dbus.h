@@ -40,6 +40,8 @@ int vc_dbus_request_set_command(int pid, vc_cmd_type_e cmd_type);
 
 int vc_dbus_request_unset_command(int pid, vc_cmd_type_e cmd_type);
 
+int vc_dbus_set_foreground(int pid, bool value);
+
 #if 0
 int vc_dbus_request_start(int pid, int silence);
 

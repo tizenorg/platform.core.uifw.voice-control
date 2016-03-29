@@ -41,6 +41,8 @@ vcd_state_e vcd_config_get_service_state();
 
 int vcd_config_get_foreground(int* pid);
 
+int vcd_config_set_foreground(int pid, bool value);
+
 
 #ifdef __cplusplus
 }
