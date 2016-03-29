@@ -78,6 +78,9 @@ typedef struct {
 	GSList*			authorized_client_list;
 	int			valid_authorized_pid;
 	bool			start_by_client;
+
+	/* foreground pid */
+	int			foreground_pid;
 } vc_mgr_client_s;
 
 typedef struct {
@@ -178,6 +181,8 @@ int vc_mgr_client_create(vc_h* vc)
 	client->authorized_client_list = NULL;
 	client->valid_authorized_pid = -1;
 	client->start_by_client = false;
+
+	client->foreground_pid = VC_RUNTIME_INFO_NO_FOREGROUND;
 
 	g_mgr_client_list = g_slist_append(g_mgr_client_list, client);
 
@@ -747,7 +752,7 @@ int vc_mgr_client_set_recognition_mode(vc_h vc, vc_recognition_mode_e mode)
 
 int vc_mgr_client_get_recognition_mode(vc_h vc, vc_recognition_mode_e* mode)
 {
-	if (NULL == mode)	{
+	if (NULL == mode) {
 		return -1;
 	}
 
@@ -758,6 +763,37 @@ int vc_mgr_client_get_recognition_mode(vc_h vc, vc_recognition_mode_e* mode)
 		return VC_ERROR_INVALID_PARAMETER;
 
 	*mode = client->recognition_mode;
+	return 0;
+}
+
+int vc_mgr_client_set_foreground(vc_h vc, int pid, bool value)
+{
+	vc_mgr_client_s* client = __mgr_client_get(vc);
+
+	/* check handle */
+	if (NULL == client)
+		return VC_ERROR_INVALID_PARAMETER;
+
+	if (true == value) {
+		client->foreground_pid = pid;
+	} else {
+		if (pid == client->foreground_pid) {
+			client->foreground_pid = VC_RUNTIME_INFO_NO_FOREGROUND;
+		}
+	}
+
+	return 0;
+}
+
+int vc_mgr_client_get_foreground(vc_h vc, int* pid)
+{
+	vc_mgr_client_s* client = __mgr_client_get(vc);
+
+	/* check handle */
+	if (NULL == client)
+		return VC_ERROR_INVALID_PARAMETER;
+
+	*pid = client->foreground_pid;
 	return 0;
 }
 

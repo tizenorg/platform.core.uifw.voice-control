@@ -28,6 +28,8 @@ static Ecore_Fd_Handler* g_m_fd_handler = NULL;
 static DBusConnection* g_m_conn_sender = NULL;
 static DBusConnection* g_m_conn_listener = NULL;
 
+static int g_volume_count = 0;
+
 
 extern void __vc_mgr_cb_all_result(vc_result_type_e type);
 
@@ -40,6 +42,8 @@ extern int __vc_mgr_cb_error(int pid, int reason);
 extern int __vc_mgr_cb_set_volume(float volume);
 
 extern int __vc_mgr_cb_service_state(int state);
+
+extern int __vc_mgr_cb_set_foreground(int pid, bool value);
 
 /* Authority */
 extern int __vc_mgr_request_auth_enable(int pid);
@@ -67,12 +71,12 @@ static Eina_Bool vc_mgr_listener_event_callback(void* data, Ecore_Fd_Handler *fd
 			break;
 		}
 
-		SLOG(LOG_DEBUG, TAG_VCM, "[DEBUG] Message is arrived");
+		/* SLOG(LOG_DEBUG, TAG_VCM, "[DEBUG] Message is arrived"); */
 
 		DBusError err;
 		dbus_error_init(&err);
 
-		char if_name[64];
+		char if_name[64] = {0, };
 		snprintf(if_name, 64, "%s", VC_MANAGER_SERVICE_INTERFACE);
 
 		if (dbus_message_is_method_call(msg, if_name, VCD_MANAGER_METHOD_HELLO)) {
@@ -115,7 +119,6 @@ static Eina_Bool vc_mgr_listener_event_callback(void* data, Ecore_Fd_Handler *fd
 		} /* VCD_METHOD_HELLO */
 
 		else if (dbus_message_is_signal(msg, if_name, VCD_MANAGER_METHOD_SET_VOLUME)) {
-			/* SLOG(LOG_DEBUG, TAG_VCM, "===== Set volume"); */
 			float volume = 0;
 
 			dbus_message_get_args(msg, &err, DBUS_TYPE_INT32, &volume, DBUS_TYPE_INVALID);
@@ -125,11 +128,15 @@ static Eina_Bool vc_mgr_listener_event_callback(void* data, Ecore_Fd_Handler *fd
 				dbus_error_free(&err);
 			}
 
-			SLOG(LOG_DEBUG, TAG_VCM, "<<<< vc mgr set volume : volume(%f)", volume);
-			__vc_mgr_cb_set_volume(volume);
+			if (10 == g_volume_count) {
+				SLOG(LOG_DEBUG, TAG_VCM, "===== Set volume");
+				SLOG(LOG_DEBUG, TAG_VCM, "<<<< vc mgr set volume : volume(%f)", volume);
+				g_volume_count = 0;
+			}
 
-			/* SLOG(LOG_DEBUG, TAG_VCM, "====="); */
-			/* SLOG(LOG_DEBUG, TAG_VCM, " "); */
+			__vc_mgr_cb_set_volume(volume);
+			g_volume_count++;
+
 		} /* VCD_MANAGER_METHOD_SET_VOLUME */
 
 		else if (dbus_message_is_signal(msg, if_name, VCD_MANAGER_METHOD_SET_SERVICE_STATE)) {
@@ -147,7 +154,7 @@ static Eina_Bool vc_mgr_listener_event_callback(void* data, Ecore_Fd_Handler *fd
 
 		} /* VCD_MANAGER_METHOD_SET_SERVICE_STATE */
 
-		else if (dbus_message_is_signal(msg, if_name, VCD_MANAGER_METHOD_SPEECH_DETECTED)) {
+		else if (dbus_message_is_method_call(msg, if_name, VCD_MANAGER_METHOD_SPEECH_DETECTED)) {
 			SLOG(LOG_DEBUG, TAG_VCM, "===== Get Speech detected");
 
 			__vc_mgr_cb_speech_detected();
@@ -157,7 +164,7 @@ static Eina_Bool vc_mgr_listener_event_callback(void* data, Ecore_Fd_Handler *fd
 
 		} /* VCD_MANAGER_METHOD_SPEECH_DETECTED */
 
-		else if (dbus_message_is_signal(msg, if_name, VCD_MANAGER_METHOD_ALL_RESULT)) {
+		else if (dbus_message_is_method_call(msg, if_name, VCD_MANAGER_METHOD_ALL_RESULT)) {
 			SLOG(LOG_DEBUG, TAG_VCM, "===== Get All Result");
 			int result_type = 0;
 
@@ -170,7 +177,7 @@ static Eina_Bool vc_mgr_listener_event_callback(void* data, Ecore_Fd_Handler *fd
 
 		} /* VCD_MANAGER_METHOD_ALL_RESULT */
 
-		else if (dbus_message_is_signal(msg, if_name, VCD_MANAGER_METHOD_RESULT)) {
+		else if (dbus_message_is_method_call(msg, if_name, VCD_MANAGER_METHOD_RESULT)) {
 			SLOG(LOG_DEBUG, TAG_VCM, "===== Get System Result");
 
 			__vc_mgr_cb_system_result();
@@ -180,7 +187,28 @@ static Eina_Bool vc_mgr_listener_event_callback(void* data, Ecore_Fd_Handler *fd
 
 		} /* VCD_MANAGER_METHOD_RESULT */
 
-		else if (dbus_message_is_signal(msg, if_name, VCD_MANAGER_METHOD_ERROR)) {
+		else if (dbus_message_is_signal(msg, if_name, VCC_MANAGER_METHOD_SET_FOREGROUND)) {
+			SLOG(LOG_DEBUG, TAG_VCM, "===== Set foreground");
+			int pid = 0;
+			int value = 0;
+
+			dbus_message_get_args(msg, &err,
+				DBUS_TYPE_INT32, &pid,
+				DBUS_TYPE_INT32, &value,
+				DBUS_TYPE_INVALID);
+			if (dbus_error_is_set(&err)) {
+				SLOG(LOG_ERROR, TAG_VCM, "[ERROR] Get arguments error (%s)", err.message);
+				dbus_error_free(&err);
+			}
+
+			SLOG(LOG_DEBUG, TAG_VCM, "<<<< foreground changed : pid(%d) value(%s)", pid, value ? "true" : "false");
+			
+			__vc_mgr_cb_set_foreground(pid, (bool)value);
+			SLOG(LOG_DEBUG, TAG_VCM, "=====");
+			SLOG(LOG_DEBUG, TAG_VCM, " ");
+		} /* VCC_MANAGER_METHOD_SET_FOREGROUND */
+
+		else if (dbus_message_is_method_call(msg, if_name, VCD_MANAGER_METHOD_ERROR)) {
 			SLOG(LOG_DEBUG, TAG_VCM, "===== Get Error");
 			int pid;
 			int reason;
@@ -508,12 +536,21 @@ int vc_mgr_dbus_close_connection()
 		g_m_fd_handler = NULL;
 	}
 
-	dbus_bus_release_name(g_m_conn_listener, VC_MANAGER_SERVICE_NAME, &err);
+	int pid = getpid();
+
+	char service_name[64];
+	memset(service_name, '\0', 64);
+	snprintf(service_name, 64, "%s%d", VC_MANAGER_SERVICE_NAME, pid);
+
+	dbus_bus_release_name(g_m_conn_listener, service_name, &err);
 
 	if (dbus_error_is_set(&err)) {
 		SLOG(LOG_ERROR, TAG_VCM, "[ERROR] Dbus Error (%s)", err.message);
 		dbus_error_free(&err);
 	}
+
+	dbus_connection_close(g_m_conn_sender);
+	dbus_connection_close(g_m_conn_listener);
 
 	g_m_conn_sender = NULL;
 	g_m_conn_listener = NULL;
@@ -582,8 +619,7 @@ int vc_mgr_dbus_request_hello()
 	return result;
 }
 
-
-int vc_mgr_dbus_request_initialize(int pid, int* service_state)
+int vc_mgr_dbus_request_initialize(int pid, int* service_state, int* foreground)
 {
 	DBusMessage* msg;
 
@@ -619,9 +655,12 @@ int vc_mgr_dbus_request_initialize(int pid, int* service_state)
 	}
 
 	if (NULL != result_msg) {
+		int tmp_service_state = 0;
+		int tmp_foreground = 0;
 		dbus_message_get_args(result_msg, &err,
 			DBUS_TYPE_INT32, &result,
-			DBUS_TYPE_INT32, service_state,
+			DBUS_TYPE_INT32, &tmp_service_state,
+			DBUS_TYPE_INT32, &tmp_foreground,
 			DBUS_TYPE_INVALID);
 
 		if (dbus_error_is_set(&err)) {
@@ -633,7 +672,10 @@ int vc_mgr_dbus_request_initialize(int pid, int* service_state)
 		dbus_message_unref(result_msg);
 
 		if (0 == result) {
-			SLOG(LOG_DEBUG, TAG_VCM, "<<<< vc mgr initialize : result = %d, service state = %d", result, *service_state);
+			*service_state = tmp_service_state;
+			*foreground = tmp_foreground;
+			SLOG(LOG_DEBUG, TAG_VCM, "<<<< vc mgr initialize : result = %d, service state = %d, foreground = %d", 
+				result, *service_state, *foreground);
 		} else {
 			SLOG(LOG_ERROR, TAG_VCM, "<<<< vc mgr initialize : result = %d", result);
 		}
@@ -1285,14 +1327,13 @@ static DBusMessage* __get_message(int pid, const char* method, int type)
 	memset(target_if_name, '\0', 128);
 
 	if (VC_COMMAND_TYPE_FOREGROUND == type || VC_COMMAND_TYPE_BACKGROUND == type) {
-		snprintf(service_name, 64, "%s", VC_CLIENT_SERVICE_NAME);
+		snprintf(service_name, 64, "%s%d", VC_CLIENT_SERVICE_NAME, pid);
 		snprintf(object_path, 64, "%s", VC_CLIENT_SERVICE_OBJECT_PATH);
-		snprintf(target_if_name, 128, "%s", VC_CLIENT_SERVICE_NAME);
-
+		snprintf(target_if_name, 128, "%s%d", VC_CLIENT_SERVICE_NAME, pid);
 	} else if (VC_COMMAND_TYPE_WIDGET == type) {
-		snprintf(service_name, 64, "%s", VC_WIDGET_SERVICE_NAME);
+		snprintf(service_name, 64, "%s%d", VC_WIDGET_SERVICE_NAME, pid);
 		snprintf(object_path, 64, "%s", VC_WIDGET_SERVICE_OBJECT_PATH);
-		snprintf(target_if_name, 128, "%s", VC_WIDGET_SERVICE_INTERFACE);
+		snprintf(target_if_name, 128, "%s%d", VC_WIDGET_SERVICE_INTERFACE, pid);
 	} else {
 		return NULL;
 	}

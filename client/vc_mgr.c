@@ -82,32 +82,6 @@ static void __vc_mgr_lang_changed_cb(const char* before_lang, const char* curren
 	return;
 }
 
-static void __vc_mgr_foreground_changed_cb(int previous, int current)
-{
-	SLOG(LOG_DEBUG, TAG_VCM, "Foreground changed : Before(%d) Current(%d)", previous, current);
-
-	/* get authorized valid app */
-	int pid;
-	if (0 != vc_mgr_client_get_valid_authorized_client(g_vc_m, &pid)) {
-		SLOG(LOG_ERROR, TAG_VCM, "[ERROR] Fail to get authorized valid app");
-		return;
-	}
-
-	/* compare & set valid */
-	if (current != pid) {
-		SLOG(LOG_DEBUG, TAG_VCM, "Authority(%d) changed to invalid", pid);
-
-		/* set authorized valid */
-		if (true == vc_mgr_client_is_authorized_client(g_vc_m, current)) {
-			SLOG(LOG_DEBUG, TAG_VCM, "Authority(%d) change to valid", current);
-			vc_mgr_client_set_valid_authorized_client(g_vc_m, current);
-		} else {
-			SLOG(LOG_DEBUG, TAG_VCM, "No valid Authority");
-			vc_mgr_client_set_valid_authorized_client(g_vc_m, -1);
-		}
-	}
-}
-
 int vc_mgr_initialize()
 {
 	SLOG(LOG_DEBUG, TAG_VCM, "===== [Manager] Initialize");
@@ -142,8 +116,6 @@ int vc_mgr_initialize()
 		vc_mgr_client_destroy(g_vc_m);
 		return VC_ERROR_OPERATION_FAILED;
 	}
-
-	ret = vc_config_mgr_set_foreground_cb(g_vc_m->handle + VC_MANAGER_CONFIG_HANDLE, __vc_mgr_foreground_changed_cb);
 
 	SLOG(LOG_DEBUG, TAG_VCM, "[Success] pid(%d)", g_vc_m->handle);
 
@@ -229,7 +201,8 @@ static Eina_Bool __vc_mgr_connect_daemon(void *data)
 	/* request initialization */
 	int ret = -1;
 	int service_state = 0;
-	ret = vc_mgr_dbus_request_initialize(g_vc_m->handle, &service_state);
+	int foreground = VC_RUNTIME_INFO_NO_FOREGROUND;
+	ret = vc_mgr_dbus_request_initialize(g_vc_m->handle, &service_state, &foreground);
 
 	if (VC_ERROR_ENGINE_NOT_FOUND == ret) {
 		SLOG(LOG_ERROR, TAG_VCM, "[ERROR] Fail to initialize : %s", __vc_mgr_get_error_code(ret));
@@ -250,6 +223,9 @@ static Eina_Bool __vc_mgr_connect_daemon(void *data)
 
 	/* Set service state */
 	vc_mgr_client_set_service_state(g_vc_m, (vc_service_state_e)service_state);
+
+	/* Set foreground */
+	vc_mgr_client_set_foreground(g_vc_m, foreground, true);
 
 	SLOG(LOG_DEBUG, TAG_VCM, "[SUCCESS] Connected daemon");
 
@@ -906,7 +882,7 @@ int vc_mgr_get_current_commands(vc_cmd_list_h* vc_cmd_list)
 	int ret = -1;
 
 	/* Get foreground pid */
-	if (0 != vc_config_mgr_get_foreground(&fg_pid)) {
+	if (0 != vc_mgr_client_get_foreground(g_vc_m, &fg_pid)) {
 		/* There is no foreground app for voice control */
 		SLOG(LOG_WARN, TAG_VCM, "[Manager WARNING] No foreground pid for voice control");
 	} else {
@@ -1102,7 +1078,7 @@ int vc_mgr_get_recognition_mode(vc_recognition_mode_e* mode)
 	return 0;
 }
 
-int vc_mgr_start(bool stop_by_silence, bool exclusive_command_option)
+int vc_mgr_start(bool exclusive_command_option)
 {
 	SLOG(LOG_DEBUG, TAG_VCM, "===== [Manager] Request start");
 
@@ -1141,12 +1117,10 @@ int vc_mgr_start(bool stop_by_silence, bool exclusive_command_option)
 
 	int ret;
 	int count = 0;
-	vc_recognition_mode_e recognition_mode;
-
-	if (0 == stop_by_silence)
-		recognition_mode = VC_RECOGNITION_MODE_MANUAL;
-	else
-		vc_mgr_get_recognition_mode(&recognition_mode);
+	vc_recognition_mode_e recognition_mode = VC_RECOGNITION_MODE_STOP_BY_SILENCE;
+	if (0 != vc_mgr_get_recognition_mode(&recognition_mode)) {
+		SLOG(LOG_ERROR, TAG_VCM, "[ERROR] Fail to get recognition mode");
+	}
 
 	/* Request */
 	ret = -1;
@@ -1325,6 +1299,41 @@ int vc_mgr_get_recording_volume(float* volume)
 	}
 
 	*volume = g_volume_db;
+
+	return 0;
+}
+
+int __vc_mgr_cb_set_foreground(int pid, bool value)
+{
+	vc_mgr_client_set_foreground(g_vc_m, pid, value);
+
+	/* get authorized valid app */
+	int tmp_pid;
+	if (0 != vc_mgr_client_get_valid_authorized_client(g_vc_m, &tmp_pid)) {
+		SLOG(LOG_ERROR, TAG_VCM, "[ERROR] Fail to get authorized valid app");
+		return VC_ERROR_INVALID_PARAMETER;
+	}
+
+	if (true == value) {
+		/* compare & set valid */
+		if (tmp_pid != pid) {
+			SLOG(LOG_DEBUG, TAG_VCM, "Authority(%d) changed to invalid", tmp_pid);
+
+			/* set authorized valid */
+			if (true == vc_mgr_client_is_authorized_client(g_vc_m, pid)) {
+				SLOG(LOG_DEBUG, TAG_VCM, "Authority(%d) change to valid", pid);
+				vc_mgr_client_set_valid_authorized_client(g_vc_m, pid);
+			} else {
+				SLOG(LOG_DEBUG, TAG_VCM, "No valid Authority");
+				vc_mgr_client_set_valid_authorized_client(g_vc_m, -1);
+			}
+		}
+	} else {
+		if (tmp_pid == pid) {
+			SLOG(LOG_DEBUG, TAG_VCM, "Authority(%d) changed to invalid", tmp_pid);
+			vc_mgr_client_set_valid_authorized_client(g_vc_m, -1);
+		}
+	}
 
 	return 0;
 }
@@ -2017,7 +2026,7 @@ int __vc_mgr_request_auth_enable(int pid)
 
 	/* foreground check */
 	int fore_pid = 0;
-	if (0 != vc_config_mgr_get_foreground(&fore_pid)) {
+	if (0 != vc_mgr_client_get_foreground(g_vc_m, &fore_pid)) {
 		SLOG(LOG_ERROR, TAG_VCM, "[ERROR] Fail to get foreground");
 		return VC_ERROR_OPERATION_FAILED;
 	}
@@ -2063,7 +2072,7 @@ static Eina_Bool __request_auth_start(void* data)
 		SLOG(LOG_ERROR, TAG_VCM, "[ERROR] Fail to set start by client");
 	}
 
-	if (0 != vc_mgr_start(true, false)) {
+	if (0 != vc_mgr_start(false)) {
 		SLOG(LOG_ERROR, TAG_VCM, "[ERROR] Request start is failed");
 		/* TODO - Error handling? */
 	}

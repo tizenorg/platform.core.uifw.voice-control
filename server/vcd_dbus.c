@@ -26,6 +26,10 @@ static DBusConnection* g_conn_listener = NULL;
 
 static Ecore_Fd_Handler* g_dbus_fd_handler = NULL;
 
+static int g_waiting_time = 3000;
+
+static int g_volume_count = 0;
+
 
 static DBusMessage* __get_message(int pid, const char* method, vcd_client_type_e type)
 {
@@ -34,15 +38,13 @@ static DBusMessage* __get_message(int pid, const char* method, vcd_client_type_e
 	char target_if_name[128] = {0,};
 
 	if (VCD_CLIENT_TYPE_NORMAL == type) {
-		snprintf(service_name, 64, "%s", VC_CLIENT_SERVICE_NAME);
+		snprintf(service_name, 64, "%s%d", VC_CLIENT_SERVICE_NAME, pid);
 		snprintf(object_path, 64, "%s", VC_CLIENT_SERVICE_OBJECT_PATH);
 		snprintf(target_if_name, 128, "%s", VC_CLIENT_SERVICE_INTERFACE);
-
 	} else if (VCD_CLIENT_TYPE_WIDGET == type) {
-		snprintf(service_name, 64, "%s", VC_WIDGET_SERVICE_NAME);
+		snprintf(service_name, 64, "%s%d", VC_WIDGET_SERVICE_NAME, pid);
 		snprintf(object_path, 64, "%s", VC_WIDGET_SERVICE_OBJECT_PATH);
 		snprintf(target_if_name, 128, "%s", VC_WIDGET_SERVICE_INTERFACE);
-
 	} else if (VCD_CLIENT_TYPE_MANAGER == type) {
 		snprintf(service_name, 64, "%s", VC_MANAGER_SERVICE_NAME);
 		snprintf(object_path, 64, "%s", VC_MANAGER_SERVICE_OBJECT_PATH);
@@ -51,12 +53,11 @@ static DBusMessage* __get_message(int pid, const char* method, vcd_client_type_e
 		return NULL;
 	}
 
-	return dbus_message_new_signal(object_path, target_if_name, method);
+	return dbus_message_new_method_call(service_name, object_path, target_if_name, method);
 }
 
 int vcdc_send_hello(int pid, vcd_client_type_e type)
 {
-#if 0
 	DBusMessage* msg = NULL;
 
 	if (VCD_CLIENT_TYPE_NORMAL == type) {
@@ -64,7 +65,7 @@ int vcdc_send_hello(int pid, vcd_client_type_e type)
 	} else if (VCD_CLIENT_TYPE_WIDGET == type) {
 		msg = __get_message(pid, VCD_WIDGET_METHOD_HELLO, VCD_CLIENT_TYPE_WIDGET);
 	} else if (VCD_CLIENT_TYPE_MANAGER == type) {
-		msg = __get_message(pid, VCD_WIDGET_METHOD_HELLO, VCD_CLIENT_TYPE_MANAGER);
+		msg = __get_message(pid, VCD_MANAGER_METHOD_HELLO, VCD_CLIENT_TYPE_MANAGER);
 	} else {
 		SLOG(LOG_ERROR, TAG_VCD, "[Dbus ERROR] Client type is NOT valid");
 		return -1;
@@ -88,6 +89,13 @@ int vcdc_send_hello(int pid, vcd_client_type_e type)
 
 	if (dbus_error_is_set(&err)) {
 		SLOG(LOG_ERROR, TAG_VCD, "[Dbus ERROR] %s", err.message);
+		if (NULL != err.name) {
+			if (!strcmp(err.name, DBUS_ERROR_SERVICE_UNKNOWN)) {
+				SLOG(LOG_ERROR, TAG_VCD, "[ERROR] Unknown service. Client is not available");
+				dbus_error_free(&err);
+				return 0;
+			}
+		}
 		dbus_error_free(&err);
 	}
 
@@ -103,12 +111,9 @@ int vcdc_send_hello(int pid, vcd_client_type_e type)
 		dbus_message_unref(result_msg);
 	} else {
 		SLOG(LOG_DEBUG, TAG_VCD, "[Dbus] Result message is NULL. Client is not available");
-		result = 0;
 	}
 
 	return result;
-#endif
-	return 1;
 }
 
 int vcdc_send_show_tooltip(int pid, bool show)
@@ -118,14 +123,22 @@ int vcdc_send_show_tooltip(int pid, bool show)
 		return -1;
 	}
 
+	char service_name[64] = {0, };
+	memset(service_name, 0, 64);
+	snprintf(service_name, 64, "%s%d", VC_WIDGET_SERVICE_NAME, pid);
+
+	char target_if_name[128] = {0, };
+	snprintf(target_if_name, sizeof(target_if_name), "%s", VC_WIDGET_SERVICE_INTERFACE);
+
 	DBusMessage* msg;
 
 	SLOG(LOG_DEBUG, TAG_VCD, "[Dbus] send widget show tooltip signal : pid(%d) show(%d)", pid, show);
 
-	msg = dbus_message_new_signal(
-			VC_WIDGET_SERVICE_OBJECT_PATH,
-			VC_WIDGET_SERVICE_INTERFACE,
-			VCD_WIDGET_METHOD_SHOW_TOOLTIP);
+	msg = dbus_message_new_method_call(
+			  service_name,
+			  VC_WIDGET_SERVICE_OBJECT_PATH,
+			  target_if_name,
+			  VCD_WIDGET_METHOD_SHOW_TOOLTIP);
 
 	if (NULL == msg) {
 		SLOG(LOG_ERROR, TAG_VCD, "[Dbus ERROR] Fail to create message");
@@ -140,6 +153,8 @@ int vcdc_send_show_tooltip(int pid, bool show)
 	/* Append pid & type */
 	dbus_message_iter_append_basic(&args, DBUS_TYPE_INT32, &pid);
 	dbus_message_iter_append_basic(&args, DBUS_TYPE_INT32, &(temp));
+
+	dbus_message_set_no_reply(msg, TRUE);
 
 	if (1 != dbus_connection_send(g_conn_sender, msg, NULL)) {
 		SLOG(LOG_ERROR, TAG_VCD, "[Dbus ERROR] Fail to Send");
@@ -177,8 +192,14 @@ int vcdc_send_set_volume(int manger_pid, float volume)
 		dbus_message_unref(msg);
 		return -1;
 	} else {
-		SLOG(LOG_DEBUG, TAG_VCD, "<<<< Send set volume : pid(%d), volume(%f)", manger_pid, volume);
+		if (10 == g_volume_count) {
+			SLOG(LOG_DEBUG, TAG_VCD, "<<<< Send set volume : pid(%d), volume(%f)", manger_pid, volume);
+			g_volume_count = 0;
+		}
+		
 		dbus_connection_flush(g_conn_sender);
+
+		g_volume_count++;
 	}
 
 	dbus_message_unref(msg);
@@ -217,7 +238,7 @@ int vcdc_send_result(int pid, int cmd_type)
 		return VCD_ERROR_OUT_OF_MEMORY;
 	}
 
-	dbus_message_append_args(msg, DBUS_TYPE_INT32, &pid, DBUS_TYPE_INVALID);
+	dbus_message_set_no_reply(msg, TRUE);
 
 	if (1 != dbus_connection_send(g_conn_sender, msg, NULL)) {
 		SLOG(LOG_ERROR, TAG_VCD, "[Dbus ERROR] Fail to Send");
@@ -250,6 +271,8 @@ int vcdc_send_result_to_manager(int manger_pid, int result_type)
 
 	dbus_message_append_args(msg, DBUS_TYPE_INT32, &result_type, DBUS_TYPE_INVALID);
 
+	dbus_message_set_no_reply(msg, TRUE);
+
 	if (1 != dbus_connection_send(g_conn_sender, msg, NULL)) {
 		SLOG(LOG_ERROR, TAG_VCD, "[Dbus ERROR] Fail to Send");
 		return VCD_ERROR_OPERATION_FAILED;
@@ -277,6 +300,8 @@ int vcdc_send_speech_detected(int manger_pid)
 		SLOG(LOG_ERROR, TAG_VCD, "[Dbus ERROR] Message is NULL");
 		return VCD_ERROR_OUT_OF_MEMORY;
 	}
+
+	dbus_message_set_no_reply(msg, TRUE);
 
 	if (1 != dbus_connection_send(g_conn_sender, msg, NULL)) {
 		SLOG(LOG_ERROR, TAG_VCD, "[Dbus ERROR] Fail to Send");
@@ -380,13 +405,17 @@ int vcdc_send_error_signal(int pid, int reason, char *err_msg)
 		return VCD_ERROR_INVALID_PARAMETER;
 	}
 
+	char service_name[64] = {0, };
+	snprintf(service_name, 64, "%s%d", VC_CLIENT_SERVICE_NAME, pid);
+
 	DBusMessage* msg;
 	SLOG(LOG_DEBUG, TAG_VCD, "[Dbus] send error signal : reason(%d), Error Msg(%s)", reason, err_msg);
 
-	msg = dbus_message_new_signal(
-			VC_CLIENT_SERVICE_OBJECT_PATH,
-			VC_CLIENT_SERVICE_INTERFACE,
-			VCD_METHOD_ERROR);
+	msg = dbus_message_new_method_call(
+		service_name,
+		VC_CLIENT_SERVICE_OBJECT_PATH,
+		VC_CLIENT_SERVICE_INTERFACE,
+		VCD_METHOD_ERROR);
 
 	if (NULL == msg) {
 		SLOG(LOG_ERROR, TAG_VCD, "[Dbus ERROR] Fail to create message");
@@ -398,6 +427,8 @@ int vcdc_send_error_signal(int pid, int reason, char *err_msg)
 		DBUS_TYPE_INT32, &reason,
 		DBUS_TYPE_STRING, &err_msg,
 		DBUS_TYPE_INVALID);
+
+	dbus_message_set_no_reply(msg, TRUE);
 
 	if (1 != dbus_connection_send(g_conn_sender, msg, NULL)) {
 		SLOG(LOG_ERROR, TAG_VCD, "[Dbus ERROR] Fail to Send");
@@ -418,105 +449,113 @@ static Eina_Bool listener_event_callback(void* data, Ecore_Fd_Handler *fd_handle
 
 	dbus_connection_read_write_dispatch(g_conn_listener, 50);
 
-	DBusMessage* msg = NULL;
-	msg = dbus_connection_pop_message(g_conn_listener);
+	while (1) {
+		DBusMessage* msg = NULL;
+		msg = dbus_connection_pop_message(g_conn_listener);
 
-	/* loop again if we haven't read a message */
-	if (NULL == msg) {
-		return ECORE_CALLBACK_RENEW;
+		/* loop again if we haven't read a message */
+		if (NULL == msg) {
+			break;
+		}
+
+		/* Common event */
+		if (dbus_message_is_method_call(msg, VC_SERVER_SERVICE_INTERFACE, VC_METHOD_HELLO))
+			vcd_dbus_server_hello(g_conn_listener, msg);
+
+		/* manager event */
+		else if (dbus_message_is_method_call(msg, VC_SERVER_SERVICE_INTERFACE, VC_MANAGER_METHOD_INITIALIZE))
+			vcd_dbus_server_mgr_initialize(g_conn_listener, msg);
+
+		else if (dbus_message_is_method_call(msg, VC_SERVER_SERVICE_INTERFACE, VC_MANAGER_METHOD_FINALIZE))
+			vcd_dbus_server_mgr_finalize(g_conn_listener, msg);
+
+		else if (dbus_message_is_method_call(msg, VC_SERVER_SERVICE_INTERFACE, VC_MANAGER_METHOD_SET_COMMAND))
+			vcd_dbus_server_mgr_set_command(g_conn_listener, msg);
+
+		else if (dbus_message_is_method_call(msg, VC_SERVER_SERVICE_INTERFACE, VC_MANAGER_METHOD_UNSET_COMMAND))
+			vcd_dbus_server_mgr_unset_command(g_conn_listener, msg);
+
+		else if (dbus_message_is_method_call(msg, VC_SERVER_SERVICE_INTERFACE, VC_MANAGER_METHOD_SET_DEMANDABLE))
+			vcd_dbus_server_mgr_set_demandable_client(g_conn_listener, msg);
+
+		else if (dbus_message_is_method_call(msg, VC_SERVER_SERVICE_INTERFACE, VC_MANAGER_METHOD_SET_AUDIO_TYPE))
+			vcd_dbus_server_mgr_set_audio_type(g_conn_listener, msg);
+
+		else if (dbus_message_is_method_call(msg, VC_SERVER_SERVICE_INTERFACE, VC_MANAGER_METHOD_GET_AUDIO_TYPE))
+			vcd_dbus_server_mgr_get_audio_type(g_conn_listener, msg);
+
+		else if (dbus_message_is_method_call(msg, VC_SERVER_SERVICE_INTERFACE, VC_MANAGER_METHOD_SET_CLIENT_INFO))
+			vcd_dbus_server_mgr_set_client_info(g_conn_listener, msg);
+
+		else if (dbus_message_is_method_call(msg, VC_SERVER_SERVICE_INTERFACE, VC_MANAGER_METHOD_START))
+			vcd_dbus_server_mgr_start(g_conn_listener, msg);
+
+		else if (dbus_message_is_method_call(msg, VC_SERVER_SERVICE_INTERFACE, VC_MANAGER_METHOD_STOP))
+			vcd_dbus_server_mgr_stop(g_conn_listener, msg);
+
+		else if (dbus_message_is_method_call(msg, VC_SERVER_SERVICE_INTERFACE, VC_MANAGER_METHOD_CANCEL))
+			vcd_dbus_server_mgr_cancel(g_conn_listener, msg);
+
+		else if (dbus_message_is_method_call(msg, VC_SERVER_SERVICE_INTERFACE, VC_MANAGER_METHOD_RESULT_SELECTION))
+			vcd_dbus_server_mgr_result_selection(g_conn_listener, msg);
+
+
+		/* client event */
+		else if (dbus_message_is_method_call(msg, VC_SERVER_SERVICE_INTERFACE, VC_METHOD_INITIALIZE))
+			vcd_dbus_server_initialize(g_conn_listener, msg);
+
+		else if (dbus_message_is_method_call(msg, VC_SERVER_SERVICE_INTERFACE, VC_METHOD_FINALIZE))
+			vcd_dbus_server_finalize(g_conn_listener, msg);
+#if 0
+		else if (dbus_message_is_method_call(msg, VC_SERVER_SERVICE_INTERFACE, VC_METHOD_SET_EXCLUSIVE_CMD))
+			vcd_dbus_server_set_exclusive_command(g_conn_listener, msg);
+#endif
+		else if (dbus_message_is_method_call(msg, VC_SERVER_SERVICE_INTERFACE, VC_METHOD_SET_COMMAND))
+			vcd_dbus_server_set_command(g_conn_listener, msg);
+
+		else if (dbus_message_is_method_call(msg, VC_SERVER_SERVICE_INTERFACE, VC_METHOD_UNSET_COMMAND))
+			vcd_dbus_server_unset_command(g_conn_listener, msg);
+
+		else if (dbus_message_is_method_call(msg, VC_SERVER_SERVICE_INTERFACE, VC_METHOD_SET_FOREGROUND))
+			vcd_dbus_server_set_foreground(g_conn_listener, msg);
+#if 0
+		else if (dbus_message_is_method_call(msg, VC_SERVER_SERVICE_INTERFACE, VC_METHOD_REQUEST_START))
+			vcd_dbus_server_start_request(g_conn_listener, msg);
+
+		else if (dbus_message_is_method_call(msg, VC_SERVER_SERVICE_INTERFACE, VC_METHOD_REQUEST_STOP))
+			vcd_dbus_server_stop_request(g_conn_listener, msg);
+
+		else if (dbus_message_is_method_call(msg, VC_SERVER_SERVICE_INTERFACE, VC_METHOD_REQUEST_CANCEL))
+			vcd_dbus_server_cancel_request(g_conn_listener, msg);
+#endif
+		/* widget event */
+		else if (dbus_message_is_method_call(msg, VC_SERVER_SERVICE_INTERFACE, VC_WIDGET_METHOD_INITIALIZE))
+			vcd_dbus_server_widget_initialize(g_conn_listener, msg);
+
+		else if (dbus_message_is_method_call(msg, VC_SERVER_SERVICE_INTERFACE, VC_WIDGET_METHOD_FINALIZE))
+			vcd_dbus_server_widget_finalize(g_conn_listener, msg);
+
+		else if (dbus_message_is_method_call(msg, VC_SERVER_SERVICE_INTERFACE, VC_WIDGET_METHOD_START_RECORDING))
+			vcd_dbus_server_widget_start_recording(g_conn_listener, msg);
+
+		else if (dbus_message_is_method_call(msg, VC_SERVER_SERVICE_INTERFACE, VC_WIDGET_METHOD_START))
+			vcd_dbus_server_widget_start(g_conn_listener, msg);
+
+		else if (dbus_message_is_method_call(msg, VC_SERVER_SERVICE_INTERFACE, VC_WIDGET_METHOD_STOP))
+			vcd_dbus_server_widget_stop(g_conn_listener, msg);
+
+		else if (dbus_message_is_method_call(msg, VC_SERVER_SERVICE_INTERFACE, VC_WIDGET_METHOD_CANCEL))
+			vcd_dbus_server_widget_cancel(g_conn_listener, msg);
+
+		else {
+			SLOG(LOG_DEBUG, TAG_VCD, "Message is NOT valid");
+			dbus_message_unref(msg);
+			break;
+		}
+
+		/* free the message */
+		dbus_message_unref(msg);
 	}
-
-	/* Common event */
-	if (dbus_message_is_method_call(msg, VC_SERVER_SERVICE_INTERFACE, VC_METHOD_HELLO))
-		vcd_dbus_server_hello(g_conn_listener, msg);
-
-	/* manager event */
-	else if (dbus_message_is_method_call(msg, VC_SERVER_SERVICE_INTERFACE, VC_MANAGER_METHOD_INITIALIZE))
-		vcd_dbus_server_mgr_initialize(g_conn_listener, msg);
-
-	else if (dbus_message_is_method_call(msg, VC_SERVER_SERVICE_INTERFACE, VC_MANAGER_METHOD_FINALIZE))
-		vcd_dbus_server_mgr_finalize(g_conn_listener, msg);
-
-	else if (dbus_message_is_method_call(msg, VC_SERVER_SERVICE_INTERFACE, VC_MANAGER_METHOD_SET_COMMAND))
-		vcd_dbus_server_mgr_set_command(g_conn_listener, msg);
-
-	else if (dbus_message_is_method_call(msg, VC_SERVER_SERVICE_INTERFACE, VC_MANAGER_METHOD_UNSET_COMMAND))
-		vcd_dbus_server_mgr_unset_command(g_conn_listener, msg);
-
-	else if (dbus_message_is_method_call(msg, VC_SERVER_SERVICE_INTERFACE, VC_MANAGER_METHOD_SET_DEMANDABLE))
-		vcd_dbus_server_mgr_set_demandable_client(g_conn_listener, msg);
-
-	else if (dbus_message_is_method_call(msg, VC_SERVER_SERVICE_INTERFACE, VC_MANAGER_METHOD_SET_AUDIO_TYPE))
-		vcd_dbus_server_mgr_set_audio_type(g_conn_listener, msg);
-
-	else if (dbus_message_is_method_call(msg, VC_SERVER_SERVICE_INTERFACE, VC_MANAGER_METHOD_GET_AUDIO_TYPE))
-		vcd_dbus_server_mgr_get_audio_type(g_conn_listener, msg);
-
-	else if (dbus_message_is_method_call(msg, VC_SERVER_SERVICE_INTERFACE, VC_MANAGER_METHOD_SET_CLIENT_INFO))
-		vcd_dbus_server_mgr_set_client_info(g_conn_listener, msg);
-
-	else if (dbus_message_is_method_call(msg, VC_SERVER_SERVICE_INTERFACE, VC_MANAGER_METHOD_START))
-		vcd_dbus_server_mgr_start(g_conn_listener, msg);
-
-	else if (dbus_message_is_method_call(msg, VC_SERVER_SERVICE_INTERFACE, VC_MANAGER_METHOD_STOP))
-		vcd_dbus_server_mgr_stop(g_conn_listener, msg);
-
-	else if (dbus_message_is_method_call(msg, VC_SERVER_SERVICE_INTERFACE, VC_MANAGER_METHOD_CANCEL))
-		vcd_dbus_server_mgr_cancel(g_conn_listener, msg);
-
-	else if (dbus_message_is_method_call(msg, VC_SERVER_SERVICE_INTERFACE, VC_MANAGER_METHOD_RESULT_SELECTION))
-		vcd_dbus_server_mgr_result_selection(g_conn_listener, msg);
-
-
-	/* client event */
-	else if (dbus_message_is_method_call(msg, VC_SERVER_SERVICE_INTERFACE, VC_METHOD_INITIALIZE))
-		vcd_dbus_server_initialize(g_conn_listener, msg);
-
-	else if (dbus_message_is_method_call(msg, VC_SERVER_SERVICE_INTERFACE, VC_METHOD_FINALIZE))
-		vcd_dbus_server_finalize(g_conn_listener, msg);
-#if 0
-	else if (dbus_message_is_method_call(msg, VC_SERVER_SERVICE_INTERFACE, VC_METHOD_SET_EXCLUSIVE_CMD))
-		vcd_dbus_server_set_exclusive_command(g_conn_listener, msg);
-#endif
-	else if (dbus_message_is_method_call(msg, VC_SERVER_SERVICE_INTERFACE, VC_METHOD_SET_COMMAND))
-		vcd_dbus_server_set_command(g_conn_listener, msg);
-
-	else if (dbus_message_is_method_call(msg, VC_SERVER_SERVICE_INTERFACE, VC_METHOD_UNSET_COMMAND))
-		vcd_dbus_server_unset_command(g_conn_listener, msg);
-#if 0
-	else if (dbus_message_is_method_call(msg, VC_SERVER_SERVICE_INTERFACE, VC_METHOD_REQUEST_START))
-		vcd_dbus_server_start_request(g_conn_listener, msg);
-
-	else if (dbus_message_is_method_call(msg, VC_SERVER_SERVICE_INTERFACE, VC_METHOD_REQUEST_STOP))
-		vcd_dbus_server_stop_request(g_conn_listener, msg);
-
-	else if (dbus_message_is_method_call(msg, VC_SERVER_SERVICE_INTERFACE, VC_METHOD_REQUEST_CANCEL))
-		vcd_dbus_server_cancel_request(g_conn_listener, msg);
-#endif
-	/* widget event */
-	else if (dbus_message_is_method_call(msg, VC_SERVER_SERVICE_INTERFACE, VC_WIDGET_METHOD_INITIALIZE))
-		vcd_dbus_server_widget_initialize(g_conn_listener, msg);
-
-	else if (dbus_message_is_method_call(msg, VC_SERVER_SERVICE_INTERFACE, VC_WIDGET_METHOD_FINALIZE))
-		vcd_dbus_server_widget_finalize(g_conn_listener, msg);
-
-	else if (dbus_message_is_method_call(msg, VC_SERVER_SERVICE_INTERFACE, VC_WIDGET_METHOD_START_RECORDING))
-		vcd_dbus_server_widget_start_recording(g_conn_listener, msg);
-
-	else if (dbus_message_is_method_call(msg, VC_SERVER_SERVICE_INTERFACE, VC_WIDGET_METHOD_START))
-		vcd_dbus_server_widget_start(g_conn_listener, msg);
-
-	else if (dbus_message_is_method_call(msg, VC_SERVER_SERVICE_INTERFACE, VC_WIDGET_METHOD_STOP))
-		vcd_dbus_server_widget_stop(g_conn_listener, msg);
-
-	else if (dbus_message_is_method_call(msg, VC_SERVER_SERVICE_INTERFACE, VC_WIDGET_METHOD_CANCEL))
-		vcd_dbus_server_widget_cancel(g_conn_listener, msg);
-
-	else
-		return ECORE_CALLBACK_RENEW;
-
-	/* free the message */
-	dbus_message_unref(msg);
 
 	return ECORE_CALLBACK_RENEW;
 }
@@ -612,6 +651,9 @@ int vcd_dbus_close_connection()
 		SLOG(LOG_ERROR, TAG_VCD, "[Dbus ERROR] dbus_bus_release_name() : %s", err.message);
 		dbus_error_free(&err);
 	}
+
+	dbus_connection_close(g_conn_listener);
+	dbus_connection_close(g_conn_sender);
 
 	g_conn_listener = NULL;
 	g_conn_sender = NULL;

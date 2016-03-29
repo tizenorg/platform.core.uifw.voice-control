@@ -84,6 +84,10 @@ int vc_client_set_xid(vc_h vc, int xid);
 
 int vc_client_get_xid(vc_h vc, int* xid);
 
+int vc_client_set_is_foreground(vc_h vc, bool value);
+
+int vc_client_get_is_foreground(vc_h vc, bool* value);
+
 #if 0
 int vc_client_set_exclusive_cmd(vc_h vc, bool value);
 

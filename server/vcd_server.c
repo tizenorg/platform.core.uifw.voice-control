@@ -34,6 +34,8 @@
 */
 static bool	g_is_engine;
 
+static GList *g_proc_list = NULL;
+
 /*
 * VC Server Internal Functions
 */
@@ -534,6 +536,15 @@ int vcd_initialize()
 
 void vcd_finalize()
 {
+	GList *iter = NULL;
+	if (0 < g_list_length(g_proc_list)) {
+		iter = g_list_first(g_proc_list);
+		while (NULL != iter) {
+			g_proc_list = g_list_remove_link(g_proc_list, iter);
+			iter = g_list_first(g_proc_list);
+		}
+	}
+
 	vcd_state_e state = vcd_config_get_service_state();
 	if (VCD_STATE_READY != state) {
 		if (VCD_STATE_RECORDING == state) {
@@ -568,18 +579,136 @@ static Eina_Bool __finalize_quit_ecore_loop(void *data)
 	return EINA_FALSE;
 }
 
-Eina_Bool vcd_cleanup_client(void *data)
+static void __read_proc()
 {
-#if 0
+	DIR *dp = NULL;
+	struct dirent entry;
+	struct dirent *dirp = NULL;
+	int ret = -1;
+	int tmp;
+
+	GList *iter = NULL;
+	if (0 < g_list_length(g_proc_list)) {
+		iter = g_list_first(g_proc_list);
+		while (NULL != iter) {
+			g_proc_list = g_list_remove_link(g_proc_list, iter);
+			iter = g_list_first(g_proc_list);
+		}
+	}
+
+	dp = opendir("/proc");
+	if (NULL == dp) {
+		SLOG(LOG_ERROR, TAG_VCD, "[ERROR] Fail to open proc");
+	} else {
+		do {
+			ret = readdir_r(dp, &entry, &dirp);
+			if (0 != ret) {
+				SLOG(LOG_ERROR, TAG_VCD, "[ERROR] Fail to readdir");
+				break;
+			}
+
+			if (NULL != dirp) {
+				tmp = atoi(dirp->d_name);
+				if (0 >= tmp)	continue;
+				g_proc_list = g_list_append(g_proc_list, GINT_TO_POINTER(tmp));
+			}
+		} while (NULL != dirp);
+		closedir(dp);
+	}
+	return;
+}
+
+static void __vcd_cleanup_client(vcd_client_type_e type)
+{
 	int* client_list = NULL;
 	int client_count = 0;
-	int result;
 	int i = 0;
+	int j = 0;
+	bool exist = false;
+	int mgr_pid = -1;
+	int ret = -1;
 
+	if (VCD_CLIENT_TYPE_NORMAL == type) {
+		ret = vcd_client_get_list(&client_list, &client_count);
+	}
+	else if (VCD_CLIENT_TYPE_WIDGET == type) {
+		ret = vcd_client_widget_get_list(&client_list, &client_count);
+	}
+	else if (VCD_CLIENT_TYPE_MANAGER == type) {
+		mgr_pid = vcd_client_manager_get_pid();
+		client_list[0] = mgr_pid;
+		client_count = 1;
+	}
+
+	if (0 == ret || mgr_pid > 0) {
+		SLOG(LOG_DEBUG, TAG_VCD, "===== Clean up %s client ", type ? (type == 1) ? "Widget" : "Manager" : "Normal");
+		if (NULL != client_list && client_count > 0) {
+			for (i = 0; i < client_count; i++) {
+				exist = false;
+				GList *iter = NULL;
+				for (j = 0; j < g_list_length(g_proc_list); j++) {
+					iter = g_list_nth(g_proc_list, j);
+					if (NULL != iter) {
+						if (client_list[i] == GPOINTER_TO_INT(iter->data)) {
+							SLOG(LOG_DEBUG, TAG_VCD, "%s pid(%d) is running", type ? (type == 1) ? "Widget" : "Manager" : "Normal", client_list[i]);
+							exist = true;
+							break;
+						}
+					}
+				}
+
+				if (false == exist) {
+					SLOG(LOG_ERROR, TAG_VCD, "%s pid(%d) should be removed", type ? (type == 1) ? "Widget" : "Manager" : "Normal", client_list[i]);
+					if (VCD_CLIENT_TYPE_NORMAL == type)
+						vcd_server_finalize(client_list[i]);
+					else if (VCD_CLIENT_TYPE_WIDGET == type)
+						vcd_server_widget_finalize(client_list[i]);
+					else
+						vcd_server_mgr_finalize(mgr_pid);
+				}
+			}
+		}
+		SLOG(LOG_DEBUG, TAG_VCD, "=====");
+		SLOG(LOG_DEBUG, TAG_VCD, "  ");
+	}
+	if (NULL != client_list && -1 == mgr_pid) {
+		free(client_list);
+		client_list = NULL;
+	}
+	return;
+}
+
+Eina_Bool vcd_cleanup_client_all(void *data)
+{
+	__read_proc();
+	
+	__vcd_cleanup_client(VCD_CLIENT_TYPE_NORMAL);
+	__vcd_cleanup_client(VCD_CLIENT_TYPE_WIDGET);
+	__vcd_cleanup_client(VCD_CLIENT_TYPE_MANAGER);
+
+#if 0
 	if (0 == vcd_client_get_list(&client_list, &client_count)) {
 		SLOG(LOG_DEBUG, TAG_VCD, "===== Clean up client ");
 		if (NULL != client_list && client_count > 0) {
 			for (i = 0; i < client_count; i++) {
+				exist = false;
+				GList *iter = NULL;
+				for (j = 0; j < g_list_length(g_proc_list); j++) {
+					iter = g_list_nth(g_proc_list, j);
+					if (NULL != iter) {
+						if (client_list[i] == GPOINTER_TO_INT(iter->data)) {
+							SLOG(LOG_DEBUG, TAG_VCD, "pid(%d) is running", client_list[i]);
+							exist = true;
+							break;
+						}
+					}
+				}
+
+				if (false == exist) {
+					SLOG(LOG_ERROR, TAG_VCD, "pid(%d) should be removed", client_list[i]);
+					vcd_server_finalize(client_list[i]);
+				}
+#if 0
 				result = vcdc_send_hello(client_list[i], VCD_CLIENT_TYPE_NORMAL);
 
 				if (0 == result) {
@@ -588,6 +717,7 @@ Eina_Bool vcd_cleanup_client(void *data)
 				} else if (-1 == result) {
 					SLOG(LOG_ERROR, TAG_VCD, "[Server ERROR] Hello result has error");
 				}
+#endif
 			}
 		}
 		SLOG(LOG_DEBUG, TAG_VCD, "=====");
@@ -597,14 +727,30 @@ Eina_Bool vcd_cleanup_client(void *data)
 		free(client_list);
 		client_list = NULL;
 	}
-#endif
 
-#if 0
 	/* If app is in background state, app cannot response message. */
 	if (0 == vcd_client_widget_get_list(&client_list, &client_count)) {
 		SLOG(LOG_DEBUG, TAG_VCD, "===== Clean up widget");
 		if (NULL != client_list && client_count > 0) {
 			for (i = 0; i < client_count; i++) {
+				exist = false;
+				GList *iter = NULL;
+				for (j = 0; j < g_list_length(g_proc_list); j++) {
+					iter = g_list_nth(g_proc_list, j);
+					if (NULL != iter) {
+						if (client_list[i] == GPOINTER_TO_INT(iter->data)) {
+							SLOG(LOG_DEBUG, TAG_VCD, "widget pid(%d) is running", client_list[i]);
+							exist = true;
+							break;
+						}
+					}
+				}
+
+				if (false == exist) {
+					SLOG(LOG_ERROR, TAG_VCD, "widget pid(%d) should be removed", client_list[i]);
+					vcd_server_widget_finalize(client_list[i]);
+				}
+#if 0
 				result = vcdc_send_hello(client_list[i], VCD_CLIENT_TYPE_WIDGET);
 
 				if (0 == result) {
@@ -613,6 +759,7 @@ Eina_Bool vcd_cleanup_client(void *data)
 				} else if (-1 == result) {
 					SLOG(LOG_ERROR, TAG_VCD, "[Server ERROR] Hello result has error");
 				}
+#endif
 			}
 		}
 		SLOG(LOG_DEBUG, TAG_VCD, "=====");
@@ -623,10 +770,29 @@ Eina_Bool vcd_cleanup_client(void *data)
 		free(client_list);
 		client_list = NULL;
 	}
-#endif
 
 	/* manager */
+	exist = false;
+	GList *iter = NULL;
+	int mgr_pid = vcd_client_manager_get_pid();
+	if (0 < mgr_pid) {
+		for (j = 0; j < g_list_length(g_proc_list); j++) {
+			iter = g_list_nth(g_proc_list, j);
+			if (NULL != iter) {
+				if (mgr_pid == GPOINTER_TO_INT(iter->data)) {
+					SLOG(LOG_DEBUG, TAG_VCD, "manager pid(%d) is running", mgr_pid);
+					exist = true;
+					break;
+				}
+			}
+		}
 
+		if (false == exist) {
+			SLOG(LOG_ERROR, TAG_VCD, "manager pid (%d) should be removed", mgr_pid);
+			vcd_server_mgr_finalize(mgr_pid);
+		}
+	}
+#endif
 	return EINA_TRUE;
 }
 
@@ -634,6 +800,14 @@ int vcd_server_get_service_state()
 {
 	return vcd_config_get_service_state();
 }
+
+int vcd_server_get_foreground()
+{
+	int pid;
+	vcd_config_get_foreground(&pid);
+	return pid;
+}
+
 
 /*
 * API for manager
@@ -674,6 +848,9 @@ int vcd_server_mgr_finalize(int pid)
 		SLOG(LOG_ERROR, TAG_VCD, "[Server ERROR] The manager pid(%d) is NOT valid", pid);
 		return VCD_ERROR_INVALID_PARAMETER;
 	}
+
+	/* Cancel recognition */
+	vcd_server_mgr_cancel();
 
 	/* Remove manager information */
 	if (0 != vcd_client_manager_unset()) {
@@ -819,8 +996,13 @@ static int __start_internal_recognition()
 
 	SLOG(LOG_DEBUG, TAG_VCD, "[Server Success] Set command");
 
+	bool stop_by_silence = true;
+	if (VCD_RECOGNITION_MODE_MANUAL == vcd_client_get_recognition_mode()) {
+		stop_by_silence = false;
+	}
+
 	/* 4. start recognition */
-	ret = vcd_engine_recognize_start(true);
+	ret = vcd_engine_recognize_start(stop_by_silence);
 	if (0 != ret) {
 		SLOG(LOG_ERROR, TAG_VCD, "[Server ERROR] Fail to start recognition : result(%d)", ret);
 		return VCD_ERROR_OPERATION_FAILED;
@@ -839,7 +1021,7 @@ static int __start_internal_recognition()
 	vcd_config_set_service_state(VCD_STATE_RECORDING);
 	vcdc_send_service_state(VCD_STATE_RECORDING);
 
-	SLOG(LOG_DEBUG, TAG_VCD, "[Server Success] Start recognition");
+	SLOG(LOG_DEBUG, TAG_VCD, "[Server Success] Start recognition(%d)", stop_by_silence);
 
 	return 0;
 }
@@ -1066,6 +1248,22 @@ int vcd_server_unset_command(int pid, vc_cmd_type_e cmd_type)
 	return 0;
 }
 
+int vcd_server_set_foreground(int pid, bool value)
+{
+	/* check if pid is valid */
+	if (false == vcd_client_is_available(pid) && false == vcd_client_widget_is_available(pid)) {
+		SLOG(LOG_ERROR, TAG_VCD, "[Server ERROR] pid is NOT valid ");
+		return VCD_ERROR_INVALID_PARAMETER;
+	}
+
+	if (0 != vcd_config_set_foreground(pid, value)) {
+		SLOG(LOG_ERROR, TAG_VCD, "[Server ERROR] Fail to set foreground : pid(%d), value(%d)", pid, value);
+		return VCD_ERROR_OPERATION_FAILED;
+	}
+
+	return 0;
+}
+
 #if 0
 int vcd_server_set_exclusive_command(int pid, bool value)
 {
@@ -1257,7 +1455,7 @@ int vcd_server_widget_start_recording(int pid, bool widget_command)
 		SLOG(LOG_DEBUG, TAG_VCD, "[Server] widget command is available");
 	} else {
 		vcd_client_widget_unset_command(pid);
-		SLOG(LOG_DEBUG, TAG_VCD, "[Server] widget command is NOT available");
+		SLOG(LOG_WARN, TAG_VCD, "[Server] widget command is NOT available");
 	}
 
 	int ret = __start_internal_recognition();

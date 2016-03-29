@@ -110,6 +110,9 @@ int vc_mgr_client_set_recognition_mode(vc_h vc, vc_recognition_mode_e mode);
 
 int vc_mgr_client_get_recognition_mode(vc_h vc, vc_recognition_mode_e* mode);
 
+int vc_mgr_client_set_foreground(vc_h vc, int pid, bool value);
+
+int vc_mgr_client_get_foreground(vc_h vc, int* pid);
 
 /* utils */
 int vc_mgr_client_get_count();

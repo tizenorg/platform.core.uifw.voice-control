@@ -71,6 +71,8 @@ int vcd_dbus_server_set_command(DBusConnection* conn, DBusMessage* msg);
 
 int vcd_dbus_server_unset_command(DBusConnection* conn, DBusMessage* msg);
 
+int vcd_dbus_server_set_foreground(DBusConnection* conn, DBusMessage* msg);
+
 #if 0
 int vcd_dbus_server_start_request(DBusConnection* conn, DBusMessage* msg);
 

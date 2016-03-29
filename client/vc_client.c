@@ -60,6 +60,9 @@ typedef struct {
 	void*				auth_state_changed_user_data;
 
 	int	mgr_pid;
+
+	/* is foreground */
+	bool	is_foreground;
 } vc_client_s;
 
 /* client list */
@@ -132,7 +135,7 @@ int vc_client_create(vc_h* vc)
 	client->exclusive_cmd = false;
 #endif
 
-	client->service_state = -1;
+	client->service_state = VC_RUNTIME_INFO_NO_FOREGROUND;
 
 	client->before_state = VC_STATE_INITIALIZED;
 	client->current_state = VC_STATE_INITIALIZED;
@@ -144,6 +147,8 @@ int vc_client_create(vc_h* vc)
 	client->auth_current_state = VC_AUTH_STATE_NONE;
 	client->auth_state_changed_cb = NULL;
 	client->auth_state_changed_user_data = NULL;
+
+	client->is_foreground = false;
 
 	g_client_list = g_slist_append(g_client_list, client);
 
@@ -494,6 +499,31 @@ int vc_client_get_xid(vc_h vc, int* xid)
 		return VC_ERROR_INVALID_PARAMETER;
 
 	*xid = client->xid;
+
+	return 0;
+}
+
+int vc_client_set_is_foreground(vc_h vc, bool value)
+{
+	vc_client_s* client = __client_get(vc);
+
+	/* check handle */
+	if (NULL == client)
+		return VC_ERROR_INVALID_PARAMETER;
+
+	client->is_foreground = value;
+	return 0;
+}
+
+int vc_client_get_is_foreground(vc_h vc, bool* value)
+{
+	vc_client_s* client = __client_get(vc);
+
+	/* check handle */
+	if (NULL == client)
+		return VC_ERROR_INVALID_PARAMETER;
+
+	*value = client->is_foreground;
 
 	return 0;
 }
