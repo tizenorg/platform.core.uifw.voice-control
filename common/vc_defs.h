@@ -138,21 +138,21 @@ extern "C" {
 * Defines for configuration
 *******************************************************************************************/
 
-#define VC_DAEMON_PATH			"/usr/bin/vc-daemon"
+#define VC_DAEMON_PATH			tzplatform_mkpath(TZ_SYS_BIN, "vc-daemon")
 
-#define VC_CONFIG_DEFAULT		"/usr/share/voice/vc/vc-config.xml"
+#define VC_CONFIG_DEFAULT		tzplatform_mkpath(TZ_SYS_RO_SHARE, "voice/vc/vc-config.xml")
+
+#define VC_DEFAULT_BASE			tzplatform_mkpath(TZ_SYS_RO_SHARE, "voice/vc/1.0")
+
+#define VC_DEFAULT_ENGINE			tzplatform_mkpath(TZ_SYS_RO_SHARE, "voice/vc/1.0/engine")
+
+#define VC_DEFAULT_ENGINE_SETTING	tzplatform_mkpath(TZ_SYS_RO_SHARE, "voice/vc/1.0/engine-setting")
+
+#define VC_DEFAULT_ENGINE_INFO		tzplatform_mkpath(TZ_SYS_RO_SHARE, "voice/vc/1.0/engine-info")
 
 #define VC_CONFIG_BASE			tzplatform_mkpath(TZ_USER_HOME, "share/.voice")
+
 #define VC_CONFIG			tzplatform_mkpath(TZ_USER_HOME, "share/.voice/vc-config.xml")
-
-#define VC_DEFAULT_ENGINE_INFO		VOICE_LIBDIR"/voice/vc/1.0/engine-info"
-
-#define VC_NO_FOREGROUND_PID		0
-
-#define VC_BASE_LANGUAGE		"en_US"
-
-#define VC_RETRY_COUNT			5
-
 
 #define VC_RUNTIME_INFO_ROOT		tzplatform_mkpath(TZ_USER_HOME, "share/.voice/vc")
 
@@ -165,6 +165,10 @@ extern "C" {
 #define VC_RUNTIME_INFO_EX_RESULT	tzplatform_mkpath(TZ_USER_HOME, "share/.voice/vc/vc-ex-result.xml")
 
 #define VC_RUNTIME_INFO_CLIENT		tzplatform_mkpath(TZ_USER_HOME, "share/.voice/vc/vc-client-info.xml")
+
+#define VC_NO_FOREGROUND_PID		0
+#define VC_BASE_LANGUAGE		"en_US"
+#define VC_RETRY_COUNT			5
 
 #define VC_FEATURE_PATH			"tizen.org/feature/speech.control"
 #define VC_MIC_FEATURE_PATH		"tizen.org/feature/microphone"

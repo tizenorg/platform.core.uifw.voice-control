@@ -293,7 +293,6 @@ int __internal_get_engine_info(const char* filepath, vcengine_info_s** info)
 	void* handle;
 
 	handle = dlopen(filepath, RTLD_LAZY);
-
 	if (!handle) {
 		SLOG(LOG_WARN, TAG_VCD, "[Engine Agent] Invalid engine : %s", filepath);
 		return -1;
@@ -389,7 +388,7 @@ int __internal_update_engine_list()
 	struct dirent entry;
 	struct dirent *dirp = NULL;
 
-	dp  = opendir(ENGINE_DIRECTORY_DEFAULT);
+	dp  = opendir(VC_DEFAULT_ENGINE);
 	if (NULL != dp) {
 		do {
 			ret = readdir_r(dp, &entry, &dirp);
@@ -403,11 +402,11 @@ int __internal_update_engine_list()
 				char* filepath = NULL;
 				int filesize = 0;
 
-				filesize = strlen(ENGINE_DIRECTORY_DEFAULT) + strlen(dirp->d_name) + 5;
+				filesize = strlen(VC_DEFAULT_ENGINE) + strlen(dirp->d_name) + 5;
 				filepath = (char*)calloc(filesize, sizeof(char));
 
 				if (NULL != filepath) {
-					snprintf(filepath, filesize, "%s/%s", ENGINE_DIRECTORY_DEFAULT, dirp->d_name);
+					snprintf(filepath, filesize, "%s/%s", VC_DEFAULT_ENGINE, dirp->d_name);
 				} else {
 					SLOG(LOG_ERROR, TAG_VCD, "[Engine Agent ERROR] Memory not enough!!");
 					continue;

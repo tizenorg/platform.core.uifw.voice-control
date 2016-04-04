@@ -41,15 +41,6 @@ extern "C" {
 
 #define TAG_VCD "vcd"
 
-#define BASE_DIRECTORY_DEFAULT			"/usr/lib/voice/vc/1.0"
-#define ENGINE_DIRECTORY_DEFAULT		"/usr/lib/voice/vc/1.0/engine"
-#define ENGINE_DIRECTORY_DEFAULT_SETTING	"/usr/lib/voice/vc/setting"
-
-#define CONFIG_DIRECTORY			"/opt/home/app/.voice"
-
-#define ENGINE_DIRECTORY_DOWNLOAD		"/opt/usr/voice/vc/engine"
-#define ENGINE_DIRECTORY_DOWNLOAD_SETTING	"/opt/usr/voice/vc/setting"
-
 /* for debug message */
 /* #define RECORDER_DEBUG */
 #define CLIENT_DATA_DEBUG
