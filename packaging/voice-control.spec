@@ -84,13 +84,14 @@ export CFLAGS="$CFLAGS -DTIZEN_ENGINEER_MODE"
 export CXXFLAGS="$CXXFLAGS -DTIZEN_ENGINEER_MODE"
 export FFLAGS="$FFLAGS -DTIZEN_ENGINEER_MODE"
 %endif
-cmake . -DCMAKE_INSTALL_PREFIX=/usr -DLIBDIR=%{_libdir} -DINCLUDEDIR=%{_includedir}
+cmake . -DCMAKE_INSTALL_PREFIX=/usr -DLIBDIR=%{_libdir} -DINCLUDEDIR=%{_includedir} \
+	-DTZ_SYS_RO_SHARE=%TZ_SYS_RO_SHARE
 make %{?jobs:-j%jobs}
 
 %install
 rm -rf %{buildroot}
-mkdir -p %{buildroot}/usr/share/license
-install LICENSE %{buildroot}/usr/share/license/%{name}
+mkdir -p %{buildroot}%{TZ_SYS_RO_SHARE}/license
+install LICENSE %{buildroot}%{TZ_SYS_RO_SHARE}/license/%{name}
 
 %make_install
 
@@ -109,10 +110,10 @@ mkdir -p %{_libdir}/voice/vc
 %{_libdir}/libvc_widget.so
 %{_libdir}/libvc_manager.so
 %{_bindir}/vc-daemon
-%{_libdir}/voice/vc/1.0/vc-config.xml
-/usr/share/dbus-1/services/org.tizen.voice*
+%{TZ_SYS_RO_SHARE}/voice/vc/1.0/vc-config.xml
+%{TZ_SYS_RO_SHARE}/dbus-1/services/org.tizen.voice*
+%{TZ_SYS_RO_SHARE}/license/%{name}
 /etc/dbus-1/session.d/vc-server.conf
-/usr/share/license/%{name}
 
 %files devel
 %manifest %{name}-devel.manifest

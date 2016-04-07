@@ -54,8 +54,8 @@ ADD_SUBDIRECTORY(client)
 ADD_SUBDIRECTORY(server)
 
 ## config ##
-INSTALL(FILES ${CMAKE_SOURCE_DIR}/vc-config.xml DESTINATION ${LIBDIR}/voice/vc/1.0)
+INSTALL(FILES ${CMAKE_SOURCE_DIR}/vc-config.xml DESTINATION ${TZ_SYS_RO_SHARE}/voice/vc/1.0)
 
-INSTALL(FILES ${CMAKE_SOURCE_DIR}/org.tizen.voice.vcserver.service DESTINATION /usr/share/dbus-1/services)
+INSTALL(FILES ${CMAKE_SOURCE_DIR}/org.tizen.voice.vcserver.service DESTINATION ${TZ_SYS_RO_SHARE}/dbus-1/services)
 
 INSTALL(FILES ${CMAKE_SOURCE_DIR}/vc-server.conf DESTINATION /etc/dbus-1/session.d)
