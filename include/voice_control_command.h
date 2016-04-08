@@ -39,6 +39,11 @@ extern "C"
 * @brief The voice command handle.
 * @since_tizen 2.4
 */
+
+#ifndef EXPORT_API
+#define EXPORT_API
+#endif // EXPORT_API
+
 typedef struct vc_cmd_s* vc_cmd_h;
 
 /**
@@ -79,7 +84,7 @@ typedef bool (*vc_cmd_list_cb)(vc_cmd_h vc_command, void* user_data);
 *
 * @see vc_cmd_list_destroy()
 */
-int vc_cmd_list_create(vc_cmd_list_h* vc_cmd_list);
+EXPORT_API int vc_cmd_list_create(vc_cmd_list_h* vc_cmd_list);
 
 /**
 * @brief Destroys the handle for command list.
@@ -97,7 +102,7 @@ int vc_cmd_list_create(vc_cmd_list_h* vc_cmd_list);
 *
 * @see vc_cmd_list_create()
 */
-int vc_cmd_list_destroy(vc_cmd_list_h vc_cmd_list, bool free_command);
+EXPORT_API int vc_cmd_list_destroy(vc_cmd_list_h vc_cmd_list, bool free_command);
 
 /**
 * @brief Gets command count of list.
@@ -112,7 +117,7 @@ int vc_cmd_list_destroy(vc_cmd_list_h vc_cmd_list, bool free_command);
 * @retval #VC_ERROR_PERMISSION_DENIED Permission denied
 * @retval #VC_ERROR_NOT_SUPPORTED Not supported
 */
-int vc_cmd_list_get_count(vc_cmd_list_h vc_cmd_list, int* count);
+EXPORT_API int vc_cmd_list_get_count(vc_cmd_list_h vc_cmd_list, int* count);
 
 /**
 * @brief Adds command to command list.
@@ -129,7 +134,7 @@ int vc_cmd_list_get_count(vc_cmd_list_h vc_cmd_list, int* count);
 *
 * @see vc_cmd_list_remove()
 */
-int vc_cmd_list_add(vc_cmd_list_h vc_cmd_list, vc_cmd_h vc_command);
+EXPORT_API int vc_cmd_list_add(vc_cmd_list_h vc_cmd_list, vc_cmd_h vc_command);
 
 /**
 * @brief Removes command from command list.
@@ -146,7 +151,7 @@ int vc_cmd_list_add(vc_cmd_list_h vc_cmd_list, vc_cmd_h vc_command);
 *
 * @see vc_cmd_list_add()
 */
-int vc_cmd_list_remove(vc_cmd_list_h vc_cmd_list, vc_cmd_h vc_command);
+EXPORT_API int vc_cmd_list_remove(vc_cmd_list_h vc_cmd_list, vc_cmd_h vc_command);
 
 /**
 * @brief Retrieves all commands of command list using callback function.
@@ -166,7 +171,7 @@ int vc_cmd_list_remove(vc_cmd_list_h vc_cmd_list, vc_cmd_h vc_command);
 *
 * @see vc_cmd_list_cb()
 */
-int vc_cmd_list_foreach_commands(vc_cmd_list_h vc_cmd_list, vc_cmd_list_cb callback, void* user_data);
+EXPORT_API int vc_cmd_list_foreach_commands(vc_cmd_list_h vc_cmd_list, vc_cmd_list_cb callback, void* user_data);
 
 /**
 * @brief Moves index to first command.
@@ -183,7 +188,7 @@ int vc_cmd_list_foreach_commands(vc_cmd_list_h vc_cmd_list, vc_cmd_list_cb callb
 *
 * @see vc_cmd_list_last()
 */
-int vc_cmd_list_first(vc_cmd_list_h vc_cmd_list);
+EXPORT_API int vc_cmd_list_first(vc_cmd_list_h vc_cmd_list);
 
 /**
 * @brief Moves index to last command.
@@ -200,7 +205,7 @@ int vc_cmd_list_first(vc_cmd_list_h vc_cmd_list);
 *
 * @see vc_cmd_list_first()
 */
-int vc_cmd_list_last(vc_cmd_list_h vc_cmd_list);
+EXPORT_API int vc_cmd_list_last(vc_cmd_list_h vc_cmd_list);
 
 /**
 * @brief Moves index to next command.
@@ -218,7 +223,7 @@ int vc_cmd_list_last(vc_cmd_list_h vc_cmd_list);
 *
 * @see vc_cmd_list_prev()
 */
-int vc_cmd_list_next(vc_cmd_list_h vc_cmd_list);
+EXPORT_API int vc_cmd_list_next(vc_cmd_list_h vc_cmd_list);
 
 /**
 * @brief Moves index to previous command.
@@ -236,7 +241,7 @@ int vc_cmd_list_next(vc_cmd_list_h vc_cmd_list);
 *
 * @see vc_cmd_list_next()
 */
-int vc_cmd_list_prev(vc_cmd_list_h vc_cmd_list);
+EXPORT_API int vc_cmd_list_prev(vc_cmd_list_h vc_cmd_list);
 
 /**
 * @brief Get current command from command list by index.
@@ -257,7 +262,7 @@ int vc_cmd_list_prev(vc_cmd_list_h vc_cmd_list);
 * @see vc_cmd_list_prev()
 * @see vc_cmd_list_next()
 */
-int vc_cmd_list_get_current(vc_cmd_list_h vc_cmd_list, vc_cmd_h* vc_command);
+EXPORT_API int vc_cmd_list_get_current(vc_cmd_list_h vc_cmd_list, vc_cmd_h* vc_command);
 
 
 /**
@@ -279,7 +284,7 @@ int vc_cmd_list_get_current(vc_cmd_list_h vc_cmd_list, vc_cmd_h* vc_command);
 *
 * @see vc_cmd_destroy()
 */
-int vc_cmd_create(vc_cmd_h* vc_command);
+EXPORT_API int vc_cmd_create(vc_cmd_h* vc_command);
 
 /**
 * @brief Destroys the handle.
@@ -295,7 +300,7 @@ int vc_cmd_create(vc_cmd_h* vc_command);
 *
 * @see vc_cmd_create()
 */
-int vc_cmd_destroy(vc_cmd_h vc_command);
+EXPORT_API int vc_cmd_destroy(vc_cmd_h vc_command);
 
 /**
 * @brief Sets command.
@@ -312,7 +317,7 @@ int vc_cmd_destroy(vc_cmd_h vc_command);
 *
 * @see vc_cmd_get_command()
 */
-int vc_cmd_set_command(vc_cmd_h vc_command, const char* command);
+EXPORT_API int vc_cmd_set_command(vc_cmd_h vc_command, const char* command);
 
 /**
 * @brief Gets command.
@@ -331,7 +336,7 @@ int vc_cmd_set_command(vc_cmd_h vc_command, const char* command);
 *
 * @see vc_cmd_set_command()
 */
-int vc_cmd_get_command(vc_cmd_h vc_command, char** command);
+EXPORT_API int vc_cmd_get_command(vc_cmd_h vc_command, char** command);
 
 /**
 * @brief Sets command type.
@@ -351,7 +356,7 @@ int vc_cmd_get_command(vc_cmd_h vc_command, char** command);
 *
 * @see vc_cmd_get_type()
 */
-int vc_cmd_set_type(vc_cmd_h vc_command, int type);
+EXPORT_API int vc_cmd_set_type(vc_cmd_h vc_command, int type);
 
 /**
 * @brief Gets command type.
@@ -368,7 +373,7 @@ int vc_cmd_set_type(vc_cmd_h vc_command, int type);
 *
 * @see vc_cmd_set_type()
 */
-int vc_cmd_get_type(vc_cmd_h vc_command, int* type);
+EXPORT_API int vc_cmd_get_type(vc_cmd_h vc_command, int* type);
 
 
 #ifdef __cplusplus

@@ -26,6 +26,11 @@
 extern "C" {
 #endif
 
+#ifndef EXPORT_API
+#define EXPORT_API
+#endif // EXPORT_API
+
+
 typedef struct _command_s {
 	int	pid;
 	int	id;
@@ -60,11 +65,11 @@ typedef enum {
 } vc_cmd_type_e;
 
 
-int vc_cmd_set_id(vc_cmd_h vc_command, int id);
+EXPORT_API int vc_cmd_set_id(vc_cmd_h vc_command, int id);
 
-int vc_cmd_get_id(vc_cmd_h vc_command, int* id);
+EXPORT_API int vc_cmd_get_id(vc_cmd_h vc_command, int* id);
 
-int vc_cmd_print_list(vc_cmd_list_h vc_cmd_list);
+EXPORT_API int vc_cmd_print_list(vc_cmd_list_h vc_cmd_list);
 
 /**
 * @brief Remove all commands from command list.
@@ -82,7 +87,7 @@ int vc_cmd_print_list(vc_cmd_list_h vc_cmd_list);
 *
 * @see vc_cmd_list_add()
 */
-int vc_cmd_list_remove_all(vc_cmd_list_h vc_cmd_list, bool free_command);
+EXPORT_API int vc_cmd_list_remove_all(vc_cmd_list_h vc_cmd_list, bool free_command);
 
 /**
 * @brief Sets extra unfixed command.
@@ -99,7 +104,7 @@ int vc_cmd_list_remove_all(vc_cmd_list_h vc_cmd_list, bool free_command);
 *
 * @see vc_cmd_get_non_fixed_command()
 */
-int vc_cmd_set_unfixed_command(vc_cmd_h vc_command, const char* command);
+EXPORT_API int vc_cmd_set_unfixed_command(vc_cmd_h vc_command, const char* command);
 
 /**
 * @brief Sets pid.
@@ -114,7 +119,7 @@ int vc_cmd_set_unfixed_command(vc_cmd_h vc_command, const char* command);
 *
 * @see vc_cmd_set_pid()
 */
-int vc_cmd_set_pid(vc_cmd_h vc_command, int pid);
+EXPORT_API int vc_cmd_set_pid(vc_cmd_h vc_command, int pid);
 
 /**
 * @brief Sets command domain
@@ -131,7 +136,7 @@ int vc_cmd_set_pid(vc_cmd_h vc_command, int pid);
 *
 * @see vc_cmd_get_domain()
 */
-int vc_cmd_get_pid(vc_cmd_h vc_command, int* pid);
+EXPORT_API int vc_cmd_get_pid(vc_cmd_h vc_command, int* pid);
 
 
 #ifdef __cplusplus

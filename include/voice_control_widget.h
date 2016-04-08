@@ -51,6 +51,11 @@ extern "C"
 * @see vc_widget_set_show_tooltip_cb()
 * @see vc_widget_unset_show_tooltip_cb()
 */
+
+#ifndef EXPORT_API
+#define EXPORT_API
+#endif // EXPORT_API
+
 typedef void (*vc_widget_show_tooltip_cb)(bool show, void* user_data);
 
 /**
@@ -87,7 +92,7 @@ typedef void (*vc_widget_send_current_command_list_cb)(vc_cmd_list_h* vc_cmd_lis
 *
 * @see vc_widget_deinitialize()
 */
-int vc_widget_initialize();
+EXPORT_API int vc_widget_initialize();
 
 /**
 * @brief Deinitialize voice control for widget.
@@ -101,7 +106,7 @@ int vc_widget_initialize();
 *
 * @see vc_widget_initialize()
 */
-int vc_widget_deinitialize();
+EXPORT_API int vc_widget_deinitialize();
 
 /**
 * @brief Connects the voice control service asynchronously.
@@ -118,7 +123,7 @@ int vc_widget_deinitialize();
 *
 * @see vc_widget_unprepare()
 */
-int vc_widget_prepare();
+EXPORT_API int vc_widget_prepare();
 
 /**
 * @brief Disconnects the voice control service.
@@ -135,7 +140,7 @@ int vc_widget_prepare();
 *
 * @see vc_widget_prepare()
 */
-int vc_widget_unprepare();
+EXPORT_API int vc_widget_unprepare();
 
 /**
 * @brief Retrieves all supported languages using callback function.
@@ -156,7 +161,7 @@ int vc_widget_unprepare();
 * @see vc_supported_language_cb()
 * @see vc_widget_get_current_language()
 */
-int vc_widget_foreach_supported_languages(vc_supported_language_cb callback, void* user_data);
+EXPORT_API int vc_widget_foreach_supported_languages(vc_supported_language_cb callback, void* user_data);
 
 /**
 * @brief Gets current language set by user.
@@ -179,7 +184,7 @@ int vc_widget_foreach_supported_languages(vc_supported_language_cb callback, voi
 *
 * @see vc_widget_foreach_supported_languages()
 */
-int vc_widget_get_current_language(char** language);
+EXPORT_API int vc_widget_get_current_language(char** language);
 
 /**
 * @brief Gets current state of voice control widget.
@@ -198,7 +203,7 @@ int vc_widget_get_current_language(char** language);
 * @see vc_widget_set_state_changed_cb()
 * @see vc_widget_unset_state_changed_cb()
 */
-int vc_widget_get_state(vc_state_e* state);
+EXPORT_API int vc_widget_get_state(vc_state_e* state);
 
 /**
 * @brief Gets current state of voice control service.
@@ -216,7 +221,7 @@ int vc_widget_get_state(vc_state_e* state);
 * @see vc_set_service_state_changed_cb()
 * @see vc_unset_service_state_changed_cb()
 */
-int vc_widget_get_service_state(vc_service_state_e* state);
+EXPORT_API int vc_widget_get_service_state(vc_service_state_e* state);
 
 /**
 * @brief Checks whether the command format is supported.
@@ -233,7 +238,7 @@ int vc_widget_get_service_state(vc_service_state_e* state);
 *
 * @pre The state should be #VC_STATE_READY.
 */
-int vc_widget_is_command_format_supported(vc_cmd_format_e format, bool* support);
+EXPORT_API int vc_widget_is_command_format_supported(vc_cmd_format_e format, bool* support);
 
 
 /**
@@ -250,7 +255,7 @@ int vc_widget_is_command_format_supported(vc_cmd_format_e format, bool* support)
 *
 * @pre The state should be #VC_STATE_READY.
 */
-int vc_widget_set_foreground(bool value);
+EXPORT_API int vc_widget_set_foreground(bool value);
 
 /**
 * @brief Cancels recognition.
@@ -271,7 +276,7 @@ int vc_widget_set_foreground(bool value);
 * @see vc_widget_stop()
 * @see vc_state_changed_cb()
 */
-int vc_widget_cancel();
+EXPORT_API int vc_widget_cancel();
 
 /**
 * @brief Registers a callback function for getting recognition result.
@@ -290,7 +295,7 @@ int vc_widget_cancel();
 * @see vc_widget_result_cb()
 * @see vc_widget_unset_result_cb()
 */
-int vc_widget_set_result_cb(vc_result_cb callback, void* user_data);
+EXPORT_API int vc_widget_set_result_cb(vc_result_cb callback, void* user_data);
 
 
 /**
@@ -306,7 +311,7 @@ int vc_widget_set_result_cb(vc_result_cb callback, void* user_data);
 *
 * @see vc_widget_set_result_cb()
 */
-int vc_widget_unset_result_cb();
+EXPORT_API int vc_widget_unset_result_cb();
 
 /**
 * @brief Registers a callback function for showing or hiding tooltip.
@@ -325,7 +330,7 @@ int vc_widget_unset_result_cb();
 * @see vc_widget_show_tooltip_cb()
 * @see vc_widget_unset_show_tooltip_cb()
 */
-int vc_widget_set_show_tooltip_cb(vc_widget_show_tooltip_cb callback, void* user_data);
+EXPORT_API int vc_widget_set_show_tooltip_cb(vc_widget_show_tooltip_cb callback, void* user_data);
 
 /**
 * @brief Unregisters the callback function.
@@ -340,7 +345,7 @@ int vc_widget_set_show_tooltip_cb(vc_widget_show_tooltip_cb callback, void* user
 *
 * @see vc_widget_set_show_tooltip_cb()
 */
-int vc_widget_unset_show_tooltip_cb();
+EXPORT_API int vc_widget_unset_show_tooltip_cb();
 
 /**
 * @brief Registers a callback function for setting current command.
@@ -359,7 +364,7 @@ int vc_widget_unset_show_tooltip_cb();
 * @see vc_widget_send_current_command_list_cb()
 * @see vc_widget_unset_send_current_command_list_cb()
 */
-int vc_widget_set_send_current_command_list_cb(vc_widget_send_current_command_list_cb callback, void* user_data);
+EXPORT_API int vc_widget_set_send_current_command_list_cb(vc_widget_send_current_command_list_cb callback, void* user_data);
 
 /**
 * @brief Unregisters the callback function.
@@ -374,7 +379,7 @@ int vc_widget_set_send_current_command_list_cb(vc_widget_send_current_command_li
 *
 * @see vc_widget_set_send_current_command_list_cb()
 */
-int vc_widget_unsset_send_current_command_list_cb();
+EXPORT_API int vc_widget_unsset_send_current_command_list_cb();
 
 /**
 * @brief Registers a callback function to be called when service state is changed.
@@ -393,7 +398,7 @@ int vc_widget_unsset_send_current_command_list_cb();
 * @see vc_service_state_changed_cb()
 * @see vc_widget_unset_service_state_changed_cb()
 */
-int vc_widget_set_service_state_changed_cb(vc_service_state_changed_cb callback, void* user_data);
+EXPORT_API int vc_widget_set_service_state_changed_cb(vc_service_state_changed_cb callback, void* user_data);
 
 /**
 * @brief Unregisters the callback function.
@@ -408,7 +413,7 @@ int vc_widget_set_service_state_changed_cb(vc_service_state_changed_cb callback,
 *
 * @see vc_widget_set_service_state_changed_cb()
 */
-int vc_widget_unset_service_state_changed_cb();
+EXPORT_API int vc_widget_unset_service_state_changed_cb();
 
 /**
 * @brief Registers a callback function for getting state changed.
@@ -428,7 +433,7 @@ int vc_widget_unset_service_state_changed_cb();
 * @see vc_state_changed_cb()
 * @see vc_widget_unset_state_changed_cb()
 */
-int vc_widget_set_state_changed_cb(vc_state_changed_cb callback, void* user_data);
+EXPORT_API int vc_widget_set_state_changed_cb(vc_state_changed_cb callback, void* user_data);
 
 /**
 * @brief Unregisters the callback function.
@@ -443,7 +448,7 @@ int vc_widget_set_state_changed_cb(vc_state_changed_cb callback, void* user_data
 *
 * @see vc_widget_set_state_changed_cb()
 */
-int vc_widget_unset_state_changed_cb();
+EXPORT_API int vc_widget_unset_state_changed_cb();
 
 /**
 * @brief Registers a callback function to be called when current language is changed.
@@ -463,7 +468,7 @@ int vc_widget_unset_state_changed_cb();
 * @see vc_current_language_changed_cb()
 * @see vc_widget_unset_current_language_changed_cb()
 */
-int vc_widget_set_current_language_changed_cb(vc_current_language_changed_cb callback, void* user_data);
+EXPORT_API int vc_widget_set_current_language_changed_cb(vc_current_language_changed_cb callback, void* user_data);
 
 /**
 * @brief Unregisters the callback function.
@@ -478,7 +483,7 @@ int vc_widget_set_current_language_changed_cb(vc_current_language_changed_cb cal
 *
 * @see vc_widget_set_current_language_changed_cb()
 */
-int vc_widget_unset_current_language_changed_cb();
+EXPORT_API int vc_widget_unset_current_language_changed_cb();
 
 /**
 * @brief Registers a callback function for an error occurred.
@@ -498,7 +503,7 @@ int vc_widget_unset_current_language_changed_cb();
 * @see vc_error_cb()
 * @see vc_widget_unset_error_cb()
 */
-int vc_widget_set_error_cb(vc_error_cb callback, void* user_data);
+EXPORT_API int vc_widget_set_error_cb(vc_error_cb callback, void* user_data);
 
 /**
 * @brief Unregisters the callback function.
@@ -513,7 +518,7 @@ int vc_widget_set_error_cb(vc_error_cb callback, void* user_data);
 *
 * @see vc_widget_set_error_cb()
 */
-int vc_widget_unset_error_cb();
+EXPORT_API int vc_widget_unset_error_cb();
 
 
 #ifdef __cplusplus

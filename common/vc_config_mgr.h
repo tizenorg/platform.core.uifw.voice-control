@@ -25,6 +25,11 @@
 extern "C" {
 #endif
 
+#ifndef EXPORT_API
+#define EXPORT_API
+#endif // EXPORT_API
+
+
 typedef enum {
 	VC_CONFIG_ERROR_NONE			= TIZEN_ERROR_NONE,			/**< Success, No error */
 	VC_CONFIG_ERROR_OUT_OF_MEMORY		= TIZEN_ERROR_OUT_OF_MEMORY,		/**< Out of Memory */
@@ -42,42 +47,42 @@ typedef void (*vc_config_lang_changed_cb)(const char* before_lang, const char* c
 typedef void (*vc_config_enabled_cb)(bool enable);
 
 
-int vc_config_mgr_initialize(int uid);
+EXPORT_API int vc_config_mgr_initialize(int uid);
 
-int vc_config_mgr_finalize(int uid);
+EXPORT_API int vc_config_mgr_finalize(int uid);
 
 
 /* Set / Unset callback */
-int vc_config_mgr_set_lang_cb(int uid, vc_config_lang_changed_cb lang_cb);
+EXPORT_API int vc_config_mgr_set_lang_cb(int uid, vc_config_lang_changed_cb lang_cb);
 
-int vc_config_mgr_unset_lang_cb(int uid);
-
-
-int vc_config_mgr_set_enabled_cb(int uid, vc_config_enabled_cb enabled_cb);
-
-int vc_config_mgr_unset_enabled_cb(int uid);
+EXPORT_API int vc_config_mgr_unset_lang_cb(int uid);
 
 
-int vc_config_mgr_get_auto_language(bool* value);
+EXPORT_API int vc_config_mgr_set_enabled_cb(int uid, vc_config_enabled_cb enabled_cb);
 
-int vc_config_mgr_set_auto_language(bool value);
-
-int vc_config_mgr_get_language_list(vc_supported_language_cb callback, void* user_data);
-
-int vc_config_mgr_get_default_language(char** language);
-
-int vc_config_mgr_set_default_language(const char* language);
-
-int vc_config_mgr_get_enabled(bool* value);
-
-int vc_config_mgr_set_enabled(bool value);
+EXPORT_API int vc_config_mgr_unset_enabled_cb(int uid);
 
 
-int vc_config_mgr_get_nonfixed_support(bool* value);
+EXPORT_API int vc_config_mgr_get_auto_language(bool* value);
 
-bool vc_config_check_default_language_is_valid(const char* language);
+EXPORT_API int vc_config_mgr_set_auto_language(bool value);
 
-int vc_config_convert_error_code(vc_config_error_e code);
+EXPORT_API int vc_config_mgr_get_language_list(vc_supported_language_cb callback, void* user_data);
+
+EXPORT_API int vc_config_mgr_get_default_language(char** language);
+
+EXPORT_API int vc_config_mgr_set_default_language(const char* language);
+
+EXPORT_API int vc_config_mgr_get_enabled(bool* value);
+
+EXPORT_API int vc_config_mgr_set_enabled(bool value);
+
+
+EXPORT_API int vc_config_mgr_get_nonfixed_support(bool* value);
+
+EXPORT_API bool vc_config_check_default_language_is_valid(const char* language);
+
+EXPORT_API int vc_config_convert_error_code(vc_config_error_e code);
 
 
 #ifdef __cplusplus

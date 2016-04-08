@@ -78,7 +78,12 @@ extern "C"
 *
 * @see vc_deinitialize()
 */
-int vc_initialize(void);
+
+#ifndef EXPORT_API
+#define EXPORT_API
+#endif // EXPORT_API
+
+EXPORT_API int vc_initialize(void);
 
 /**
 * @brief Deinitializes voice control.
@@ -95,7 +100,7 @@ int vc_initialize(void);
 *
 * @see vc_deinitialize()
 */
-int vc_deinitialize(void);
+EXPORT_API int vc_deinitialize(void);
 
 /**
 * @brief Connects the voice control service.
@@ -115,7 +120,7 @@ int vc_deinitialize(void);
 *
 * @see vc_unprepare()
 */
-int vc_prepare(void);
+EXPORT_API int vc_prepare(void);
 
 /**
 * @brief Disconnects the voice control service.
@@ -134,7 +139,7 @@ int vc_prepare(void);
 *
 * @see vc_prepare()
 */
-int vc_unprepare(void);
+EXPORT_API int vc_unprepare(void);
 
 /**
 * @brief Retrieves all supported languages using callback function.
@@ -159,7 +164,7 @@ int vc_unprepare(void);
 * @see vc_supported_language_cb()
 * @see vc_get_current_language()
 */
-int vc_foreach_supported_languages(vc_supported_language_cb callback, void* user_data);
+EXPORT_API int vc_foreach_supported_languages(vc_supported_language_cb callback, void* user_data);
 
 /**
 * @brief Gets current language.
@@ -186,7 +191,7 @@ int vc_foreach_supported_languages(vc_supported_language_cb callback, void* user
 *
 * @see vc_foreach_supported_languages()
 */
-int vc_get_current_language(char** language);
+EXPORT_API int vc_get_current_language(char** language);
 
 /**
 * @brief Gets current state of voice control client.
@@ -205,7 +210,7 @@ int vc_get_current_language(char** language);
 * @see vc_state_changed_cb()
 * @see vc_set_state_changed_cb()
 */
-int vc_get_state(vc_state_e* state);
+EXPORT_API int vc_get_state(vc_state_e* state);
 
 /**
 * @brief Gets current state of voice control service.
@@ -229,7 +234,7 @@ int vc_get_state(vc_state_e* state);
 * @see vc_set_service_state_changed_cb()
 * @see vc_unset_service_state_changed_cb()
 */
-int vc_get_service_state(vc_service_state_e* state);
+EXPORT_API int vc_get_service_state(vc_service_state_e* state);
 
 /**
 * @brief Sets command list.
@@ -254,7 +259,7 @@ int vc_get_service_state(vc_service_state_e* state);
 *
 * @see vc_unset_command_list()
 */
-int vc_set_command_list(vc_cmd_list_h vc_cmd_list, int type);
+EXPORT_API int vc_set_command_list(vc_cmd_list_h vc_cmd_list, int type);
 
 /**
 * @brief Unsets command list.
@@ -275,7 +280,7 @@ int vc_set_command_list(vc_cmd_list_h vc_cmd_list, int type);
 *
 * @see vc_set_command_list()
 */
-int vc_unset_command_list(int type);
+EXPORT_API int vc_unset_command_list(int type);
 
 
 /**
@@ -299,7 +304,7 @@ int vc_unset_command_list(int type);
 * @see vc_result_cb()
 * @see vc_unset_result_cb()
 */
-int vc_set_result_cb(vc_result_cb callback, void* user_data);
+EXPORT_API int vc_set_result_cb(vc_result_cb callback, void* user_data);
 
 /**
 * @brief Unregisters the callback function.
@@ -316,7 +321,7 @@ int vc_set_result_cb(vc_result_cb callback, void* user_data);
 *
 * @see vc_set_result_cb()
 */
-int vc_unset_result_cb(void);
+EXPORT_API int vc_unset_result_cb(void);
 
 /**
 * @brief Registers a callback function to be called when state is changed.
@@ -339,7 +344,7 @@ int vc_unset_result_cb(void);
 * @see vc_service_state_changed_cb()
 * @see vc_unset_service_state_changed_cb()
 */
-int vc_set_service_state_changed_cb(vc_service_state_changed_cb callback, void* user_data);
+EXPORT_API int vc_set_service_state_changed_cb(vc_service_state_changed_cb callback, void* user_data);
 
 /**
 * @brief Unregisters the callback function.
@@ -357,7 +362,7 @@ int vc_set_service_state_changed_cb(vc_service_state_changed_cb callback, void* 
 *
 * @see vc_set_service_state_changed_cb()
 */
-int vc_unset_service_state_changed_cb(void);
+EXPORT_API int vc_unset_service_state_changed_cb(void);
 
 /**
 * @brief Registers a callback function to be called when state is changed.
@@ -380,7 +385,7 @@ int vc_unset_service_state_changed_cb(void);
 * @see vc_state_changed_cb()
 * @see vc_unset_state_changed_cb()
 */
-int vc_set_state_changed_cb(vc_state_changed_cb callback, void* user_data);
+EXPORT_API int vc_set_state_changed_cb(vc_state_changed_cb callback, void* user_data);
 
 /**
 * @brief Unregisters the callback function.
@@ -398,7 +403,7 @@ int vc_set_state_changed_cb(vc_state_changed_cb callback, void* user_data);
 *
 * @see vc_set_state_changed_cb()
 */
-int vc_unset_state_changed_cb(void);
+EXPORT_API int vc_unset_state_changed_cb(void);
 
 /**
 * @brief Registers a callback function to be called when current language is changed.
@@ -421,7 +426,7 @@ int vc_unset_state_changed_cb(void);
 * @see vc_current_language_changed_cb()
 * @see vc_unset_current_language_changed_cb()
 */
-int vc_set_current_language_changed_cb(vc_current_language_changed_cb callback, void* user_data);
+EXPORT_API int vc_set_current_language_changed_cb(vc_current_language_changed_cb callback, void* user_data);
 
 /**
 * @brief Unregisters the callback function.
@@ -439,7 +444,7 @@ int vc_set_current_language_changed_cb(vc_current_language_changed_cb callback, 
 *
 * @see vc_set_current_language_changed_cb()
 */
-int vc_unset_current_language_changed_cb(void);
+EXPORT_API int vc_unset_current_language_changed_cb(void);
 
 /**
 * @brief Registers a callback function to be called when an error occurred.
@@ -462,7 +467,7 @@ int vc_unset_current_language_changed_cb(void);
 * @see vc_error_cb()
 * @see vc_unset_error_cb()
 */
-int vc_set_error_cb(vc_error_cb callback, void* user_data);
+EXPORT_API int vc_set_error_cb(vc_error_cb callback, void* user_data);
 
 /**
 * @brief Unregisters the callback function.
@@ -480,7 +485,7 @@ int vc_set_error_cb(vc_error_cb callback, void* user_data);
 *
 * @see vc_set_error_cb()
 */
-int vc_unset_error_cb(void);
+EXPORT_API int vc_unset_error_cb(void);
 
 
 #ifdef __cplusplus

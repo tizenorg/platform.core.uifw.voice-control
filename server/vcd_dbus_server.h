@@ -25,53 +25,58 @@
 extern "C" {
 #endif
 
-int vcd_dbus_server_hello(DBusConnection* conn, DBusMessage* msg);
+#ifndef EXPORT_API
+#define EXPORT_API
+#endif // EXPORT_API
+
+
+EXPORT_API int vcd_dbus_server_hello(DBusConnection* conn, DBusMessage* msg);
 
 /*
 * Dbus Server functions for manager
 */
 
-int vcd_dbus_server_mgr_initialize(DBusConnection* conn, DBusMessage* msg);
+EXPORT_API int vcd_dbus_server_mgr_initialize(DBusConnection* conn, DBusMessage* msg);
 
-int vcd_dbus_server_mgr_finalize(DBusConnection* conn, DBusMessage* msg);
+EXPORT_API int vcd_dbus_server_mgr_finalize(DBusConnection* conn, DBusMessage* msg);
 
-int vcd_dbus_server_mgr_set_command(DBusConnection* conn, DBusMessage* msg);
+EXPORT_API int vcd_dbus_server_mgr_set_command(DBusConnection* conn, DBusMessage* msg);
 
-int vcd_dbus_server_mgr_unset_command(DBusConnection* conn, DBusMessage* msg);
+EXPORT_API int vcd_dbus_server_mgr_unset_command(DBusConnection* conn, DBusMessage* msg);
 
-int vcd_dbus_server_mgr_set_demandable_client(DBusConnection* conn, DBusMessage* msg);
+EXPORT_API int vcd_dbus_server_mgr_set_demandable_client(DBusConnection* conn, DBusMessage* msg);
 
-int vcd_dbus_server_mgr_set_audio_type(DBusConnection* conn, DBusMessage* msg);
+EXPORT_API int vcd_dbus_server_mgr_set_audio_type(DBusConnection* conn, DBusMessage* msg);
 
-int vcd_dbus_server_mgr_get_audio_type(DBusConnection* conn, DBusMessage* msg);
+EXPORT_API int vcd_dbus_server_mgr_get_audio_type(DBusConnection* conn, DBusMessage* msg);
 
-int vcd_dbus_server_mgr_set_client_info(DBusConnection* conn, DBusMessage* msg);
+EXPORT_API int vcd_dbus_server_mgr_set_client_info(DBusConnection* conn, DBusMessage* msg);
 
-int vcd_dbus_server_mgr_start(DBusConnection* conn, DBusMessage* msg);
+EXPORT_API int vcd_dbus_server_mgr_start(DBusConnection* conn, DBusMessage* msg);
 
-int vcd_dbus_server_mgr_stop(DBusConnection* conn, DBusMessage* msg);
+EXPORT_API int vcd_dbus_server_mgr_stop(DBusConnection* conn, DBusMessage* msg);
 
-int vcd_dbus_server_mgr_cancel(DBusConnection* conn, DBusMessage* msg);
+EXPORT_API int vcd_dbus_server_mgr_cancel(DBusConnection* conn, DBusMessage* msg);
 
-int vcd_dbus_server_mgr_result_selection(DBusConnection* conn, DBusMessage* msg);
+EXPORT_API int vcd_dbus_server_mgr_result_selection(DBusConnection* conn, DBusMessage* msg);
 
 /*
 * Dbus Server functions for client
 */
 
-int vcd_dbus_server_initialize(DBusConnection* conn, DBusMessage* msg);
+EXPORT_API int vcd_dbus_server_initialize(DBusConnection* conn, DBusMessage* msg);
 
-int vcd_dbus_server_finalize(DBusConnection* conn, DBusMessage* msg);
+EXPORT_API int vcd_dbus_server_finalize(DBusConnection* conn, DBusMessage* msg);
 
 #if 0
 int vcd_dbus_server_set_exclusive_command(DBusConnection* conn, DBusMessage* msg);
 #endif
 
-int vcd_dbus_server_set_command(DBusConnection* conn, DBusMessage* msg);
+EXPORT_API int vcd_dbus_server_set_command(DBusConnection* conn, DBusMessage* msg);
 
-int vcd_dbus_server_unset_command(DBusConnection* conn, DBusMessage* msg);
+EXPORT_API int vcd_dbus_server_unset_command(DBusConnection* conn, DBusMessage* msg);
 
-int vcd_dbus_server_set_foreground(DBusConnection* conn, DBusMessage* msg);
+EXPORT_API int vcd_dbus_server_set_foreground(DBusConnection* conn, DBusMessage* msg);
 
 #if 0
 int vcd_dbus_server_start_request(DBusConnection* conn, DBusMessage* msg);
@@ -84,17 +89,17 @@ int vcd_dbus_server_cancel_request(DBusConnection* conn, DBusMessage* msg);
 /*
 * Dbus Server functions for widget
 */
-int vcd_dbus_server_widget_initialize(DBusConnection* conn, DBusMessage* msg);
+EXPORT_API int vcd_dbus_server_widget_initialize(DBusConnection* conn, DBusMessage* msg);
 
-int vcd_dbus_server_widget_finalize(DBusConnection* conn, DBusMessage* msg);
+EXPORT_API int vcd_dbus_server_widget_finalize(DBusConnection* conn, DBusMessage* msg);
 
-int vcd_dbus_server_widget_start_recording(DBusConnection* conn, DBusMessage* msg);
+EXPORT_API int vcd_dbus_server_widget_start_recording(DBusConnection* conn, DBusMessage* msg);
 
-int vcd_dbus_server_widget_start(DBusConnection* conn, DBusMessage* msg);
+EXPORT_API int vcd_dbus_server_widget_start(DBusConnection* conn, DBusMessage* msg);
 
-int vcd_dbus_server_widget_stop(DBusConnection* conn, DBusMessage* msg);
+EXPORT_API int vcd_dbus_server_widget_stop(DBusConnection* conn, DBusMessage* msg);
 
-int vcd_dbus_server_widget_cancel(DBusConnection* conn, DBusMessage* msg);
+EXPORT_API int vcd_dbus_server_widget_cancel(DBusConnection* conn, DBusMessage* msg);
 
 
 #ifdef __cplusplus

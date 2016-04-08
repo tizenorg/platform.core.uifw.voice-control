@@ -31,62 +31,67 @@ extern "C" {
 /*
 * Common function
 */
-int vc_client_create(vc_h* vc);
 
-int vc_client_destroy(vc_h vc);
+#ifndef EXPORT_API
+#define EXPORT_API
+#endif // EXPORT_API
 
-bool vc_client_is_valid(vc_h vc);
+EXPORT_API int vc_client_create(vc_h* vc);
 
-bool vc_client_is_valid_by_uid(int uid);
+EXPORT_API int vc_client_destroy(vc_h vc);
 
-int vc_client_get_handle(int uid, vc_h* vc);
+EXPORT_API bool vc_client_is_valid(vc_h vc);
+
+EXPORT_API bool vc_client_is_valid_by_uid(int uid);
+
+EXPORT_API int vc_client_get_handle(int uid, vc_h* vc);
 
 /*
 * set/get callback function
 */
-int vc_client_set_result_cb(vc_h vc, vc_result_cb callback, void* user_data);
+EXPORT_API int vc_client_set_result_cb(vc_h vc, vc_result_cb callback, void* user_data);
 
-int vc_client_get_result_cb(vc_h vc, vc_result_cb* callback, void** user_data);
+EXPORT_API int vc_client_get_result_cb(vc_h vc, vc_result_cb* callback, void** user_data);
 
-int vc_client_set_service_state_changed_cb(vc_h vc, vc_service_state_changed_cb callback, void* user_data);
+EXPORT_API int vc_client_set_service_state_changed_cb(vc_h vc, vc_service_state_changed_cb callback, void* user_data);
 
-int vc_client_get_service_state_changed_cb(vc_h vc, vc_service_state_changed_cb* callback, void** user_data);
+EXPORT_API int vc_client_get_service_state_changed_cb(vc_h vc, vc_service_state_changed_cb* callback, void** user_data);
 
-int vc_client_set_state_changed_cb(vc_h vc, vc_state_changed_cb callback, void* user_data);
+EXPORT_API int vc_client_set_state_changed_cb(vc_h vc, vc_state_changed_cb callback, void* user_data);
 
-int vc_client_get_state_changed_cb(vc_h vc, vc_state_changed_cb* callback, void** user_data);
+EXPORT_API int vc_client_get_state_changed_cb(vc_h vc, vc_state_changed_cb* callback, void** user_data);
 
-int vc_client_set_current_lang_changed_cb(vc_h vc, vc_current_language_changed_cb callback, void* user_data);
+EXPORT_API int vc_client_set_current_lang_changed_cb(vc_h vc, vc_current_language_changed_cb callback, void* user_data);
 
-int vc_client_get_current_lang_changed_cb(vc_h vc, vc_current_language_changed_cb* callback, void** user_data);
+EXPORT_API int vc_client_get_current_lang_changed_cb(vc_h vc, vc_current_language_changed_cb* callback, void** user_data);
 
-int vc_client_set_error_cb(vc_h vc, vc_error_cb callback, void* user_data);
+EXPORT_API int vc_client_set_error_cb(vc_h vc, vc_error_cb callback, void* user_data);
 
-int vc_client_get_error_cb(vc_h vc, vc_error_cb* callback, void** user_data);
+EXPORT_API int vc_client_get_error_cb(vc_h vc, vc_error_cb* callback, void** user_data);
 
 
 /*
 * set/get option
 */
-int vc_client_set_service_state(vc_h vc, vc_service_state_e state);
+EXPORT_API int vc_client_set_service_state(vc_h vc, vc_service_state_e state);
 
-int vc_client_get_service_state(vc_h vc, vc_service_state_e* state);
+EXPORT_API int vc_client_get_service_state(vc_h vc, vc_service_state_e* state);
 
-int vc_client_set_client_state(vc_h vc, vc_state_e state);
+EXPORT_API int vc_client_set_client_state(vc_h vc, vc_state_e state);
 
-int vc_client_get_client_state(vc_h vc, vc_state_e* state);
+EXPORT_API int vc_client_get_client_state(vc_h vc, vc_state_e* state);
 
-int vc_client_get_client_state_by_uid(int uid, vc_state_e* state);
+EXPORT_API int vc_client_get_client_state_by_uid(int uid, vc_state_e* state);
 
-int vc_client_get_before_state(vc_h vc, vc_state_e* state, vc_state_e* before_state);
+EXPORT_API int vc_client_get_before_state(vc_h vc, vc_state_e* state, vc_state_e* before_state);
 
-int vc_client_set_xid(vc_h vc, int xid);
+EXPORT_API int vc_client_set_xid(vc_h vc, int xid);
 
-int vc_client_get_xid(vc_h vc, int* xid);
+EXPORT_API int vc_client_get_xid(vc_h vc, int* xid);
 
-int vc_client_set_is_foreground(vc_h vc, bool value);
+EXPORT_API int vc_client_set_is_foreground(vc_h vc, bool value);
 
-int vc_client_get_is_foreground(vc_h vc, bool* value);
+EXPORT_API int vc_client_get_is_foreground(vc_h vc, bool* value);
 
 #if 0
 int vc_client_set_exclusive_cmd(vc_h vc, bool value);
@@ -94,34 +99,34 @@ int vc_client_set_exclusive_cmd(vc_h vc, bool value);
 int vc_client_get_exclusive_cmd(vc_h vc, bool* value);
 #endif
 
-int vc_client_set_error(vc_h vc, int reason);
+EXPORT_API int vc_client_set_error(vc_h vc, int reason);
 
-int vc_client_get_error(vc_h vc, int* reason);
+EXPORT_API int vc_client_get_error(vc_h vc, int* reason);
 
 
 /* utils */
-int vc_client_get_count();
+EXPORT_API int vc_client_get_count();
 
-int vc_client_use_callback(vc_h vc);
+EXPORT_API int vc_client_use_callback(vc_h vc);
 
-int vc_client_not_use_callback(vc_h vc);
+EXPORT_API int vc_client_not_use_callback(vc_h vc);
 
 /* Authority */
-int vc_client_set_auth_state_changed_cb(vc_h vc, vc_auth_state_changed_cb callback, void* user_data);
+EXPORT_API int vc_client_set_auth_state_changed_cb(vc_h vc, vc_auth_state_changed_cb callback, void* user_data);
 
-int vc_client_get_auth_state_changed_cb(vc_h vc, vc_auth_state_changed_cb* callback, void** user_data);
+EXPORT_API int vc_client_get_auth_state_changed_cb(vc_h vc, vc_auth_state_changed_cb* callback, void** user_data);
 
-int vc_client_unset_auth_state_changed_cb(vc_h vc);
+EXPORT_API int vc_client_unset_auth_state_changed_cb(vc_h vc);
 
-int vc_client_set_auth_state(vc_h vc, vc_auth_state_e state);
+EXPORT_API int vc_client_set_auth_state(vc_h vc, vc_auth_state_e state);
 
-int vc_client_get_auth_state(vc_h vc, vc_auth_state_e* state);
+EXPORT_API int vc_client_get_auth_state(vc_h vc, vc_auth_state_e* state);
 
-int vc_client_get_before_auth_state(vc_h vc, vc_auth_state_e* before, vc_auth_state_e* current);
+EXPORT_API int vc_client_get_before_auth_state(vc_h vc, vc_auth_state_e* before, vc_auth_state_e* current);
 
-int vc_client_set_mgr_pid(vc_h vc, int mgr_pid);
+EXPORT_API int vc_client_set_mgr_pid(vc_h vc, int mgr_pid);
 
-int vc_client_get_mgr_pid(vc_h vc, int* mgr_pid);
+EXPORT_API int vc_client_get_mgr_pid(vc_h vc, int* mgr_pid);
 
 
 #ifdef __cplusplus

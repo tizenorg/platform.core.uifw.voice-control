@@ -30,6 +30,8 @@ SET(VERSION 0.2.10)
 
 ADD_DEFINITIONS("-DVOICE_LIBDIR=\"${LIBDIR}\"")
 ADD_DEFINITIONS("-flto")
+ADD_DEFINITIONS("-fvisibility=hidden")
+ADD_DEFINITIONS("-DEXPORT_API=__attribute__((visibility(\"default\")))")
 
 # pkg config tool
 INCLUDE(FindPkgConfig)

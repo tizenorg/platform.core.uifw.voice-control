@@ -32,6 +32,11 @@ extern "C" {
 /**
 * @brief Enumerations of error codes.
 */
+
+#ifndef EXPORT_API
+#define EXPORT_API
+#endif // EXPORT_API
+
 typedef enum {
 	VCP_ERROR_NONE			= TIZEN_ERROR_NONE,		/**< Successful */
 	VCP_ERROR_OUT_OF_MEMORY		= TIZEN_ERROR_OUT_OF_MEMORY,	/**< Out of Memory */
@@ -459,7 +464,7 @@ typedef struct {
 * @see vcp_get_engine_info()
 * @see vcp_unload_engine()
 */
-int vcp_load_engine(vcpd_funcs_s* pdfuncs, vcpe_funcs_s* pefuncs);
+EXPORT_API int vcp_load_engine(vcpd_funcs_s* pdfuncs, vcpe_funcs_s* pefuncs);
 
 /**
 * @brief Unloads this engine by the daemon.
@@ -468,7 +473,7 @@ int vcp_load_engine(vcpd_funcs_s* pdfuncs, vcpe_funcs_s* pefuncs);
 *
 * @see vcp_load_engine()
 */
-void vcp_unload_engine(void);
+EXPORT_API void vcp_unload_engine(void);
 
 /**
 * @brief Called to get the engine base information.
@@ -502,7 +507,7 @@ typedef void (*vcpe_engine_info_cb)(const char* engine_uuid, const char* engine_
 * @see vcpe_engine_info_cb()
 * @see vcp_load_engine()
 */
-int vcp_get_engine_info(vcpe_engine_info_cb callback, void* user_data);
+EXPORT_API int vcp_get_engine_info(vcpe_engine_info_cb callback, void* user_data);
 
 
 #ifdef __cplusplus

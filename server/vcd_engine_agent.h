@@ -31,6 +31,11 @@ extern "C" {
 
 #define	ENGINE_PATH_SIZE 256
 
+#ifndef EXPORT_API
+#define EXPORT_API
+#endif // EXPORT_API
+
+
 typedef void (*result_callback)(vcp_result_event_e event, int* result_id, int count, const char* all_result,
 								const char* non_fixed_result, const char* msg, void *user_data);
 
@@ -39,44 +44,44 @@ typedef void (*silence_dectection_callback)(void *user_data);
 
 
 /** Init engine agent */
-int vcd_engine_agent_init(result_callback result_cb);
+EXPORT_API int vcd_engine_agent_init(result_callback result_cb);
 
 /** Release engine agent */
-int vcd_engine_agent_release();
+EXPORT_API int vcd_engine_agent_release();
 
-bool vcd_engine_is_available_engine();
+EXPORT_API bool vcd_engine_is_available_engine();
 
 /** Set current engine */
-int vcd_engine_agent_initialize_current_engine();
+EXPORT_API int vcd_engine_agent_initialize_current_engine();
 
 /** load current engine */
-int vcd_engine_agent_load_current_engine();
+EXPORT_API int vcd_engine_agent_load_current_engine();
 
 /** Unload current engine */
-int vcd_engine_agent_unload_current_engine();
+EXPORT_API int vcd_engine_agent_unload_current_engine();
 
 /** test for language list */
-int vcd_print_enginelist();
+EXPORT_API int vcd_print_enginelist();
 
 
-int vcd_engine_get_audio_format(const char* audio_id, vcp_audio_type_e* types, int* rate, int* channels);
+EXPORT_API int vcd_engine_get_audio_format(const char* audio_id, vcp_audio_type_e* types, int* rate, int* channels);
 
-int vcd_engine_supported_langs(GList** lang_list);
+EXPORT_API int vcd_engine_supported_langs(GList** lang_list);
 
-int vcd_engine_get_current_language(char** lang);
+EXPORT_API int vcd_engine_get_current_language(char** lang);
 
-int vcd_engine_set_current_language(const char* language);
+EXPORT_API int vcd_engine_set_current_language(const char* language);
 
-int vcd_engine_set_commands();
+EXPORT_API int vcd_engine_set_commands();
 
 /* normal recognition */
-int vcd_engine_recognize_start(bool silence);
+EXPORT_API int vcd_engine_recognize_start(bool silence);
 
-int vcd_engine_recognize_audio(const void* data, unsigned int length, vcp_speech_detect_e* speech_detected);
+EXPORT_API int vcd_engine_recognize_audio(const void* data, unsigned int length, vcp_speech_detect_e* speech_detected);
 
-int vcd_engine_recognize_stop();
+EXPORT_API int vcd_engine_recognize_stop();
 
-int vcd_engine_recognize_cancel();
+EXPORT_API int vcd_engine_recognize_cancel();
 
 
 

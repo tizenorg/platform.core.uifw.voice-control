@@ -32,6 +32,11 @@ extern "C"
 * @brief Enumerations of command format.
 * @since_tizen 2.4
 */
+
+#ifndef EXPORT_API
+#define EXPORT_API
+#endif // EXPORT_API
+
 typedef enum {
 	VC_CMD_FORMAT_FIXED = 0,	/**< fixed command only */
 	VC_CMD_FORMAT_FIXED_AND_EXTRA,	/**< Fixed + extra unfixed command */
@@ -57,7 +62,7 @@ typedef enum {
 * @retval #VC_ERROR_PERMISSION_DENIED Permission denied
 * @retval #VC_ERROR_NOT_SUPPORTED Not supported feature
 */
-int vc_cmd_get_unfixed_command(vc_cmd_h vc_command, char** command);
+EXPORT_API int vc_cmd_get_unfixed_command(vc_cmd_h vc_command, char** command);
 
 /**
 * @brief Sets command format.
@@ -74,7 +79,7 @@ int vc_cmd_get_unfixed_command(vc_cmd_h vc_command, char** command);
 *
 * @see vc_cmd_get_format()
 */
-int vc_cmd_set_format(vc_cmd_h vc_command, vc_cmd_format_e format);
+EXPORT_API int vc_cmd_set_format(vc_cmd_h vc_command, vc_cmd_format_e format);
 
 /**
 * @brief Gets command format.
@@ -93,7 +98,7 @@ int vc_cmd_set_format(vc_cmd_h vc_command, vc_cmd_format_e format);
 *
 * @see vc_cmd_set_format()
 */
-int vc_cmd_get_format(vc_cmd_h vc_command, vc_cmd_format_e* format);
+EXPORT_API int vc_cmd_get_format(vc_cmd_h vc_command, vc_cmd_format_e* format);
 
 /**
 * @brief Sets command domain
@@ -110,7 +115,7 @@ int vc_cmd_get_format(vc_cmd_h vc_command, vc_cmd_format_e* format);
 *
 * @see vc_cmd_get_domain()
 */
-int vc_cmd_set_domain(vc_cmd_h vc_command, int domain);
+EXPORT_API int vc_cmd_set_domain(vc_cmd_h vc_command, int domain);
 
 /**
 * @brief Gets command domain.
@@ -127,7 +132,7 @@ int vc_cmd_set_domain(vc_cmd_h vc_command, int domain);
 *
 * @see vc_cmd_set_domain()
 */
-int vc_cmd_get_domain(vc_cmd_h vc_command, int* domain);
+EXPORT_API int vc_cmd_get_domain(vc_cmd_h vc_command, int* domain);
 
 
 #ifdef __cplusplus

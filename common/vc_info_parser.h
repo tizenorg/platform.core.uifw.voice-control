@@ -27,6 +27,11 @@
 extern "C" {
 #endif
 
+#ifndef EXPORT_API
+#define EXPORT_API
+#endif // EXPORT_API
+
+
 
 typedef struct _demandable_client_s {
 	char*	appid;
@@ -40,43 +45,43 @@ typedef struct _client_s {
 } vc_client_info_s;
 
 
-int vc_cmd_parser_save_file(int pid, vc_cmd_type_e type, GSList* cmd_list);
+EXPORT_API int vc_cmd_parser_save_file(int pid, vc_cmd_type_e type, GSList* cmd_list);
 
-int vc_cmd_parser_delete_file(int pid, vc_cmd_type_e type);
+EXPORT_API int vc_cmd_parser_delete_file(int pid, vc_cmd_type_e type);
 
-int vc_cmd_parser_get_commands(int pid, vc_cmd_type_e type, GSList** cmd_list);
+EXPORT_API int vc_cmd_parser_get_commands(int pid, vc_cmd_type_e type, GSList** cmd_list);
 
-int vc_cmd_parser_get_command_info(int pid, vc_cmd_type_e type, int index, vc_cmd_s** info);
+EXPORT_API int vc_cmd_parser_get_command_info(int pid, vc_cmd_type_e type, int index, vc_cmd_s** info);
 
-int vc_cmd_parser_append_commands(int pid, vc_cmd_type_e type, vc_cmd_list_h vc_cmd_list);
+EXPORT_API int vc_cmd_parser_append_commands(int pid, vc_cmd_type_e type, vc_cmd_list_h vc_cmd_list);
 
 
 /* client request rule */
-int vc_info_parser_set_demandable_client(const char* filepath);
+EXPORT_API int vc_info_parser_set_demandable_client(const char* filepath);
 
-int vc_info_parser_get_demandable_clients(GSList** client_list);
+EXPORT_API int vc_info_parser_get_demandable_clients(GSList** client_list);
 
 
 /* Result info */
-int vc_info_parser_set_result(const char* result_text, int event, const char* msg, vc_cmd_list_h vc_cmd_list, bool exclusive);
+EXPORT_API int vc_info_parser_set_result(const char* result_text, int event, const char* msg, vc_cmd_list_h vc_cmd_list, bool exclusive);
 
-int vc_info_parser_get_result(char** result_text, int* event, char** result_message, int pid, vc_cmd_list_h vc_cmd_list, bool exclusive);
+EXPORT_API int vc_info_parser_get_result(char** result_text, int* event, char** result_message, int pid, vc_cmd_list_h vc_cmd_list, bool exclusive);
 
-int vc_info_parser_unset_result(bool exclusive);
+EXPORT_API int vc_info_parser_unset_result(bool exclusive);
 
-int vc_info_parser_get_result_pid_list(GSList** pid_list);
+EXPORT_API int vc_info_parser_get_result_pid_list(GSList** pid_list);
 
 
 /* Client info */
-int vc_info_parser_set_client_info(GSList* client_info_list);
+EXPORT_API int vc_info_parser_set_client_info(GSList* client_info_list);
 
-int vc_info_parser_get_client_info(GSList** client_info_list);
+EXPORT_API int vc_info_parser_get_client_info(GSList** client_info_list);
 
 
 /* for debug */
-int __vc_cmd_parser_print_commands(GSList* cmd_list);
+EXPORT_API int __vc_cmd_parser_print_commands(GSList* cmd_list);
 
-int __vc_info_parser_print_results(GSList* result_list);
+EXPORT_API int __vc_info_parser_print_results(GSList* result_list);
 
 
 #ifdef __cplusplus

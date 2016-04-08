@@ -45,6 +45,11 @@ extern "C" {
 *
 * @see vc_setting_set_enabled_changed_cb()
 */
+
+#ifndef EXPORT_API
+#define EXPORT_API
+#endif // EXPORT_API
+
 typedef void (*vc_setting_enabled_changed_cb)(bool enabled, void* user_data);
 
 /**
@@ -88,7 +93,7 @@ typedef void (*vc_setting_current_language_changed_cb)(const char* previous, con
 *
 * @see vc_setting_finalize()
 */
-int vc_setting_initialize(void);
+EXPORT_API int vc_setting_initialize(void);
 
 /**
 * @brief Deinitialize vc setting
@@ -100,7 +105,7 @@ int vc_setting_initialize(void);
 *
 * @see vc_setting_initialize()
 */
-int vc_setting_deinitialize(void);
+EXPORT_API int vc_setting_deinitialize(void);
 
 /**
 * @brief Get supported languages of current engine
@@ -118,7 +123,7 @@ int vc_setting_deinitialize(void);
 *
 * @see vc_setting_supported_language_cb()
 */
-int vc_setting_foreach_supported_languages(vc_setting_supported_language_cb callback, void* user_data);
+EXPORT_API int vc_setting_foreach_supported_languages(vc_setting_supported_language_cb callback, void* user_data);
 
 /**
 * @brief Get the default language.
@@ -136,7 +141,7 @@ int vc_setting_foreach_supported_languages(vc_setting_supported_language_cb call
 *
 * @see vc_setting_set_language()
 */
-int vc_setting_get_language(char** language);
+EXPORT_API int vc_setting_get_language(char** language);
 
 /**
 * @brief Set the default language.
@@ -151,7 +156,7 @@ int vc_setting_get_language(char** language);
 *
 * @see vc_setting_get_language()
 */
-int vc_setting_set_language(const char* language);
+EXPORT_API int vc_setting_set_language(const char* language);
 
 /**
 * @brief Set a automatic option of language.
@@ -166,7 +171,7 @@ int vc_setting_set_language(const char* language);
 *
 * @see vc_setting_get_auto_language()
 */
-int vc_setting_set_auto_language(bool value);
+EXPORT_API int vc_setting_set_auto_language(bool value);
 
 /**
 * @brief Get a automatic option of voice.
@@ -181,7 +186,7 @@ int vc_setting_set_auto_language(bool value);
 *
 * @see vc_setting_set_auto_language()
 */
-int vc_setting_get_auto_language(bool* value);
+EXPORT_API int vc_setting_get_auto_language(bool* value);
 
 /**
 * @brief Set voice control service enabled.
@@ -196,7 +201,7 @@ int vc_setting_get_auto_language(bool* value);
 *
 * @see vc_setting_get_enabled()
 */
-int vc_setting_set_enabled(bool value);
+EXPORT_API int vc_setting_set_enabled(bool value);
 
 /**
 * @brief Get voice control service enabled.
@@ -211,7 +216,7 @@ int vc_setting_set_enabled(bool value);
 *
 * @see vc_setting_set_enabled()
 */
-int vc_setting_get_enabled(bool* value);
+EXPORT_API int vc_setting_get_enabled(bool* value);
 
 /**
 * @brief Sets a callback function to be called when service enabled is changed.
@@ -229,7 +234,7 @@ int vc_setting_get_enabled(bool* value);
 *
 * @see vc_setting_unset_enabled_changed_cb()
 */
-int vc_setting_set_enabled_changed_cb(vc_setting_enabled_changed_cb callback, void* user_data);
+EXPORT_API int vc_setting_set_enabled_changed_cb(vc_setting_enabled_changed_cb callback, void* user_data);
 
 /**
 * @brief Unsets the callback function.
@@ -244,7 +249,7 @@ int vc_setting_set_enabled_changed_cb(vc_setting_enabled_changed_cb callback, vo
 *
 * @see vc_setting_set_enabled_changed_cb()
 */
-int vc_setting_unset_enabled_changed_cb();
+EXPORT_API int vc_setting_unset_enabled_changed_cb();
 
 /**
 * @brief Registers a callback function to be called when current language is changed.
@@ -261,7 +266,7 @@ int vc_setting_unset_enabled_changed_cb();
 *
 * @see vc_setting_unset_current_language_changed_cb()
 */
-int vc_setting_set_current_language_changed_cb(vc_setting_current_language_changed_cb callback, void* user_data);
+EXPORT_API int vc_setting_set_current_language_changed_cb(vc_setting_current_language_changed_cb callback, void* user_data);
 
 /**
 * @brief Unregisters the callback function.
@@ -275,7 +280,7 @@ int vc_setting_set_current_language_changed_cb(vc_setting_current_language_chang
 *
 * @see vc_setting_set_current_language_changed_cb()
 */
-int vc_setting_unset_current_language_changed_cb();
+EXPORT_API int vc_setting_unset_current_language_changed_cb();
 
 
 #ifdef __cplusplus

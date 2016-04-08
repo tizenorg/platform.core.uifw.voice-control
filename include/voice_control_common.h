@@ -34,6 +34,11 @@ extern "C"
 * @brief Enumerations of error codes.
 * @since_tizen 2.4
 */
+
+#ifndef EXPORT_API
+#define EXPORT_API
+#endif // EXPORT_API
+
 typedef enum {
 	VC_ERROR_NONE			= TIZEN_ERROR_NONE,			/**< Successful */
 	VC_ERROR_OUT_OF_MEMORY		= TIZEN_ERROR_OUT_OF_MEMORY,		/**< Out of Memory */

@@ -23,24 +23,29 @@
 extern "C" {
 #endif
 
-int vc_dbus_open_connection();
+#ifndef EXPORT_API
+#define EXPORT_API
+#endif // EXPORT_API
 
-int vc_dbus_close_connection();
+
+EXPORT_API int vc_dbus_open_connection();
+
+EXPORT_API int vc_dbus_close_connection();
 
 
-int vc_dbus_request_hello();
+EXPORT_API int vc_dbus_request_hello();
 
-int vc_dbus_request_initialize(int pid, int* mgr_pid, int* service_state);
+EXPORT_API int vc_dbus_request_initialize(int pid, int* mgr_pid, int* service_state);
 
-int vc_dbus_request_finalize(int pid);
+EXPORT_API int vc_dbus_request_finalize(int pid);
 
-int vc_dbus_request_set_exclusive_command(int pid, bool value);
+EXPORT_API int vc_dbus_request_set_exclusive_command(int pid, bool value);
 
-int vc_dbus_request_set_command(int pid, vc_cmd_type_e cmd_type);
+EXPORT_API int vc_dbus_request_set_command(int pid, vc_cmd_type_e cmd_type);
 
-int vc_dbus_request_unset_command(int pid, vc_cmd_type_e cmd_type);
+EXPORT_API int vc_dbus_request_unset_command(int pid, vc_cmd_type_e cmd_type);
 
-int vc_dbus_set_foreground(int pid, bool value);
+EXPORT_API int vc_dbus_set_foreground(int pid, bool value);
 
 #if 0
 int vc_dbus_request_start(int pid, int silence);
@@ -51,15 +56,15 @@ int vc_dbus_request_cancel(int pid);
 #endif
 
 /* Authority */
-int vc_dbus_request_auth_enable(int pid, int mgr_pid);
+EXPORT_API int vc_dbus_request_auth_enable(int pid, int mgr_pid);
 
-int vc_dbus_request_auth_disable(int pid, int mgr_pid);
+EXPORT_API int vc_dbus_request_auth_disable(int pid, int mgr_pid);
 
-int vc_dbus_request_auth_start(int pid, int mgr_pid);
+EXPORT_API int vc_dbus_request_auth_start(int pid, int mgr_pid);
 
-int vc_dbus_request_auth_stop(int pid, int mgr_pid);
+EXPORT_API int vc_dbus_request_auth_stop(int pid, int mgr_pid);
 
-int vc_dbus_request_auth_cancel(int pid, int mgr_pid);
+EXPORT_API int vc_dbus_request_auth_cancel(int pid, int mgr_pid);
 
 
 #ifdef __cplusplus

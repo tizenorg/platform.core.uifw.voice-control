@@ -30,6 +30,11 @@ extern "C"
 {
 #endif
 
+#ifndef EXPORT_API
+#define EXPORT_API
+#endif // EXPORT_API
+
+
 /* Authority */
 
 typedef enum {
@@ -64,7 +69,7 @@ typedef void (*vc_auth_state_changed_cb)(vc_auth_state_e previous, vc_auth_state
 *
 * @see vc_auth_disable()
 */
-int vc_auth_enable();
+EXPORT_API int vc_auth_enable();
 
 /**
 * @brief Disable authority.
@@ -78,7 +83,7 @@ int vc_auth_enable();
 *
 * @see vc_auth_enable()
 */
-int vc_auth_disable();
+EXPORT_API int vc_auth_disable();
 
 /**
 * @brief Get current authority state.
@@ -89,7 +94,7 @@ int vc_auth_disable();
 *
 * @pre The state should be #VC_STATE_READY.
 */
-int vc_auth_get_state(vc_auth_state_e* status);
+EXPORT_API int vc_auth_get_state(vc_auth_state_e* status);
 
 /**
 * @brief Set callback for authority state changing.
@@ -104,7 +109,7 @@ int vc_auth_get_state(vc_auth_state_e* status);
 * @see vc_auth_unset_state_changed_cb()
 * @see vc_auth_state_changed_cb()
 */
-int vc_auth_set_state_changed_cb(vc_auth_state_changed_cb callback, void* user_data);
+EXPORT_API int vc_auth_set_state_changed_cb(vc_auth_state_changed_cb callback, void* user_data);
 
 /**
 * @brief Unset callback for authority state changing.
@@ -120,7 +125,7 @@ int vc_auth_set_state_changed_cb(vc_auth_state_changed_cb callback, void* user_d
 *
 * @see vc_auth_set_state_changed_cb()
 */
-int vc_auth_unset_state_changed_cb();
+EXPORT_API int vc_auth_unset_state_changed_cb();
 
 /**
 * @brief Start recognition.
@@ -138,7 +143,7 @@ int vc_auth_unset_state_changed_cb();
 * @see vc_auth_stop()
 * @see vc_auth_cancel()
 */
-int vc_auth_start();
+EXPORT_API int vc_auth_start();
 
 /**
 * @brief Stop recognition.
@@ -156,7 +161,7 @@ int vc_auth_start();
 * @see vc_auth_start()
 * @see vc_auth_cancel()
 */
-int vc_auth_stop();
+EXPORT_API int vc_auth_stop();
 
 /**
 * @brief Cancel recognition.
@@ -174,7 +179,7 @@ int vc_auth_stop();
 * @see vc_auth_start()
 * @see vc_auth_stop()
 */
-int vc_auth_cancel();
+EXPORT_API int vc_auth_cancel();
 
 
 #ifdef __cplusplus

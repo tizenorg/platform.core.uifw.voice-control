@@ -25,6 +25,11 @@ extern "C" {
 
 #include "voice_control_plugin_engine.h"
 
+#ifndef EXPORT_API
+#define EXPORT_API
+#endif // EXPORT_API
+
+
 typedef enum {
 	VCD_RECORDER_STATE_READY,	/**< Recorder is ready to start */
 	VCD_RECORDER_STATE_RECORDING,	/**< In the middle of recording */
@@ -36,21 +41,21 @@ typedef int (*vcd_recoder_audio_cb)(const void* data, const unsigned int length)
 typedef void (*vcd_recorder_interrupt_cb)();
 
 
-int vcd_recorder_create(vcd_recoder_audio_cb audio_cb, vcd_recorder_interrupt_cb interrupt_cb);
+EXPORT_API int vcd_recorder_create(vcd_recoder_audio_cb audio_cb, vcd_recorder_interrupt_cb interrupt_cb);
 
-int vcd_recorder_destroy();
+EXPORT_API int vcd_recorder_destroy();
 
-int vcd_recorder_set(const char* audio_type, vcp_audio_type_e type, int rate, int channel);
+EXPORT_API int vcd_recorder_set(const char* audio_type, vcp_audio_type_e type, int rate, int channel);
 
-int vcd_recorder_get(char** audio_type);
+EXPORT_API int vcd_recorder_get(char** audio_type);
 
-int vcd_recorder_start();
+EXPORT_API int vcd_recorder_start();
 
-int vcd_recorder_read();
+EXPORT_API int vcd_recorder_read();
 
-int vcd_recorder_stop();
+EXPORT_API int vcd_recorder_stop();
 
-int vcd_recorder_get_state();
+EXPORT_API int vcd_recorder_get_state();
 
 
 #ifdef __cplusplus

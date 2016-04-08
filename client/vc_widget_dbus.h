@@ -23,27 +23,32 @@
 extern "C" {
 #endif
 
-int vc_widget_dbus_open_connection();
-
-int vc_widget_dbus_close_connection();
-
-
-int vc_widget_dbus_request_hello();
-
-int vc_widget_dbus_request_initialize(int pid, int* service_state);
-
-int vc_widget_dbus_request_finalize(int pid);
-
-int vc_widget_dbus_request_start_recording(int pid, bool command);
-
-int vc_widget_dbus_set_foreground(int pid, bool value);
+#ifndef EXPORT_API
+#define EXPORT_API
+#endif // EXPORT_API
 
 
-int vc_widget_dbus_request_start(int pid, int silence);
+EXPORT_API int vc_widget_dbus_open_connection();
 
-int vc_widget_dbus_request_stop(int pid);
+EXPORT_API int vc_widget_dbus_close_connection();
 
-int vc_widget_dbus_request_cancel(int pid);
+
+EXPORT_API int vc_widget_dbus_request_hello();
+
+EXPORT_API int vc_widget_dbus_request_initialize(int pid, int* service_state);
+
+EXPORT_API int vc_widget_dbus_request_finalize(int pid);
+
+EXPORT_API int vc_widget_dbus_request_start_recording(int pid, bool command);
+
+EXPORT_API int vc_widget_dbus_set_foreground(int pid, bool value);
+
+
+EXPORT_API int vc_widget_dbus_request_start(int pid, int silence);
+
+EXPORT_API int vc_widget_dbus_request_stop(int pid);
+
+EXPORT_API int vc_widget_dbus_request_cancel(int pid);
 
 
 #ifdef __cplusplus

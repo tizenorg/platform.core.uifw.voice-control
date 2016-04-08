@@ -81,6 +81,11 @@ extern "C"
 /**
 * @brief Enumerations of recognition mode.
 */
+
+#ifndef EXPORT_API
+#define EXPORT_API
+#endif // EXPORT_API
+
 typedef enum {
 	VC_RECOGNITION_MODE_STOP_BY_SILENCE,		/**< Default mode */
 	VC_RECOGNITION_MODE_RESTART_AFTER_REJECT,	/**< Restart recognition after rejected result */
@@ -136,7 +141,7 @@ typedef void (*vc_mgr_begin_speech_detected_cb)(void *user_data);
 *
 * @see vc_mgr_deinitialize()
 */
-int vc_mgr_initialize();
+EXPORT_API int vc_mgr_initialize();
 
 /**
 * @brief Deinitialize voice control manager.
@@ -149,7 +154,7 @@ int vc_mgr_initialize();
 *
 * @see vc_mgr_deinitialize()
 */
-int vc_mgr_deinitialize();
+EXPORT_API int vc_mgr_deinitialize();
 
 /**
 * @brief Connects the voice control service.
@@ -163,7 +168,7 @@ int vc_mgr_deinitialize();
 *
 * @see vc_mgr_unprepare()
 */
-int vc_mgr_prepare();
+EXPORT_API int vc_mgr_prepare();
 
 /**
 * @brief Disconnects the vc-daemon.
@@ -177,7 +182,7 @@ int vc_mgr_prepare();
 *
 * @see vc_mgr_prepare()
 */
-int vc_mgr_unprepare();
+EXPORT_API int vc_mgr_unprepare();
 
 /**
 * @brief Retrieves all supported languages using callback function.
@@ -197,7 +202,7 @@ int vc_mgr_unprepare();
 * @see vc_supported_language_cb()
 * @see vc_mgr_get_current_language()
 */
-int vc_mgr_foreach_supported_languages(vc_supported_language_cb callback, void* user_data);
+EXPORT_API int vc_mgr_foreach_supported_languages(vc_supported_language_cb callback, void* user_data);
 
 /**
 * @brief Gets current language set by user.
@@ -219,7 +224,7 @@ int vc_mgr_foreach_supported_languages(vc_supported_language_cb callback, void* 
 *
 * @see vc_mgr_foreach_supported_languages()
 */
-int vc_mgr_get_current_language(char** language);
+EXPORT_API int vc_mgr_get_current_language(char** language);
 
 /**
 * @brief Gets current state of voice control manager.
@@ -235,7 +240,7 @@ int vc_mgr_get_current_language(char** language);
 * @see vc_state_changed_cb()
 * @see vc_set_state_changed_cb()
 */
-int vc_mgr_get_state(vc_state_e* state);
+EXPORT_API int vc_mgr_get_state(vc_state_e* state);
 
 /**
 * @brief Gets current state of voice control service.
@@ -254,7 +259,7 @@ int vc_mgr_get_state(vc_state_e* state);
 * @see vc_set_service_state_changed_cb()
 * @see vc_unset_service_state_changed_cb()
 */
-int vc_mgr_get_service_state(vc_service_state_e* state);
+EXPORT_API int vc_mgr_get_service_state(vc_service_state_e* state);
 
 /**
 * @brief Sets demandable client list.
@@ -270,7 +275,7 @@ int vc_mgr_get_service_state(vc_service_state_e* state);
 *
 * @see vc_mgr_get_demandable_client_rule()
 */
-int vc_mgr_set_demandable_client_rule(const char* rule);
+EXPORT_API int vc_mgr_set_demandable_client_rule(const char* rule);
 
 /**
 * @brief Gets demandable client list.
@@ -284,7 +289,7 @@ int vc_mgr_set_demandable_client_rule(const char* rule);
 *
 * @see vc_mgr_set_demandable_client_rule()
 */
-int vc_mgr_unset_demandable_client_rule();
+EXPORT_API int vc_mgr_unset_demandable_client_rule();
 
 /**
 * @brief Checks whether the command format is supported.
@@ -300,7 +305,7 @@ int vc_mgr_unset_demandable_client_rule();
 *
 * @pre The state should be #VC_STATE_READY.
 */
-int vc_mgr_is_command_format_supported(vc_cmd_format_e format, bool* support);
+EXPORT_API int vc_mgr_is_command_format_supported(vc_cmd_format_e format, bool* support);
 
 /**
 * @brief Sets system or exclusive commands.
@@ -319,7 +324,7 @@ int vc_mgr_is_command_format_supported(vc_cmd_format_e format, bool* support);
 *
 * @see vc_mgr_unset_command_list()
 */
-int vc_mgr_set_command_list(vc_cmd_list_h vc_cmd_list);
+EXPORT_API int vc_mgr_set_command_list(vc_cmd_list_h vc_cmd_list);
 
 /**
 * @brief Unsets system or exclusive commands.
@@ -333,7 +338,7 @@ int vc_mgr_set_command_list(vc_cmd_list_h vc_cmd_list);
 *
 * @see vc_mgr_set_command_list()
 */
-int vc_mgr_unset_command_list();
+EXPORT_API int vc_mgr_unset_command_list();
 
 /**
 * @brief Retrieves all available commands.
@@ -350,7 +355,7 @@ int vc_mgr_unset_command_list();
 *
 * @pre The state should be #VC_STATE_READY and the service state should be #VC_SERVICE_STATE_READY.
 */
-int vc_mgr_get_current_commands(vc_cmd_list_h* vc_cmd_list);
+EXPORT_API int vc_mgr_get_current_commands(vc_cmd_list_h* vc_cmd_list);
 
 /**
 * @brief Sets audio in type.
@@ -367,7 +372,7 @@ int vc_mgr_get_current_commands(vc_cmd_list_h* vc_cmd_list);
 *
 * @see vc_mgr_get_audio_type()
 */
-int vc_mgr_set_audio_type(const char* audio_id);
+EXPORT_API int vc_mgr_set_audio_type(const char* audio_id);
 
 /**
 * @brief Gets audio-in type.
@@ -386,7 +391,7 @@ int vc_mgr_set_audio_type(const char* audio_id);
 *
 * @see vc_mgr_set_audio_type()
 */
-int vc_mgr_get_audio_type(char** audio_id);
+EXPORT_API int vc_mgr_get_audio_type(char** audio_id);
 
 /**
 * @brief Sets recognition mode.
@@ -402,7 +407,7 @@ int vc_mgr_get_audio_type(char** audio_id);
 *
 * @see vc_mgr_set_recognition_mode()
 */
-int vc_mgr_set_recognition_mode(vc_recognition_mode_e mode);
+EXPORT_API int vc_mgr_set_recognition_mode(vc_recognition_mode_e mode);
 
 /**
 * @brief Gets recognition mode.
@@ -418,7 +423,7 @@ int vc_mgr_set_recognition_mode(vc_recognition_mode_e mode);
 *
 * @see vc_mgr_get_recognition_mode()
 */
-int vc_mgr_get_recognition_mode(vc_recognition_mode_e* mode);
+EXPORT_API int vc_mgr_get_recognition_mode(vc_recognition_mode_e* mode);
 
 /**
 * @brief Starts recognition.
@@ -444,7 +449,7 @@ int vc_mgr_get_recognition_mode(vc_recognition_mode_e* mode);
 * @see vc_mgr_set_recognition_mode()
 * @see vc_mgr_get_recognition_mode()
 */
-int vc_mgr_start(bool exclusive_command_option);
+EXPORT_API int vc_mgr_start(bool exclusive_command_option);
 
 /**
 * @brief Stop recognition.
@@ -463,7 +468,7 @@ int vc_mgr_start(bool exclusive_command_option);
 * @see vc_service_state_changed_cb()
 * @see vc_mgr_result_cb()
 */
-int vc_mgr_stop();
+EXPORT_API int vc_mgr_stop();
 
 /**
 * @brief Cancels recognition.
@@ -482,7 +487,7 @@ int vc_mgr_stop();
 * @see vc_mgr_stop()
 * @see vc_service_state_changed_cb()
 */
-int vc_mgr_cancel();
+EXPORT_API int vc_mgr_cancel();
 
 /**
 * @brief Gets the microphone volume during recording.
@@ -499,7 +504,7 @@ int vc_mgr_cancel();
 *
 * @see vc_mgr_start()
 */
-int vc_mgr_get_recording_volume(float* volume);
+EXPORT_API int vc_mgr_get_recording_volume(float* volume);
 
 /**
 * @brief Select valid result from all results.
@@ -516,7 +521,7 @@ int vc_mgr_get_recording_volume(float* volume);
 *
 * @see vc_mgr_all_result_cb()
 */
-int vc_mgr_set_selected_results(vc_cmd_list_h vc_cmd_list);
+EXPORT_API int vc_mgr_set_selected_results(vc_cmd_list_h vc_cmd_list);
 
 
 /**
@@ -535,7 +540,7 @@ int vc_mgr_set_selected_results(vc_cmd_list_h vc_cmd_list);
 * @see vc_mgr_all_result_cb()
 * @see vc_mgr_unset_all_result_cb()
 */
-int vc_mgr_set_all_result_cb(vc_mgr_all_result_cb callback, void* user_data);
+EXPORT_API int vc_mgr_set_all_result_cb(vc_mgr_all_result_cb callback, void* user_data);
 
 /**
 * @brief Unregisters the callback function.
@@ -548,7 +553,7 @@ int vc_mgr_set_all_result_cb(vc_mgr_all_result_cb callback, void* user_data);
 *
 * @see vc_mgr_set_all_result_cb()
 */
-int vc_mgr_unset_all_result_cb();
+EXPORT_API int vc_mgr_unset_all_result_cb();
 
 /**
 * @brief Registers a callback function for getting system or exclusive recognition result.
@@ -566,7 +571,7 @@ int vc_mgr_unset_all_result_cb();
 * @see vc_result_cb()
 * @see vc_mgr_unset_result_cb()
 */
-int vc_mgr_set_result_cb(vc_result_cb callback, void* user_data);
+EXPORT_API int vc_mgr_set_result_cb(vc_result_cb callback, void* user_data);
 
 /**
 * @brief Unregisters the callback function.
@@ -579,7 +584,7 @@ int vc_mgr_set_result_cb(vc_result_cb callback, void* user_data);
 *
 * @see vc_mgr_set_result_cb()
 */
-int vc_mgr_unset_result_cb();
+EXPORT_API int vc_mgr_unset_result_cb();
 
 /**
 * @brief Registers a callback function to be called when state is changed.
@@ -597,7 +602,7 @@ int vc_mgr_unset_result_cb();
 * @see vc_state_changed_cb()
 * @see vc_mgr_unset_state_changed_cb()
 */
-int vc_mgr_set_state_changed_cb(vc_state_changed_cb callback, void* user_data);
+EXPORT_API int vc_mgr_set_state_changed_cb(vc_state_changed_cb callback, void* user_data);
 
 /**
 * @brief Unregisters the callback function.
@@ -610,7 +615,7 @@ int vc_mgr_set_state_changed_cb(vc_state_changed_cb callback, void* user_data);
 *
 * @see vc_mgr_set_state_changed_cb()
 */
-int vc_mgr_unset_state_changed_cb();
+EXPORT_API int vc_mgr_unset_state_changed_cb();
 
 /**
 * @brief Registers a callback function to be called when state is changed.
@@ -628,7 +633,7 @@ int vc_mgr_unset_state_changed_cb();
 * @see vc_service_state_changed_cb()
 * @see vc_mgr_unset_service_state_changed_cb()
 */
-int vc_mgr_set_service_state_changed_cb(vc_service_state_changed_cb callback, void* user_data);
+EXPORT_API int vc_mgr_set_service_state_changed_cb(vc_service_state_changed_cb callback, void* user_data);
 
 /**
 * @brief Unregisters the callback function.
@@ -641,7 +646,7 @@ int vc_mgr_set_service_state_changed_cb(vc_service_state_changed_cb callback, vo
 *
 * @see vc_mgr_set_service_state_changed_cb()
 */
-int vc_mgr_unset_service_state_changed_cb();
+EXPORT_API int vc_mgr_unset_service_state_changed_cb();
 
 /**
 * @brief Registers a callback function to be called when begin of speech is detected.
@@ -659,7 +664,7 @@ int vc_mgr_unset_service_state_changed_cb();
 * @see vc_mgr_begin_speech_detected_cb()
 * @see vc_mgr_unset_speech_detected_cb()
 */
-int vc_mgr_set_speech_detected_cb(vc_mgr_begin_speech_detected_cb callback, void* user_data);
+EXPORT_API int vc_mgr_set_speech_detected_cb(vc_mgr_begin_speech_detected_cb callback, void* user_data);
 
 /**
 * @brief Unregisters the callback function.
@@ -672,7 +677,7 @@ int vc_mgr_set_speech_detected_cb(vc_mgr_begin_speech_detected_cb callback, void
 *
 * @see vc_mgr_set_speech_detected_cb()
 */
-int vc_mgr_unset_speech_detected_cb();
+EXPORT_API int vc_mgr_unset_speech_detected_cb();
 
 /**
 * @brief Registers a callback function to be called when current language is changed.
@@ -690,7 +695,7 @@ int vc_mgr_unset_speech_detected_cb();
 * @see vc_current_language_changed_cb()
 * @see vc_mgr_unset_current_language_changed_cb()
 */
-int vc_mgr_set_current_language_changed_cb(vc_current_language_changed_cb callback, void* user_data);
+EXPORT_API int vc_mgr_set_current_language_changed_cb(vc_current_language_changed_cb callback, void* user_data);
 
 /**
 * @brief Unregisters the callback function.
@@ -703,7 +708,7 @@ int vc_mgr_set_current_language_changed_cb(vc_current_language_changed_cb callba
 *
 * @see vc_mgr_set_current_language_changed_cb()
 */
-int vc_mgr_unset_current_language_changed_cb();
+EXPORT_API int vc_mgr_unset_current_language_changed_cb();
 
 /**
 * @brief Registers a callback function to be called when an error occurred.
@@ -721,7 +726,7 @@ int vc_mgr_unset_current_language_changed_cb();
 * @see vc_error_cb()
 * @see vc_mgr_unset_error_cb()
 */
-int vc_mgr_set_error_cb(vc_error_cb callback, void* user_data);
+EXPORT_API int vc_mgr_set_error_cb(vc_error_cb callback, void* user_data);
 
 /**
 * @brief Unregisters the callback function.
@@ -734,7 +739,7 @@ int vc_mgr_set_error_cb(vc_error_cb callback, void* user_data);
 *
 * @see vc_mgr_set_error_cb()
 */
-int vc_mgr_unset_error_cb();
+EXPORT_API int vc_mgr_unset_error_cb();
 
 
 #ifdef __cplusplus

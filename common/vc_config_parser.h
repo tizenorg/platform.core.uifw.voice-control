@@ -25,6 +25,11 @@
 extern "C" {
 #endif
 
+#ifndef EXPORT_API
+#define EXPORT_API
+#endif // EXPORT_API
+
+
 typedef struct {
 	char*	name;
 	char*	uuid;
@@ -41,30 +46,30 @@ typedef struct {
 
 
 /* Get engine information */
-int vc_parser_get_engine_info(const char* path, vc_engine_info_s** engine_info);
+EXPORT_API int vc_parser_get_engine_info(const char* path, vc_engine_info_s** engine_info);
 
-int vc_parser_free_engine_info(vc_engine_info_s* engine_info);
+EXPORT_API int vc_parser_free_engine_info(vc_engine_info_s* engine_info);
 
 
-int vc_parser_load_config(vc_config_s** config_info);
+EXPORT_API int vc_parser_load_config(vc_config_s** config_info);
 
-int vc_parser_unload_config(vc_config_s* config_info);
+EXPORT_API int vc_parser_unload_config(vc_config_s* config_info);
 
-int vc_parser_set_engine(const char* engine_id);
+EXPORT_API int vc_parser_set_engine(const char* engine_id);
 
-int vc_parser_set_auto_lang(bool value);
+EXPORT_API int vc_parser_set_auto_lang(bool value);
 
-int vc_parser_set_language(const char* language);
+EXPORT_API int vc_parser_set_language(const char* language);
 
-int vc_parser_set_enabled(bool value);
+EXPORT_API int vc_parser_set_enabled(bool value);
 
-int vc_parser_find_config_changed(int* auto_lang, char** language, int* enabled);
+EXPORT_API int vc_parser_find_config_changed(int* auto_lang, char** language, int* enabled);
 
 
 /* Set / Get foreground info */
-int vc_parser_set_foreground(int pid, bool value);
+EXPORT_API int vc_parser_set_foreground(int pid, bool value);
 
-int vc_parser_get_foreground(int* pid);
+EXPORT_API int vc_parser_get_foreground(int* pid);
 
 
 #ifdef __cplusplus

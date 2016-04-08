@@ -26,6 +26,11 @@
 extern "C" {
 #endif
 
+#ifndef EXPORT_API
+#define EXPORT_API
+#endif // EXPORT_API
+
+
 typedef struct {
 	int	pid;
 	int	cmd_count;
@@ -75,87 +80,87 @@ typedef enum {
 */
 typedef bool (* client_foreach_command_cb)(int id, int type, const char* command, const char* param, int domain, void* user_data);
 
-int vcd_client_command_collect_command();
+EXPORT_API int vcd_client_command_collect_command();
 
-int vcd_client_get_length();
+EXPORT_API int vcd_client_get_length();
 
-int vcd_client_foreach_command(client_foreach_command_cb callback, void* user_data);
+EXPORT_API int vcd_client_foreach_command(client_foreach_command_cb callback, void* user_data);
 
-int vcd_client_get_cmd_from_result_id(int result_id, vc_cmd_s** result);
+EXPORT_API int vcd_client_get_cmd_from_result_id(int result_id, vc_cmd_s** result);
 
-int vcd_client_get_cmd_info_from_result_id(int result_id, int* pid, int* cmd_type, vc_cmd_s** result);
+EXPORT_API int vcd_client_get_cmd_info_from_result_id(int result_id, int* pid, int* cmd_type, vc_cmd_s** result);
 
-int vcd_client_set_slience_detection(bool value);
+EXPORT_API int vcd_client_set_slience_detection(bool value);
 
-bool vcd_client_get_slience_detection();
+EXPORT_API bool vcd_client_get_slience_detection();
 
-int vcd_client_set_recognition_mode(vcd_recognition_mode_e mode);
+EXPORT_API int vcd_client_set_recognition_mode(vcd_recognition_mode_e mode);
 
-vcd_recognition_mode_e vcd_client_get_recognition_mode();
+EXPORT_API vcd_recognition_mode_e vcd_client_get_recognition_mode();
 
 /*
 * Manager API
 */
-int vcd_client_manager_set(int pid);
+EXPORT_API int vcd_client_manager_set(int pid);
 
-int vcd_client_manager_unset();
+EXPORT_API int vcd_client_manager_unset();
 
-bool vcd_client_manager_is_valid(int pid);
+EXPORT_API bool vcd_client_manager_is_valid(int pid);
 
-int vcd_client_manager_set_command(int pid);
+EXPORT_API int vcd_client_manager_set_command(int pid);
 
-int vcd_client_manager_unset_command(int pid);
+EXPORT_API int vcd_client_manager_unset_command(int pid);
 
-int vcd_client_manager_set_demandable_client(int pid, GSList* client_list);
+EXPORT_API int vcd_client_manager_set_demandable_client(int pid, GSList* client_list);
 
-bool vcd_client_manager_check_demandable_client(int pid);
+EXPORT_API bool vcd_client_manager_check_demandable_client(int pid);
 
-bool vcd_client_manager_get_exclusive();
+EXPORT_API bool vcd_client_manager_get_exclusive();
 
-int vcd_client_manager_set_exclusive(bool value);
+EXPORT_API int vcd_client_manager_set_exclusive(bool value);
 
-int vcd_client_manager_get_pid();
+EXPORT_API int vcd_client_manager_get_pid();
 
 
 /*
 * client API
 */
-int vcd_client_add(int pid);
+EXPORT_API int vcd_client_add(int pid);
 
-int vcd_client_delete(int pid);
+EXPORT_API int vcd_client_delete(int pid);
 
-bool vcd_client_is_available(int pid);
+EXPORT_API bool vcd_client_is_available(int pid);
 
-int vcd_client_get_ref_count();
+EXPORT_API int vcd_client_get_ref_count();
 
-int vcd_client_get_list(int** pids, int* pid_count);
+EXPORT_API int vcd_client_get_list(int** pids, int* pid_count);
 
-int vcd_client_set_command_type(int pid, int type);
+EXPORT_API int vcd_client_set_command_type(int pid, int type);
 
-int vcd_client_unset_command_type(int pid, int type);
+EXPORT_API int vcd_client_unset_command_type(int pid, int type);
 
-int vcd_client_set_exclusive_command(int pid);
+EXPORT_API int vcd_client_set_exclusive_command(int pid);
 
-int vcd_client_unset_exclusive_command(int pid);
+EXPORT_API int vcd_client_unset_exclusive_command(int pid);
 
-int vcd_client_save_client_info();
+EXPORT_API int vcd_client_save_client_info();
 
 /*
 * widget API
 */
-int vcd_client_widget_get_list(int** pids, int* pid_count);
+EXPORT_API int vcd_client_widget_get_list(int** pids, int* pid_count);
 
-int vcd_client_widget_add(int pid);
+EXPORT_API int vcd_client_widget_add(int pid);
 
-int vcd_client_widget_delete(int pid);
+EXPORT_API int vcd_client_widget_delete(int pid);
 
-bool vcd_client_widget_is_available(int pid);
+EXPORT_API bool vcd_client_widget_is_available(int pid);
 
-int vcd_client_widget_get_foreground_pid();
+EXPORT_API int vcd_client_widget_get_foreground_pid();
 
-int vcd_client_widget_set_command(int pid);
+EXPORT_API int vcd_client_widget_set_command(int pid);
 
-int vcd_client_widget_unset_command(int pid);
+EXPORT_API int vcd_client_widget_unset_command(int pid);
 
 
 #ifdef __cplusplus
