@@ -148,7 +148,7 @@ typedef bool (*vcpe_supported_language_cb)(const char* language, void* user_data
 *
 * @see vcpe_deinitialize()
 */
-typedef int (* vcpe_initialize)(void);
+typedef int (*vcpe_initialize)(void);
 
 /**
 * @brief Deinitializes the engine
@@ -159,7 +159,7 @@ typedef int (* vcpe_initialize)(void);
 *
 * @see vcpe_initialize()
 */
-typedef void (* vcpe_deinitialize)(void);
+typedef void (*vcpe_deinitialize)(void);
 
 /**
 * @brief Registers a callback function for getting recognition result.
@@ -173,7 +173,7 @@ typedef void (* vcpe_deinitialize)(void);
 *
 * @see vcpe_result_cb()
 */
-typedef int (* vcpe_set_result_cb)(vcpe_result_cb callback, void* user_data);
+typedef int (*vcpe_set_result_cb)(vcpe_result_cb callback, void* user_data);
 
 /**
 * @brief Gets recording format of the engine.
@@ -187,7 +187,7 @@ typedef int (* vcpe_set_result_cb)(vcpe_result_cb callback, void* user_data);
 * @retval #VCP_ERROR_NONE Successful
 * @retval #VCP_ERROR_INVALID_PARAMETER Not initialized
 */
-typedef int (* vcpe_get_recording_format)(const char* audio_id, vcp_audio_type_e* types, int* rate, int* channels);
+typedef int (*vcpe_get_recording_format)(const char* audio_id, vcp_audio_type_e* types, int* rate, int* channels);
 
 /**
 * @brief Retrieves all supported languages of the engine.
@@ -204,7 +204,7 @@ typedef int (* vcpe_get_recording_format)(const char* audio_id, vcp_audio_type_e
 *
 * @see vcpe_supported_language_cb()
 */
-typedef int (* vcpe_foreach_supported_languages)(vcpe_supported_language_cb callback, void* user_data);
+typedef int (*vcpe_foreach_supported_languages)(vcpe_supported_language_cb callback, void* user_data);
 
 /**
 * @brief Checks whether a language is supported or not.
@@ -213,7 +213,7 @@ typedef int (* vcpe_foreach_supported_languages)(vcpe_supported_language_cb call
 *
 * @return @c true = supported, \n @c false = not supported.
 */
-typedef bool (* vcpe_is_language_supported)(const char* language);
+typedef bool (*vcpe_is_language_supported)(const char* language);
 
 /**
 * @brief Sets language.
@@ -247,7 +247,7 @@ typedef int (*vcpe_set_language)(const char* language);
 * @see vcpd_foreach_command()
 * @see vcpe_unset_commands()
 */
-typedef int (* vcpe_set_commands)(vcp_cmd_h vcp_command);
+typedef int (*vcpe_set_commands)(vcp_cmd_h vcp_command);
 
 /**
 * @brief Unset command list for reset.
@@ -260,7 +260,7 @@ typedef int (* vcpe_set_commands)(vcp_cmd_h vcp_command);
 *
 * @see vcpe_set_commands()
 */
-typedef int (* vcpe_unset_commands)();
+typedef int (*vcpe_unset_commands)();
 
 /**
 * @brief Start recognition.
@@ -279,7 +279,7 @@ typedef int (* vcpe_unset_commands)();
 * @see vcpe_stop()
 * @see vcpe_cancel()
 */
-typedef int (* vcpe_start)(bool stop_by_silence);
+typedef int (*vcpe_start)(bool stop_by_silence);
 
 /**
 * @brief Sets recording data for speech recognition from recorder.
@@ -320,7 +320,7 @@ typedef int(*vcpe_set_recording_data)(const void* data, unsigned int length, vcp
 * @see vcpe_result_cb()
 * @see vcpe_cancel()
 */
-typedef int (* vcpe_stop)(void);
+typedef int (*vcpe_stop)(void);
 
 /**
 * @brief Cancels the recognition process.
@@ -334,7 +334,7 @@ typedef int (* vcpe_stop)(void);
 * @see vcpe_start()
 * @see vcpe_stop()
 */
-typedef int (* vcpe_cancel)(void);
+typedef int (*vcpe_cancel)(void);
 
 
 /**
@@ -356,7 +356,7 @@ typedef int (* vcpe_cancel)(void);
 *
 * @see vcpd_foreach_command()
 */
-typedef bool (* vcpd_foreach_command_cb)(int id, int type, const char* command, const char* param, int domain, void* user_data);
+typedef bool (*vcpd_foreach_command_cb)(int id, int type, const char* command, const char* param, int domain, void* user_data);
 
 /**
 * @brief Retrieves all commands using callback function.
@@ -376,7 +376,7 @@ typedef bool (* vcpd_foreach_command_cb)(int id, int type, const char* command, 
 * @see vcpd_foreach_command_cb()
 * @see vcpe_set_commands()
 */
-typedef int (* vcpd_foreach_command)(vcp_cmd_h vcp_command, vcpd_foreach_command_cb callback, void* user_data);
+typedef int (*vcpd_foreach_command)(vcp_cmd_h vcp_command, vcpd_foreach_command_cb callback, void* user_data);
 
 /**
 * @brief Gets command length.
@@ -387,7 +387,7 @@ typedef int (* vcpd_foreach_command)(vcp_cmd_h vcp_command, vcpd_foreach_command
 *
 * @see vcpe_set_commands()
 */
-typedef int (* vcpd_get_command_count)(vcp_cmd_h vcp_command);
+typedef int (*vcpd_get_command_count)(vcp_cmd_h vcp_command);
 
 /**
 * @brief Gets current audio type.
@@ -399,7 +399,7 @@ typedef int (* vcpd_get_command_count)(vcp_cmd_h vcp_command);
 * @return the value greater than 0 on success, otherwise a negative error value
 *
 */
-typedef int (* vcpd_get_audio_type)(char** audio_type);
+typedef int (*vcpd_get_audio_type)(char** audio_type);
 
 /**
 * @brief A structure of the engine functions.

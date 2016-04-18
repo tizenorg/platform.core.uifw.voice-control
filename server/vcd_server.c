@@ -630,11 +630,9 @@ static void __vcd_cleanup_client(vcd_client_type_e type)
 
 	if (VCD_CLIENT_TYPE_NORMAL == type) {
 		ret = vcd_client_get_list(&client_list, &client_count);
-	}
-	else if (VCD_CLIENT_TYPE_WIDGET == type) {
+	} else if (VCD_CLIENT_TYPE_WIDGET == type) {
 		ret = vcd_client_widget_get_list(&client_list, &client_count);
-	}
-	else if (VCD_CLIENT_TYPE_MANAGER == type) {
+	} else if (VCD_CLIENT_TYPE_MANAGER == type) {
 		mgr_pid = vcd_client_manager_get_pid();
 		client_list = &mgr_pid;
 		client_count = 1;
