@@ -143,7 +143,7 @@ extern "C" {
 
 #define VC_DAEMON_PATH			tzplatform_mkpath(TZ_SYS_BIN, "vc-daemon")
 
-#define VC_CONFIG_DEFAULT		tzplatform_mkpath(TZ_SYS_RO_SHARE, "voice/vc/vc-config.xml")
+#define VC_CONFIG_DEFAULT		tzplatform_mkpath(TZ_SYS_RO_SHARE, "voice/vc/1.0/vc-config.xml")
 
 #define VC_DEFAULT_BASE			tzplatform_mkpath(TZ_SYS_RO_SHARE, "voice/vc/1.0")
 
