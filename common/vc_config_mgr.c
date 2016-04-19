@@ -534,6 +534,23 @@ int vc_config_mgr_initialize(int uid)
 
 	g_engine_list = NULL;
 
+	if (0 != access(VC_CONFIG_BASE, F_OK)) {
+		if (0 != mkdir(VC_CONFIG_BASE, S_IRUSR | S_IWUSR | S_IXUSR | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH)) {
+			SLOG(LOG_ERROR, vc_config_tag(), "[ERROR] Fail to make directory : %s", VC_CONFIG_BASE);
+			return -1;
+		} else {
+			SLOG(LOG_DEBUG, vc_config_tag(), "Success to make directory : %s", VC_CONFIG_BASE);
+		}
+	}
+	if (0 != access(VC_RUNTIME_INFO_ROOT, F_OK)) {
+		if (0 != mkdir(VC_RUNTIME_INFO_ROOT, S_IRUSR | S_IWUSR | S_IXUSR | S_IRGRP | S_IXGRP | S_IROTH | S_IXOTH)) {
+			SLOG(LOG_ERROR, vc_config_tag(), "[ERROR] Fail to make directory : %s", VC_RUNTIME_INFO_ROOT);
+			return -1;
+		} else {
+			SLOG(LOG_DEBUG, vc_config_tag(), "Success to make directory : %s", VC_RUNTIME_INFO_ROOT);
+		}
+	}
+
 	dp  = opendir(VC_DEFAULT_ENGINE_INFO);
 	if (NULL != dp) {
 		do {
