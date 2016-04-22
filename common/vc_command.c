@@ -302,6 +302,92 @@ int vc_cmd_list_foreach_commands(vc_cmd_list_h vc_cmd_list, vc_cmd_list_cb callb
 	return VC_ERROR_NONE;
 }
 
+int vc_cmd_list_filter_by_type(vc_cmd_list_h original, int type, vc_cmd_list_h* filtered)
+{
+	SLOG(LOG_DEBUG, TAG_VCCMD, "===== Filter by type");
+
+	if (0 != __vc_cmd_get_feature_enabled()) {
+		return VC_ERROR_NOT_SUPPORTED;
+	}
+
+	if (NULL == original) {
+		SLOG(LOG_ERROR, TAG_VCCMD, "[ERROR] Input parameter is NULL");
+		return VC_ERROR_INVALID_PARAMETER;
+	}
+
+	if (VC_COMMAND_TYPE_NONE >= type || VC_COMMAND_TYPE_EXCLUSIVE < type) {
+		SLOG(LOG_ERROR, TAG_VCCMD, "[ERROR] Invalid type");
+		return VC_ERROR_INVALID_PARAMETER;
+	}
+
+	vc_cmd_list_s* list = NULL;
+	list = (vc_cmd_list_s*)original;
+
+	vc_cmd_list_h temp_list;
+	if (0 != vc_cmd_list_create(&temp_list)) {
+		SLOG(LOG_ERROR, TAG_VCCMD, "[ERROR] Fail to list create");
+		return VC_ERROR_OPERATION_FAILED;
+	}
+
+	int count = g_slist_length(list->list);
+	int i;
+
+	GSList *iter = NULL;
+	vc_cmd_s *iter_cmd;
+
+	iter = g_slist_nth(list->list, 0);
+
+	for (i = 0; i < count; i++) {
+		if (NULL != iter->data) {
+			iter_cmd = iter->data;
+
+			if (NULL != iter_cmd) {
+				int iter_type;
+				if (0 != vc_cmd_get_type((vc_cmd_h)iter_cmd, &iter_type)) {
+					SLOG(LOG_ERROR,TAG_VCCMD, "[ERROR] Fail to get command type");
+					continue;
+				}
+
+				if (iter_type == type) {
+					vc_cmd_h temp_cmd;
+					if (0 != vc_cmd_create(&temp_cmd)) {
+						SLOG(LOG_ERROR, TAG_VCCMD, "[ERROR] Fail to create cmd");
+						continue;
+					}
+
+					memcpy(temp_cmd, iter_cmd, sizeof(vc_cmd_s));
+					if (NULL != iter_cmd->command) {
+						((vc_cmd_s*)temp_cmd)->command = strdup(iter_cmd->command);
+					}
+					if (NULL != iter_cmd->parameter) {
+						((vc_cmd_s*)temp_cmd)->parameter = strdup(iter_cmd->parameter);
+					}
+
+					if (0 != vc_cmd_list_add(temp_list, temp_cmd)) {
+						SLOG(LOG_ERROR, TAG_VCCMD, "[ERROR] Fail to cmd list add");
+						vc_cmd_destroy(temp_cmd);
+						continue;
+					}
+				}
+			}
+		}
+		iter = g_slist_next(iter);
+	}
+
+	count = 0;
+	if (0 != vc_cmd_list_get_count(temp_list, &count)) {
+		SLOG(LOG_ERROR, TAG_VCCMD, "[ERROR] Fail to get count");
+	} else {
+		SLOG(LOG_DEBUG, TAG_VCCMD, "Filtering result : (%d) command", count);
+	}
+
+	*filtered = temp_list;
+
+	SLOG(LOG_DEBUG, TAG_VCCMD, "=====");
+
+	return VC_ERROR_NONE;
+}
+
 int vc_cmd_list_first(vc_cmd_list_h vc_cmd_list)
 {
 	if (0 != __vc_cmd_get_feature_enabled()) {
