@@ -129,6 +129,43 @@ int vc_cmd_set_domain(vc_cmd_h vc_command, int domain);
 */
 int vc_cmd_get_domain(vc_cmd_h vc_command, int* domain);
 
+/**
+* @brief Remove all commands from command list.
+* @since_tizen 2.4
+*
+* @param[in] vc_cmd_list The command list handle
+* @param[in] free_command The command free option @c true = release each commands in list,
+*			@c false = remove command from list
+*
+* @return 0 on success, otherwise a negative error value
+* @retval #VC_CMD_ERROR_NONE Successful
+* @retval #VC_CMD_ERROR_INVALID_PARAMETER Invalid parameter
+* @retval #VC_CMD_ERROR_PERMISSION_DENIED Permission denied
+* @retval #VC_CMD_ERROR_NOT_SUPPORTED Not supported feature
+*
+* @see vc_cmd_list_add()
+*/
+int vc_cmd_list_remove_all(vc_cmd_list_h vc_cmd_list, bool free_command);
+
+/**
+* @brief Retrieves all commands of command list using callback function.
+* @since_tizen 3.0
+*
+* @param[in] vc_cmd_list The command list handle
+* @param[in] callback Callback function to invoke
+* @param[in] user_data The user data to be passed to the callback function
+*
+* @return 0 on success, otherwise a negative error value
+* @retval #VC_ERROR_NONE Successful
+* @retval #VC_ERROR_INVALID_PARAMETER Invalid parameter
+* @retval #VC_ERROR_PERMISSION_DENIED Permission denied
+* @retval #VC_ERROR_NOT_SUPPORTED Not supported
+*
+* @post	This function invokes vc_cmd_list_cb() repeatedly for getting commands.
+*
+* @see vc_cmd_list_cb()
+*/
+int vc_cmd_list_filter_by_type(vc_cmd_list_h original, int type, vc_cmd_list_h* filtered);
 
 #ifdef __cplusplus
 }
