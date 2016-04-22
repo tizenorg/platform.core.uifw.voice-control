@@ -67,24 +67,6 @@ int vc_cmd_get_id(vc_cmd_h vc_command, int* id);
 int vc_cmd_print_list(vc_cmd_list_h vc_cmd_list);
 
 /**
-* @brief Remove all commands from command list.
-* @since_tizen 2.4
-*
-* @param[in] vc_cmd_list The command list handle
-* @param[in] free_command The command free option @c true = release each commands in list,
-*			@c false = remove command from list
-*
-* @return 0 on success, otherwise a negative error value
-* @retval #VC_CMD_ERROR_NONE Successful
-* @retval #VC_CMD_ERROR_INVALID_PARAMETER Invalid parameter
-* @retval #VC_CMD_ERROR_PERMISSION_DENIED Permission denied
-* @retval #VC_CMD_ERROR_NOT_SUPPORTED Not supported feature
-*
-* @see vc_cmd_list_add()
-*/
-int vc_cmd_list_remove_all(vc_cmd_list_h vc_cmd_list, bool free_command);
-
-/**
 * @brief Sets extra unfixed command.
 * @since_tizen 2.4
 *
