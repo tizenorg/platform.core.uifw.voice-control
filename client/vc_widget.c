@@ -46,15 +46,15 @@ const char* vc_tag()
 static const char* __vc_widget_get_error_code(vc_error_e err)
 {
 	switch (err) {
-		case VC_ERROR_NONE:		return "VC_ERROR_NONE";			break;
-		case VC_ERROR_OUT_OF_MEMORY:	return "VC_ERROR_OUT_OF_MEMORY";	break;
-		case VC_ERROR_IO_ERROR:		return "VC_ERROR_IO_ERROR";		break;
-		case VC_ERROR_INVALID_PARAMETER:return "VC_ERROR_INVALID_PARAMETER";	break;
-		case VC_ERROR_TIMED_OUT:	return "VC_ERROR_TIMED_OUT";		break;
-		case VC_ERROR_INVALID_STATE:	return "VC_ERROR_INVALID_STATE";	break;
-		case VC_ERROR_ENGINE_NOT_FOUND:	return "VC_ERROR_ENGINE_NOT_FOUND";	break;
-		case VC_ERROR_OPERATION_FAILED:	return "VC_ERROR_OPERATION_FAILED";	break;
-		default:			return "Invalid error code";		break;
+	case VC_ERROR_NONE:		return "VC_ERROR_NONE";			break;
+	case VC_ERROR_OUT_OF_MEMORY:	return "VC_ERROR_OUT_OF_MEMORY";	break;
+	case VC_ERROR_IO_ERROR:		return "VC_ERROR_IO_ERROR";		break;
+	case VC_ERROR_INVALID_PARAMETER:return "VC_ERROR_INVALID_PARAMETER";	break;
+	case VC_ERROR_TIMED_OUT:	return "VC_ERROR_TIMED_OUT";		break;
+	case VC_ERROR_INVALID_STATE:	return "VC_ERROR_INVALID_STATE";	break;
+	case VC_ERROR_ENGINE_NOT_FOUND:	return "VC_ERROR_ENGINE_NOT_FOUND";	break;
+	case VC_ERROR_OPERATION_FAILED:	return "VC_ERROR_OPERATION_FAILED";	break;
+	default:			return "Invalid error code";		break;
 	}
 	return NULL;
 }
@@ -396,10 +396,10 @@ int vc_widget_get_state(vc_state_e* state)
 	*state = temp;
 
 	switch (*state) {
-		case VC_STATE_NONE:		SLOG(LOG_DEBUG, TAG_VCW, "Current state is 'None'");		break;
-		case VC_STATE_INITIALIZED:	SLOG(LOG_DEBUG, TAG_VCW, "Current state is 'Created'");		break;
-		case VC_STATE_READY:		SLOG(LOG_DEBUG, TAG_VCW, "Current state is 'Ready'");		break;
-		default:			SLOG(LOG_ERROR, TAG_VCW, "Invalid state");			break;
+	case VC_STATE_NONE:		SLOG(LOG_DEBUG, TAG_VCW, "Current state is 'None'");		break;
+	case VC_STATE_INITIALIZED:	SLOG(LOG_DEBUG, TAG_VCW, "Current state is 'Created'");		break;
+	case VC_STATE_READY:		SLOG(LOG_DEBUG, TAG_VCW, "Current state is 'Ready'");		break;
+	default:			SLOG(LOG_ERROR, TAG_VCW, "Invalid state");			break;
 	}
 
 	SLOG(LOG_DEBUG, TAG_VCW, "=====");
@@ -442,11 +442,11 @@ int vc_widget_get_service_state(vc_service_state_e* state)
 	*state = service_state;
 
 	switch (*state) {
-		case VC_SERVICE_STATE_NONE:		SLOG(LOG_DEBUG, TAG_VCW, "Current service state is 'None'");		break;
-		case VC_SERVICE_STATE_READY:		SLOG(LOG_DEBUG, TAG_VCW, "Current service state is 'Ready'");		break;
-		case VC_SERVICE_STATE_RECORDING:	SLOG(LOG_DEBUG, TAG_VCW, "Current service state is 'Recording'");	break;
-		case VC_SERVICE_STATE_PROCESSING:	SLOG(LOG_DEBUG, TAG_VCW, "Current service state is 'Processing'");	break;
-		default:				SLOG(LOG_ERROR, TAG_VCW, "Invalid service state");			break;
+	case VC_SERVICE_STATE_NONE:		SLOG(LOG_DEBUG, TAG_VCW, "Current service state is 'None'");		break;
+	case VC_SERVICE_STATE_READY:		SLOG(LOG_DEBUG, TAG_VCW, "Current service state is 'Ready'");		break;
+	case VC_SERVICE_STATE_RECORDING:	SLOG(LOG_DEBUG, TAG_VCW, "Current service state is 'Recording'");	break;
+	case VC_SERVICE_STATE_PROCESSING:	SLOG(LOG_DEBUG, TAG_VCW, "Current service state is 'Processing'");	break;
+	default:				SLOG(LOG_ERROR, TAG_VCW, "Invalid service state");			break;
 	}
 
 	SLOG(LOG_DEBUG, TAG_VCW, "=====");
