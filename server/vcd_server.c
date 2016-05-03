@@ -244,6 +244,19 @@ static Eina_Bool __vcd_send_selected_result(void *data)
 	return EINA_FALSE;
 }
 
+static int __convert_type_to_priority(vc_cmd_type_e type)
+{
+	switch (type) {
+		case VC_COMMAND_TYPE_NONE:		return 0; break;
+		case VC_COMMAND_TYPE_BACKGROUND:	return 1; break;
+		case VC_COMMAND_TYPE_FOREGROUND:	return 2; break;
+		case VC_COMMAND_TYPE_WIDGET:		return 2; break;
+		case VC_COMMAND_TYPE_SYSTEM:		return 3; break;
+		case VC_COMMAND_TYPE_EXCLUSIVE:		return 3; break;
+		default:				return 0; break;
+	}
+}
+
 static void __vcd_server_result_cb(vcp_result_event_e event, int* result_id, int count, const char* all_result,
 								   const char* non_fixed_result, const char* msg, void *user_data)
 {
@@ -330,7 +343,7 @@ static void __vcd_server_result_cb(vcp_result_event_e event, int* result_id, int
 	vc_cmd_list_h vc_cmd_list = NULL;
 
 	if (0 != vc_cmd_list_create(&vc_cmd_list)) {
-		SLOG(LOG_DEBUG, TAG_VCD, "[Server] Fail to create command list");
+		SLOG(LOG_ERROR, TAG_VCD, "[Server] Fail to create command list");
 		vcd_client_manager_set_exclusive(false);
 		vcd_config_set_service_state(VCD_STATE_READY);
 		vcdc_send_service_state(VCD_STATE_READY);
@@ -338,6 +351,7 @@ static void __vcd_server_result_cb(vcp_result_event_e event, int* result_id, int
 	}
 
 	int i = 0;
+	int priority = 0;
 	for (i = 0; i < count; i++) {
 		SLOG(LOG_DEBUG, TAG_VCD, "[Server]   [%d] Result ID(%d)", i, result_id[i]);
 
@@ -348,6 +362,20 @@ static void __vcd_server_result_cb(vcp_result_event_e event, int* result_id, int
 
 		ret = vcd_client_get_cmd_from_result_id(result_id[i], &temp_cmd);
 		if (0 == ret && NULL != temp_cmd) {
+			/* Add priority filter */
+			int temp_priority = __convert_type_to_priority(temp_cmd->type);
+			if (priority > temp_priority) {
+				SLOG(LOG_DEBUG, TAG_VCD, "[Server] Ignore result by priority");
+				continue;
+			} else if (priority < temp_priority) {
+				SLOG(LOG_DEBUG, TAG_VCD, "[Server] High priority result!!");
+				priority = temp_priority;
+
+				if (0 != vc_cmd_list_remove_all(vc_cmd_list, true)) {
+					SLOG(LOG_ERROR, TAG_VCD, "[Server] Fail to list remove all");
+				}
+			}
+
 			switch (temp_cmd->format) {
 			case VC_CMD_FORMAT_FIXED:
 				/* Nonfixed result is NOT valid */
