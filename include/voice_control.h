@@ -48,20 +48,20 @@ extern "C"
 
 /**
 * @brief Definitions for foreground command type.
-* @since_tizen 2.4
+* @since_tizen @if MOBILE 2.4 @elseif WEARABLE 3.0 @endif
 */
 #define VC_COMMAND_TYPE_FOREGROUND	1
 
 /**
 * @brief Definitions for background command type.
-* @since_tizen 2.4
+* @since_tizen @if MOBILE 2.4 @elseif WEARABLE 3.0 @endif
 */
 #define VC_COMMAND_TYPE_BACKGROUND	2
 
 
 /**
 * @brief Initializes voice control.
-* @since_tizen 2.4
+* @since_tizen @if MOBILE 2.4 @elseif WEARABLE 3.0 @endif
 * @privlevel public
 * @privilege %http://tizen.org/privilege/recorder
 *
@@ -82,7 +82,7 @@ int vc_initialize(void);
 
 /**
 * @brief Deinitializes voice control.
-* @since_tizen 2.4
+* @since_tizen @if MOBILE 2.4 @elseif WEARABLE 3.0 @endif
 * @privlevel public
 * @privilege %http://tizen.org/privilege/recorder
 *
@@ -99,7 +99,7 @@ int vc_deinitialize(void);
 
 /**
 * @brief Connects the voice control service.
-* @since_tizen 2.4
+* @since_tizen @if MOBILE 2.4 @elseif WEARABLE 3.0 @endif
 * @privlevel public
 * @privilege %http://tizen.org/privilege/recorder
 *
@@ -119,7 +119,7 @@ int vc_prepare(void);
 
 /**
 * @brief Disconnects the voice control service.
-* @since_tizen 2.4
+* @since_tizen @if MOBILE 2.4 @elseif WEARABLE 3.0 @endif
 * @privlevel public
 * @privilege %http://tizen.org/privilege/recorder
 *
@@ -138,7 +138,7 @@ int vc_unprepare(void);
 
 /**
 * @brief Retrieves all supported languages using callback function.
-* @since_tizen 2.4
+* @since_tizen @if MOBILE 2.4 @elseif WEARABLE 3.0 @endif
 * @privlevel public
 * @privilege %http://tizen.org/privilege/recorder
 *
@@ -163,7 +163,7 @@ int vc_foreach_supported_languages(vc_supported_language_cb callback, void* user
 
 /**
 * @brief Gets current language.
-* @since_tizen 2.4
+* @since_tizen @if MOBILE 2.4 @elseif WEARABLE 3.0 @endif
 * @privlevel public
 * @privilege %http://tizen.org/privilege/recorder
 *
@@ -190,7 +190,7 @@ int vc_get_current_language(char** language);
 
 /**
 * @brief Gets current state of voice control client.
-* @since_tizen 2.4
+* @since_tizen @if MOBILE 2.4 @elseif WEARABLE 3.0 @endif
 * @privlevel public
 * @privilege %http://tizen.org/privilege/recorder
 *
@@ -209,7 +209,7 @@ int vc_get_state(vc_state_e* state);
 
 /**
 * @brief Gets current state of voice control service.
-* @since_tizen 2.4
+* @since_tizen @if MOBILE 2.4 @elseif WEARABLE 3.0 @endif
 * @privlevel public
 * @privilege %http://tizen.org/privilege/recorder
 *
@@ -233,7 +233,7 @@ int vc_get_service_state(vc_service_state_e* state);
 
 /**
 * @brief Sets command list.
-* @since_tizen 2.4
+* @since_tizen @if MOBILE 2.4 @elseif WEARABLE 3.0 @endif
 * @privlevel public
 * @privilege %http://tizen.org/privilege/recorder
 *
@@ -258,7 +258,7 @@ int vc_set_command_list(vc_cmd_list_h vc_cmd_list, int type);
 
 /**
 * @brief Unsets command list.
-* @since_tizen 2.4
+* @since_tizen @if MOBILE 2.4 @elseif WEARABLE 3.0 @endif
 * @privlevel public
 * @privilege %http://tizen.org/privilege/recorder
 *
@@ -280,7 +280,7 @@ int vc_unset_command_list(int type);
 
 /**
 * @brief Registers a callback function for getting recognition result.
-* @since_tizen 2.4
+* @since_tizen @if MOBILE 2.4 @elseif WEARABLE 3.0 @endif
 * @privlevel public
 * @privilege %http://tizen.org/privilege/recorder
 *
@@ -303,7 +303,7 @@ int vc_set_result_cb(vc_result_cb callback, void* user_data);
 
 /**
 * @brief Unregisters the callback function.
-* @since_tizen 2.4
+* @since_tizen @if MOBILE 2.4 @elseif WEARABLE 3.0 @endif
 * @privlevel public
 * @privilege %http://tizen.org/privilege/recorder
 *
@@ -320,7 +320,7 @@ int vc_unset_result_cb(void);
 
 /**
 * @brief Registers a callback function to be called when state is changed.
-* @since_tizen 2.4
+* @since_tizen @if MOBILE 2.4 @elseif WEARABLE 3.0 @endif
 * @privlevel public
 * @privilege %http://tizen.org/privilege/recorder
 *
@@ -343,7 +343,7 @@ int vc_set_service_state_changed_cb(vc_service_state_changed_cb callback, void* 
 
 /**
 * @brief Unregisters the callback function.
-* @since_tizen 2.4
+* @since_tizen @if MOBILE 2.4 @elseif WEARABLE 3.0 @endif
 * @privlevel public
 * @privilege %http://tizen.org/privilege/recorder
 *
@@ -361,7 +361,7 @@ int vc_unset_service_state_changed_cb(void);
 
 /**
 * @brief Registers a callback function to be called when state is changed.
-* @since_tizen 2.4
+* @since_tizen @if MOBILE 2.4 @elseif WEARABLE 3.0 @endif
 * @privlevel public
 * @privilege %http://tizen.org/privilege/recorder
 *
@@ -384,7 +384,7 @@ int vc_set_state_changed_cb(vc_state_changed_cb callback, void* user_data);
 
 /**
 * @brief Unregisters the callback function.
-* @since_tizen 2.4
+* @since_tizen @if MOBILE 2.4 @elseif WEARABLE 3.0 @endif
 * @privlevel public
 * @privilege %http://tizen.org/privilege/recorder
 *
@@ -402,7 +402,7 @@ int vc_unset_state_changed_cb(void);
 
 /**
 * @brief Registers a callback function to be called when current language is changed.
-* @since_tizen 2.4
+* @since_tizen @if MOBILE 2.4 @elseif WEARABLE 3.0 @endif
 * @privlevel public
 * @privilege %http://tizen.org/privilege/recorder
 *
@@ -425,7 +425,7 @@ int vc_set_current_language_changed_cb(vc_current_language_changed_cb callback, 
 
 /**
 * @brief Unregisters the callback function.
-* @since_tizen 2.4
+* @since_tizen @if MOBILE 2.4 @elseif WEARABLE 3.0 @endif
 * @privlevel public
 * @privilege %http://tizen.org/privilege/recorder
 *
@@ -443,7 +443,7 @@ int vc_unset_current_language_changed_cb(void);
 
 /**
 * @brief Registers a callback function to be called when an error occurred.
-* @since_tizen 2.4
+* @since_tizen @if MOBILE 2.4 @elseif WEARABLE 3.0 @endif
 * @privlevel public
 * @privilege %http://tizen.org/privilege/recorder
 *
@@ -466,7 +466,7 @@ int vc_set_error_cb(vc_error_cb callback, void* user_data);
 
 /**
 * @brief Unregisters the callback function.
-* @since_tizen 2.4
+* @since_tizen @if MOBILE 2.4 @elseif WEARABLE 3.0 @endif
 * @privlevel public
 * @privilege %http://tizen.org/privilege/recorder
 *
