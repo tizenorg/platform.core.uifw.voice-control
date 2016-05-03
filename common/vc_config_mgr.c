@@ -377,7 +377,18 @@ int __vc_config_set_auto_language()
 
 	SLOG(LOG_DEBUG, vc_config_tag(), "[Config] Display language : %s", candidate_lang);
 
+	/* Check current config info */
+	if (NULL == g_config_info) {
+		SLOG(LOG_ERROR, vc_config_tag(), "Current config info is NULL");
+		return VC_CONFIG_ERROR_OPERATION_FAILED;
+	}
+	
 	/* Check current language */
+	if (NULL == g_config_info->language) {
+		SLOG(LOG_ERROR, vc_config_tag(), "Current config language is NULL");
+		return VC_CONFIG_ERROR_OPERATION_FAILED;
+	}
+
 	if (0 == strncmp(g_config_info->language, candidate_lang, 5)) {
 		SLOG(LOG_DEBUG, vc_config_tag(), "[Config] VC language(%s) is same with display language", g_config_info->language);
 		return 0;
@@ -385,11 +396,6 @@ int __vc_config_set_auto_language()
 
 	if (true == __vc_config_mgr_check_lang_is_valid(g_config_info->engine_id, candidate_lang)) {
 		/* stt default language change */
-		if (NULL == g_config_info->language) {
-			SLOG(LOG_ERROR, vc_config_tag(), "Current config language is NULL");
-			return -1;
-		}
-
 		char* before_lang = NULL;
 		if (0 != vc_parser_set_language(candidate_lang)) {
 			SLOG(LOG_ERROR, vc_config_tag(), "Fail to save default language");
@@ -445,10 +451,8 @@ int __vc_config_set_auto_language()
 
 		before_lang = strdup(g_config_info->language);
 
-		if (NULL != g_config_info->language) {
-			free(g_config_info->language);
-			g_config_info->language = strdup(tmp_language);
-		}
+		free(g_config_info->language);
+		g_config_info->language = strdup(tmp_language);
 		free(tmp_language);
 
 		SLOG(LOG_DEBUG, vc_config_tag(), "[Config] Default language change : before(%s) current(%s)",
