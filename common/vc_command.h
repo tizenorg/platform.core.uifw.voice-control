@@ -48,7 +48,7 @@ typedef struct {
 
 /**
 * @brief Enumerations of command type.
-* @since_tizen 2.4
+* @since_tizen @if MOBILE 2.4 @elseif WEARABLE 3.0 @endif
 */
 typedef enum {
 	VC_COMMAND_TYPE_NONE = 0,	/**< No command position */
@@ -68,7 +68,7 @@ int vc_cmd_print_list(vc_cmd_list_h vc_cmd_list);
 
 /**
 * @brief Sets extra unfixed command.
-* @since_tizen 2.4
+* @since_tizen @if MOBILE 2.4 @elseif WEARABLE 3.0 @endif
 *
 * @param[in] vc_command The command handle
 * @param[in] command The unfixed command
@@ -85,7 +85,7 @@ int vc_cmd_set_unfixed_command(vc_cmd_h vc_command, const char* command);
 
 /**
 * @brief Sets pid.
-* @since_tizen 2.4
+* @since_tizen @if MOBILE 2.4 @elseif WEARABLE 3.0 @endif
 *
 * @param[in] vc_command The command handle
 * @param[in] pid process id
@@ -100,7 +100,7 @@ int vc_cmd_set_pid(vc_cmd_h vc_command, int pid);
 
 /**
 * @brief Sets command domain
-* @since_tizen 2.4
+* @since_tizen @if MOBILE 2.4 @elseif WEARABLE 3.0 @endif
 *
 * @param[in] vc_command The command handle
 * @param[in] domain domain

@@ -37,19 +37,19 @@ extern "C"
 
 /**
 * @brief The voice command handle.
-* @since_tizen 2.4
+* @since_tizen @if MOBILE 2.4 @elseif WEARABLE 3.0 @endif
 */
 typedef struct vc_cmd_s* vc_cmd_h;
 
 /**
 * @brief The voice command list handle.
-* @since_tizen 2.4
+* @since_tizen @if MOBILE 2.4 @elseif WEARABLE 3.0 @endif
 */
 typedef struct vc_cmd_list_s* vc_cmd_list_h;
 
 /**
 * @brief Called to retrieve The commands in list.
-* @since_tizen 2.4
+* @since_tizen @if MOBILE 2.4 @elseif WEARABLE 3.0 @endif
 *
 * @param[in] vc_command The command handle
 * @param[in] user_data The user data passed from the foreach function
@@ -64,7 +64,7 @@ typedef bool (*vc_cmd_list_cb)(vc_cmd_h vc_command, void* user_data);
 
 /**
 * @brief Creates a handle for command list.
-* @since_tizen 2.4
+* @since_tizen @if MOBILE 2.4 @elseif WEARABLE 3.0 @endif
 *
 * @remarks If the function succeeds, @a The list handle must be released with vc_cmd_list_destroy().
 *
@@ -83,7 +83,7 @@ int vc_cmd_list_create(vc_cmd_list_h* vc_cmd_list);
 
 /**
 * @brief Destroys the handle for command list.
-* @since_tizen 2.4
+* @since_tizen @if MOBILE 2.4 @elseif WEARABLE 3.0 @endif
 *
 * @param[in] vc_cmd_list The command list handle
 * @param[in] free_command The command free option @c true = release each commands in list,
@@ -101,7 +101,7 @@ int vc_cmd_list_destroy(vc_cmd_list_h vc_cmd_list, bool free_command);
 
 /**
 * @brief Gets command count of list.
-* @since_tizen 2.4
+* @since_tizen @if MOBILE 2.4 @elseif WEARABLE 3.0 @endif
 *
 * @param[in] vc_cmd_list The command list handle
 * @param[out] count The count
@@ -116,7 +116,7 @@ int vc_cmd_list_get_count(vc_cmd_list_h vc_cmd_list, int* count);
 
 /**
 * @brief Adds command to command list.
-* @since_tizen 2.4
+* @since_tizen @if MOBILE 2.4 @elseif WEARABLE 3.0 @endif
 *
 * @param[in] vc_cmd_list The command list handle
 * @param[in] vc_command The command handle
@@ -133,7 +133,7 @@ int vc_cmd_list_add(vc_cmd_list_h vc_cmd_list, vc_cmd_h vc_command);
 
 /**
 * @brief Removes command from command list.
-* @since_tizen 2.4
+* @since_tizen @if MOBILE 2.4 @elseif WEARABLE 3.0 @endif
 *
 * @param[in] vc_cmd_list The command list handle
 * @param[in] vc_command The command handle
@@ -150,7 +150,7 @@ int vc_cmd_list_remove(vc_cmd_list_h vc_cmd_list, vc_cmd_h vc_command);
 
 /**
 * @brief Retrieves all commands of command list using callback function.
-* @since_tizen 2.4
+* @since_tizen @if MOBILE 2.4 @elseif WEARABLE 3.0 @endif
 *
 * @param[in] vc_cmd_list The command list handle
 * @param[in] callback Callback function to invoke
@@ -170,7 +170,7 @@ int vc_cmd_list_foreach_commands(vc_cmd_list_h vc_cmd_list, vc_cmd_list_cb callb
 
 /**
 * @brief Moves index to first command.
-* @since_tizen 2.4
+* @since_tizen @if MOBILE 2.4 @elseif WEARABLE 3.0 @endif
 *
 * @param[in] vc_cmd_list The command list handle
 *
@@ -187,7 +187,7 @@ int vc_cmd_list_first(vc_cmd_list_h vc_cmd_list);
 
 /**
 * @brief Moves index to last command.
-* @since_tizen 2.4
+* @since_tizen @if MOBILE 2.4 @elseif WEARABLE 3.0 @endif
 *
 * @param[in] vc_cmd_list The command list handle
 *
@@ -204,7 +204,7 @@ int vc_cmd_list_last(vc_cmd_list_h vc_cmd_list);
 
 /**
 * @brief Moves index to next command.
-* @since_tizen 2.4
+* @since_tizen @if MOBILE 2.4 @elseif WEARABLE 3.0 @endif
 *
 * @param[in] vc_cmd_list The command list handle
 *
@@ -222,7 +222,7 @@ int vc_cmd_list_next(vc_cmd_list_h vc_cmd_list);
 
 /**
 * @brief Moves index to previous command.
-* @since_tizen 2.4
+* @since_tizen @if MOBILE 2.4 @elseif WEARABLE 3.0 @endif
 *
 * @param[in] vc_cmd_list The command list handle
 *
@@ -240,7 +240,7 @@ int vc_cmd_list_prev(vc_cmd_list_h vc_cmd_list);
 
 /**
 * @brief Get current command from command list by index.
-* @since_tizen 2.4
+* @since_tizen @if MOBILE 2.4 @elseif WEARABLE 3.0 @endif
 *
 * @param[in] vc_cmd_list The command list handle
 * @param[out] vc_command The command handle
@@ -262,7 +262,7 @@ int vc_cmd_list_get_current(vc_cmd_list_h vc_cmd_list, vc_cmd_h* vc_command);
 
 /**
 * @brief Creates a handle for command.
-* @since_tizen 2.4
+* @since_tizen @if MOBILE 2.4 @elseif WEARABLE 3.0 @endif
 *
 * @remarks If the function succeeds, @a The command handle must be released
 *	with vc_cmd_destroy() or vc_cmd_list_destroy().
@@ -283,7 +283,7 @@ int vc_cmd_create(vc_cmd_h* vc_command);
 
 /**
 * @brief Destroys the handle.
-* @since_tizen 2.4
+* @since_tizen @if MOBILE 2.4 @elseif WEARABLE 3.0 @endif
 *
 * @param[in] vc_command The command handle
 *
@@ -299,7 +299,7 @@ int vc_cmd_destroy(vc_cmd_h vc_command);
 
 /**
 * @brief Sets command.
-* @since_tizen 2.4
+* @since_tizen @if MOBILE 2.4 @elseif WEARABLE 3.0 @endif
 *
 * @param[in] vc_command The command handle
 * @param[in] command The command text
@@ -316,7 +316,7 @@ int vc_cmd_set_command(vc_cmd_h vc_command, const char* command);
 
 /**
 * @brief Gets command.
-* @since_tizen 2.4
+* @since_tizen @if MOBILE 2.4 @elseif WEARABLE 3.0 @endif
 *
 * @remark If the function succeeds, @a command must be released with free() by you if they are not NULL.
 *
@@ -335,7 +335,7 @@ int vc_cmd_get_command(vc_cmd_h vc_command, char** command);
 
 /**
 * @brief Sets command type.
-* @since_tizen 2.4
+* @since_tizen @if MOBILE 2.4 @elseif WEARABLE 3.0 @endif
 *
 * @remark If you do not set the command type, the default value is -1.
 *	You should set type if command is valid
@@ -355,7 +355,7 @@ int vc_cmd_set_type(vc_cmd_h vc_command, int type);
 
 /**
 * @brief Gets command type.
-* @since_tizen 2.4
+* @since_tizen @if MOBILE 2.4 @elseif WEARABLE 3.0 @endif
 *
 * @param[in] vc_command The command handle
 * @param[out] type The command type
