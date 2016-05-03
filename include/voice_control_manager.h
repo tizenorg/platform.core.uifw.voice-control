@@ -40,31 +40,31 @@ extern "C"
 
 /**
 * @brief Definitions for foreground command type.
-* @since_tizen @if MOBILE 2.4 @elseif WEARABLE 3.0 @endif
+* @since_tizen 2.4
 */
 #define VC_COMMAND_TYPE_FOREGROUND	1
 
 /**
 * @brief Definitions for background command type.
-* @since_tizen @if MOBILE 2.4 @elseif WEARABLE 3.0 @endif
+* @since_tizen 2.4
 */
 #define VC_COMMAND_TYPE_BACKGROUND	2
 
 /**
 * @brief Definitions for widget command type.
-* @since_tizen @if MOBILE 2.4 @elseif WEARABLE 3.0 @endif
+* @since_tizen 2.4
 */
 #define VC_COMMAND_TYPE_WIDGET		3
 
 /**
 * @brief Definitions for system command type.
-* @since_tizen @if MOBILE 2.4 @elseif WEARABLE 3.0 @endif
+* @since_tizen 2.4
 */
 #define VC_COMMAND_TYPE_SYSTEM		4
 
 /**
 * @brief Definitions for exclusive command type.
-* @since_tizen @if MOBILE 2.4 @elseif WEARABLE 3.0 @endif
+* @since_tizen 2.4
 */
 #define VC_COMMAND_TYPE_EXCLUSIVE	5
 

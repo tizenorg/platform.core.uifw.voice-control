@@ -48,7 +48,7 @@ typedef struct {
 
 /**
 * @brief Enumerations of command type.
-* @since_tizen @if MOBILE 2.4 @elseif WEARABLE 3.0 @endif
+* @since_tizen 2.4
 */
 typedef enum {
 	VC_COMMAND_TYPE_NONE = 0,	/**< No command position */
@@ -68,7 +68,7 @@ int vc_cmd_print_list(vc_cmd_list_h vc_cmd_list);
 
 /**
 * @brief Remove all commands from command list.
-* @since_tizen @if MOBILE 2.4 @elseif WEARABLE 3.0 @endif
+* @since_tizen 2.4
 *
 * @param[in] vc_cmd_list The command list handle
 * @param[in] free_command The command free option @c true = release each commands in list,
@@ -86,7 +86,7 @@ int vc_cmd_list_remove_all(vc_cmd_list_h vc_cmd_list, bool free_command);
 
 /**
 * @brief Sets extra unfixed command.
-* @since_tizen @if MOBILE 2.4 @elseif WEARABLE 3.0 @endif
+* @since_tizen 2.4
 *
 * @param[in] vc_command The command handle
 * @param[in] command The unfixed command
@@ -103,7 +103,7 @@ int vc_cmd_set_unfixed_command(vc_cmd_h vc_command, const char* command);
 
 /**
 * @brief Sets pid.
-* @since_tizen @if MOBILE 2.4 @elseif WEARABLE 3.0 @endif
+* @since_tizen 2.4
 *
 * @param[in] vc_command The command handle
 * @param[in] pid process id
@@ -118,7 +118,7 @@ int vc_cmd_set_pid(vc_cmd_h vc_command, int pid);
 
 /**
 * @brief Sets command domain
-* @since_tizen @if MOBILE 2.4 @elseif WEARABLE 3.0 @endif
+* @since_tizen 2.4
 *
 * @param[in] vc_command The command handle
 * @param[in] domain domain

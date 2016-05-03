@@ -30,7 +30,7 @@ extern "C"
 
 /**
 * @brief Enumerations of command format.
-* @since_tizen @if MOBILE 2.4 @elseif WEARABLE 3.0 @endif
+* @since_tizen 2.4
 */
 typedef enum {
 	VC_CMD_FORMAT_FIXED = 0,	/**< fixed command only */
@@ -42,7 +42,7 @@ typedef enum {
 
 /**
 * @brief Gets extra unfixed command.
-* @since_tizen @if MOBILE 2.4 @elseif WEARABLE 3.0 @endif
+* @since_tizen 2.4
 *
 * @remark If the function succeeds, @a The command must be released with free() by you if they are not NULL.
 *	If you get the result command list in result callback and the command type of commands has non-fixed format,
@@ -61,7 +61,7 @@ int vc_cmd_get_unfixed_command(vc_cmd_h vc_command, char** command);
 
 /**
 * @brief Sets command format.
-* @since_tizen @if MOBILE 2.4 @elseif WEARABLE 3.0 @endif
+* @since_tizen 2.4
 *
 * @param[in] vc_command The command handle
 * @param[in] format The command format
@@ -78,7 +78,7 @@ int vc_cmd_set_format(vc_cmd_h vc_command, vc_cmd_format_e format);
 
 /**
 * @brief Gets command format.
-* @since_tizen @if MOBILE 2.4 @elseif WEARABLE 3.0 @endif
+* @since_tizen 2.4
 *
 * @remark If you do not set the format, the default format is #VC_CMD_FORMAT_FIXED.
 *
@@ -97,7 +97,7 @@ int vc_cmd_get_format(vc_cmd_h vc_command, vc_cmd_format_e* format);
 
 /**
 * @brief Sets command domain
-* @since_tizen @if MOBILE 2.4 @elseif WEARABLE 3.0 @endif
+* @since_tizen 2.4
 *
 * @param[in] vc_command The command handle
 * @param[in] domain The domain
@@ -114,7 +114,7 @@ int vc_cmd_set_domain(vc_cmd_h vc_command, int domain);
 
 /**
 * @brief Gets command domain.
-* @since_tizen @if MOBILE 2.4 @elseif WEARABLE 3.0 @endif
+* @since_tizen 2.4
 *
 * @param[in] vc_command The command handle
 * @param[out] domain The domain

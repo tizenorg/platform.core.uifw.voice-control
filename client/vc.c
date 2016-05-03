@@ -806,7 +806,7 @@ int vc_get_window_id(int* wid)
 
 /**
 * @brief Checks whether the command format is supported.
-* @since_tizen @if MOBILE 2.4 @elseif WEARABLE 3.0 @endif
+* @since_tizen 2.4
 *
 * @param[in] format The command format
 * @param[out] support The result status @c true = supported, @c false = not supported

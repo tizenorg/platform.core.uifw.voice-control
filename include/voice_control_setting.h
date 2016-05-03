@@ -49,7 +49,7 @@ typedef void (*vc_setting_enabled_changed_cb)(bool enabled, void* user_data);
 
 /**
 * @brief Called to retrieve supported language.
-* @since_tizen @if MOBILE 2.4 @elseif WEARABLE 3.0 @endif
+* @since_tizen 2.4
 *
 * @param[in] language A language is specified as an ISO 3166 alpha-2 two letter country-code \n
 *		followed by ISO 639-1 for the two-letter language code. \n
@@ -64,7 +64,7 @@ typedef bool(*vc_setting_supported_language_cb)(const char* language, void* user
 
 /**
 * @brief Called when default language is changed.
-* @since_tizen @if MOBILE 2.4 @elseif WEARABLE 3.0 @endif
+* @since_tizen 2.4
 *
 * @param[in] previous Previous language
 * @param[in] current Current language

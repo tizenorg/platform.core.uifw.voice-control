@@ -32,7 +32,7 @@ extern "C"
 
 /**
 * @brief Enumerations of error codes.
-* @since_tizen @if MOBILE 2.4 @elseif WEARABLE 3.0 @endif
+* @since_tizen 2.4
 */
 typedef enum {
 	VC_ERROR_NONE			= TIZEN_ERROR_NONE,			/**< Successful */
@@ -54,7 +54,7 @@ typedef enum {
 
 /**
 * @brief Enumerations of result event.
-* @since_tizen @if MOBILE 2.4 @elseif WEARABLE 3.0 @endif
+* @since_tizen 2.4
 */
 typedef enum {
 	VC_RESULT_EVENT_RESULT_SUCCESS	= 0,	/**< Normal result */
@@ -63,7 +63,7 @@ typedef enum {
 
 /**
 * @brief Enumerations of service state.
-* @since_tizen @if MOBILE 2.4 @elseif WEARABLE 3.0 @endif
+* @since_tizen 2.4
 */
 typedef enum {
 	VC_SERVICE_STATE_NONE		= 0,	/**< 'None' state */
@@ -74,7 +74,7 @@ typedef enum {
 
 /**
 * @brief Enumerations of client state.
-* @since_tizen @if MOBILE 2.4 @elseif WEARABLE 3.0 @endif
+* @since_tizen 2.4
 */
 typedef enum {
 	VC_STATE_NONE			= 0,	/**< 'None' state */
@@ -85,7 +85,7 @@ typedef enum {
 
 /**
 * @brief Called when client gets the recognition result.
-* @since_tizen @if MOBILE 2.4 @elseif WEARABLE 3.0 @endif
+* @since_tizen 2.4
 *
 * @remarks If the duplicated commands are recognized, the event(e.g. #VC_RESULT_EVENT_REJECTED) of command may be rejected \n
 *	for selecting command as priority. If you set similar or same commands or the recognized results are multi-results,
@@ -104,7 +104,7 @@ typedef void (*vc_result_cb)(vc_result_event_e event, vc_cmd_list_h vc_cmd_list,
 
 /**
 * @brief Called when default language is changed.
-* @since_tizen @if MOBILE 2.4 @elseif WEARABLE 3.0 @endif
+* @since_tizen 2.4
 *
 * @param[in] previous Previous language
 * @param[in] current Current language
@@ -118,7 +118,7 @@ typedef void (*vc_current_language_changed_cb)(const char* previous, const char*
 
 /**
 * @brief Called to retrieve supported language.
-* @since_tizen @if MOBILE 2.4 @elseif WEARABLE 3.0 @endif
+* @since_tizen 2.4
 *
 * @param[in] language A language is specified as an ISO 3166 alpha-2 two letter country-code \n
 *		followed by ISO 639-1 for the two-letter language code. \n
@@ -133,7 +133,7 @@ typedef bool (*vc_supported_language_cb)(const char* language, void* user_data);
 
 /**
 * @brief Called when the state of voice control client is changed.
-* @since_tizen @if MOBILE 2.4 @elseif WEARABLE 3.0 @endif
+* @since_tizen 2.4
 *
 * @param[in] previous A previous state
 * @param[in] current A current state
@@ -147,7 +147,7 @@ typedef void (*vc_state_changed_cb)(vc_state_e previous, vc_state_e current, voi
 
 /**
 * @brief Called when the state of voice control service is changed.
-* @since_tizen @if MOBILE 2.4 @elseif WEARABLE 3.0 @endif
+* @since_tizen 2.4
 *
 * @param[in] previous A previous state
 * @param[in] current A current state
@@ -161,7 +161,7 @@ typedef void (*vc_service_state_changed_cb)(vc_service_state_e previous, vc_serv
 
 /**
 * @brief Called when error occurred.
-* @since_tizen @if MOBILE 2.4 @elseif WEARABLE 3.0 @endif
+* @since_tizen 2.4
 *
 * @param[in] reason The error type (e.g. #VC_ERROR_OUT_OF_MEMORY, #VC_ERROR_TIMED_OUT)
 * @param[in] user_data The user data passed from the callback registration function
