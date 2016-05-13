@@ -22,6 +22,9 @@ BuildRequires:  pkgconfig(ecore)
 BuildRequires:  pkgconfig(glib-2.0)
 BuildRequires:  pkgconfig(libtzplatform-config)
 BuildRequires:  pkgconfig(libxml-2.0)
+%if "%{PRODUCT_TYPE}" == "TV"
+#BuildRequires:  pkgconfig(msfapi) #not be applied yet.
+%endif
 BuildRequires:  pkgconfig(vconf)
 BuildRequires:  cmake
 
@@ -84,8 +87,14 @@ export CFLAGS="$CFLAGS -DTIZEN_ENGINEER_MODE"
 export CXXFLAGS="$CXXFLAGS -DTIZEN_ENGINEER_MODE"
 export FFLAGS="$FFLAGS -DTIZEN_ENGINEER_MODE"
 %endif
+%if "%{PRODUCT_TYPE}" == "TV"
+export CFLAGS="$CFLAGS -DTV_PRODUCT"
 cmake . -DCMAKE_INSTALL_PREFIX=/usr -DLIBDIR=%{_libdir} -DINCLUDEDIR=%{_includedir} \
-	-DTZ_SYS_RO_SHARE=%TZ_SYS_RO_SHARE
+        -DTZ_SYS_RO_SHARE=%TZ_SYS_RO_SHARE -D_TV_PRODUCT=TRUE
+%else
+cmake . -DCMAKE_INSTALL_PREFIX=/usr -DLIBDIR=%{_libdir} -DINCLUDEDIR=%{_includedir} \
+        -DTZ_SYS_RO_SHARE=%TZ_SYS_RO_SHARE
+%endif
 make %{?jobs:-j%jobs}
 
 %install
