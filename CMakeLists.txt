@@ -39,10 +39,18 @@ INCLUDE_DIRECTORIES("${CMAKE_SOURCE_DIR}/include")
 
 ## Dependent packages ##
 INCLUDE(FindPkgConfig)
+IF(NOT DEFINED ${TV_PRODUCT})
 pkg_check_modules(pkgs REQUIRED
     aul capi-base-common capi-media-audio-io capi-media-sound-manager capi-network-bluetooth capi-system-info
     dbus-1 dlog ecore glib-2.0 libtzplatform-config libxml-2.0 vconf
 )
+ELSEIF(DEFINED ${TV_PRODUCT})
+pkg_check_modules(pkgs REQUIRED
+    aul capi-base-common capi-media-audio-io capi-media-sound-manager capi-network-bluetooth capi-system-info
+    dbus-1 dlog ecore glib-2.0 libtzplatform-config libxml-2.0 vconf #msfapi
+)
+ENDIF()
+
 
 ## API ##
 ADD_SUBDIRECTORY(include)
