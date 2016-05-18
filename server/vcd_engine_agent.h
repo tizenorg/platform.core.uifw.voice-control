@@ -31,15 +31,17 @@ extern "C" {
 
 #define	ENGINE_PATH_SIZE 256
 
+typedef void (*pre_result_callback)(vcp_pre_result_event_e event, const char* pre_result, void* user_data);
+
 typedef void (*result_callback)(vcp_result_event_e event, int* result_id, int count, const char* all_result,
-								const char* non_fixed_result, const char* msg, void *user_data);
+				const char* non_fixed_result, const char* msg, const char* nlp_info, void *user_data);
 
 typedef void (*silence_dectection_callback)(void *user_data);
 
 
 
 /** Init engine agent */
-int vcd_engine_agent_init(result_callback result_cb);
+int vcd_engine_agent_init(pre_result_callback pre_cb, result_callback result_cb);
 
 /** Release engine agent */
 int vcd_engine_agent_release();

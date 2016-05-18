@@ -69,6 +69,7 @@ static vcengine_s g_dynamic_engine;
 static char* g_default_lang;
 
 /** callback functions */
+static pre_result_callback g_pre_result_cb;
 static result_callback g_result_cb;
 
 bool __supported_language_cb(const char* language, void* user_data);
@@ -99,9 +100,9 @@ int __log_enginelist();
 /*
 * VCS Engine Agent Interfaces
 */
-int vcd_engine_agent_init(result_callback result_cb)
+int vcd_engine_agent_init(pre_result_callback pre_cb, result_callback result_cb)
 {
-	if (NULL == result_cb) {
+	if (NULL == pre_cb || NULL == result_cb) {
 		SLOG(LOG_ERROR, TAG_VCD, "[Engine Agent ERROR] Input parameter is NULL");
 		return VCD_ERROR_OPERATION_FAILED;
 	}
@@ -120,6 +121,7 @@ int vcd_engine_agent_init(result_callback result_cb)
 
 	g_agent_init = true;
 
+	g_pre_result_cb = pre_cb;
 	g_result_cb = result_cb;
 
 	if (0 != vcd_config_get_default_language(&g_default_lang)) {
@@ -460,12 +462,45 @@ int __get_audio_type(char** audio_type)
 	return vcd_recorder_get(audio_type);
 }
 
+void __pre_result_cb(vcp_pre_result_event_e event, const char* pre_result, void* user_data)
+{
+	SLOG(LOG_DEBUG, TAG_VCD, "[Engine agent] Pre result(%s)", pre_result);
+
+	if (NULL != g_pre_result_cb) {
+		g_pre_result_cb(event, pre_result, user_data);
+	} else {
+		SLOG(LOG_DEBUG, TAG_VCD, "[Engine Agent ERROR] Result callback function is NOT valid");
+	}
+
+	return;
+}
+
 void __result_cb(vcp_result_event_e event, int* result_id, int count, const char* all_result, const char* non_fixed, const char* msg, void *user_data)
 {
 	SLOG(LOG_DEBUG, TAG_VCD, "[Engine agent] Event(%d), Count(%d) Text(%s) Nonfixed(%s) Msg(%s)", event, count, all_result, non_fixed, msg);
 
+	// Need to nlp info handle or true false value
+	int ret = 0;
+	char* temp_nlp = NULL;
+
+	if (true == g_dynamic_engine.is_loaded) {
+		if (NULL != g_dynamic_engine.pefuncs->get_nlp_info) {
+			ret = g_dynamic_engine.pefuncs->get_nlp_info(&temp_nlp);
+			if (0 != ret) {
+				SLOG(LOG_WARN, TAG_VCD, "[Engine Agent ERROR] Fail to get nlp info : error(%d)", ret);
+			} else {
+				SLOG(LOG_DEBUG, TAG_VCD, "[Engine Agent SUCCESS] Get nlp info : %s", temp_nlp);
+			}
+		} else {
+			SLOG(LOG_WARN, TAG_VCD, "[Engine Agent ERROR] Not support to get nlp info");
+		}
+	}
+
+	if (NULL == temp_nlp)
+		temp_nlp = "null";
+
 	if (NULL != g_result_cb) {
-		g_result_cb(event, result_id, count, all_result, non_fixed, msg, user_data);
+		g_result_cb(event, result_id, count, all_result, non_fixed, msg, temp_nlp, user_data);
 	} else {
 		SLOG(LOG_DEBUG, TAG_VCD, "[Engine Agent ERROR] Result callback function is NOT valid");
 	}
@@ -550,6 +585,12 @@ int __load_engine(vcengine_s* engine)
 
 	if (0 != engine->pefuncs->set_result_cb(__result_cb, NULL)) {
 		SLOG(LOG_ERROR, TAG_VCD, "[Engine Agent ERROR] Fail to set result callback of vc-engine");
+		return VCD_ERROR_OPERATION_FAILED;
+	}
+
+	// temp
+	if (0 != engine->pefuncs->set_pre_result_cb(__pre_result_cb, NULL)) {
+		SLOG(LOG_ERROR, TAG_VCD, "[Engine Agent ERROR] Fail to set pre result callback of vc-engine");
 		return VCD_ERROR_OPERATION_FAILED;
 	}
 
@@ -686,6 +727,9 @@ int vcd_engine_recognize_audio(const void* data, unsigned int length, vcp_speech
 		ret = g_dynamic_engine.pefuncs->set_recording(data, length, speech_detected);
 		if (0 != ret) {
 			SLOG(LOG_ERROR, TAG_VCD, "[Engine Agent ERROR] Fail to set recording dynamic engine error(%d)", ret);
+			if (VCP_ERROR_OUT_OF_NETWORK == ret) {
+				return VCD_ERROR_TIMED_OUT;
+			}
 			return VCD_ERROR_OPERATION_FAILED;
 		}
 	}

@@ -90,6 +90,7 @@ int vcd_dbus_server_mgr_initialize(DBusConnection* conn, DBusMessage* msg)
 	int pid;
 	int service_state;
 	int foreground;
+	int daemon_pid;
 	int ret = VCD_ERROR_OPERATION_FAILED;
 
 	dbus_message_get_args(msg, &err,
@@ -106,8 +107,9 @@ int vcd_dbus_server_mgr_initialize(DBusConnection* conn, DBusMessage* msg)
 		ret =  vcd_server_mgr_initialize(pid);
 		service_state = vcd_server_get_service_state();
 		foreground = vcd_server_get_foreground();
+		daemon_pid = getpid();
 
-		SLOG(LOG_DEBUG, TAG_VCD, "[IN] vcd mgr initialize : pid(%d) service state(%d) foreground(%d)", pid, service_state, foreground);
+		SLOG(LOG_DEBUG, TAG_VCD, "[IN] vcd mgr initialize : pid(%d) service state(%d) foreground(%d) daemon_pid(%d)", pid, service_state, foreground, daemon_pid);
 	}
 
 	DBusMessage* reply;
@@ -118,6 +120,7 @@ int vcd_dbus_server_mgr_initialize(DBusConnection* conn, DBusMessage* msg)
 			DBUS_TYPE_INT32, &ret,
 			DBUS_TYPE_INT32, &service_state,
 			DBUS_TYPE_INT32, &foreground,
+			DBUS_TYPE_INT32, &daemon_pid,
 			DBUS_TYPE_INVALID);
 
 		if (0 == ret) {

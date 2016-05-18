@@ -72,6 +72,9 @@ int vc_mgr_client_set_error_cb(vc_h vc, vc_error_cb callback, void* user_data);
 
 int vc_mgr_client_get_error_cb(vc_h vc, vc_error_cb* callback, void** user_data);
 
+int vc_mgr_client_set_pre_result_cb(vc_h vc, vc_mgr_pre_result_cb callback, void* user_data);
+
+int vc_mgr_client_get_pre_resut_cb(vc_h vc, vc_mgr_pre_result_cb* callback, void** user_data);
 
 /*
 * set/get option
@@ -101,6 +104,12 @@ int vc_mgr_client_set_all_result(vc_h vc, int event, const char* result_text);
 int vc_mgr_client_get_all_result(vc_h vc, int* event, char** result_text);
 
 int vc_mgr_client_unset_all_result(vc_h vc);
+
+int vc_mgr_client_set_pre_result(vc_h vc, int event, const char* pre_result);
+
+int vc_mgr_client_get_pre_result(vc_h vc, int* event, char** pre_result);
+
+int vc_mgr_client_unset_pre_result(vc_h vc);
 
 int vc_mgr_client_set_audio_type(vc_h vc, const char* audio_id);
 

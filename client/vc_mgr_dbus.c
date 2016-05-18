@@ -30,6 +30,7 @@ static DBusConnection* g_m_conn_listener = NULL;
 
 static int g_volume_count = 0;
 
+extern void __vc_mgr_cb_pre_result(int event, const char* pre_result);
 
 extern void __vc_mgr_cb_all_result(vc_result_type_e type);
 
@@ -37,7 +38,7 @@ extern void __vc_mgr_cb_system_result();
 
 extern void __vc_mgr_cb_speech_detected();
 
-extern int __vc_mgr_cb_error(int pid, int reason);
+extern int __vc_mgr_cb_error(int reason, int daemon_pid, char* msg);
 
 extern int __vc_mgr_cb_set_volume(float volume);
 
@@ -164,6 +165,22 @@ static Eina_Bool vc_mgr_listener_event_callback(void* data, Ecore_Fd_Handler *fd
 
 		} /* VCD_MANAGER_METHOD_SPEECH_DETECTED */
 
+		else if (dbus_message_is_method_call(msg, if_name, VCD_MANAGER_METHOD_PRE_RESULT)) {
+			SLOG(LOG_DEBUG, TAG_VCM, "===== Get Pre Result");
+			int event;
+			char* pre_result = NULL;
+
+			dbus_message_get_args(msg, &err, DBUS_TYPE_INT32, &event, DBUS_TYPE_STRING, &pre_result, DBUS_TYPE_INVALID);
+
+			if (NULL != pre_result) {
+				__vc_mgr_cb_pre_result(event, pre_result);
+			}
+
+			SLOG(LOG_DEBUG, TAG_VCM, "=====");
+			SLOG(LOG_DEBUG, TAG_VCM, " ");
+
+		} /* VCD_MANAGER_METHOD_PRE_RESULT */
+
 		else if (dbus_message_is_method_call(msg, if_name, VCD_MANAGER_METHOD_ALL_RESULT)) {
 			SLOG(LOG_DEBUG, TAG_VCM, "===== Get All Result");
 			int result_type = 0;
@@ -208,24 +225,25 @@ static Eina_Bool vc_mgr_listener_event_callback(void* data, Ecore_Fd_Handler *fd
 			SLOG(LOG_DEBUG, TAG_VCM, " ");
 		} /* VCC_MANAGER_METHOD_SET_FOREGROUND */
 
-		else if (dbus_message_is_method_call(msg, if_name, VCD_MANAGER_METHOD_ERROR)) {
+		else if (dbus_message_is_signal(msg, if_name, VCD_MANAGER_METHOD_ERROR)) {
 			SLOG(LOG_DEBUG, TAG_VCM, "===== Get Error");
-			int pid;
 			int reason;
+			int daemon_pid;
 			char* err_msg;
 
 			dbus_message_get_args(msg, &err,
-				DBUS_TYPE_INT32, &pid,
 				DBUS_TYPE_INT32, &reason,
+				DBUS_TYPE_INT32, &daemon_pid,
 				DBUS_TYPE_STRING, &err_msg,
 				DBUS_TYPE_INVALID);
 
 			if (dbus_error_is_set(&err)) {
 				SLOG(LOG_ERROR, TAG_VCM, "<<<< vc mgr Get Error message : Get arguments error (%s)", err.message);
 				dbus_error_free(&err);
-			} else {
-				SLOG(LOG_DEBUG, TAG_VCM, "<<<< vc mgr Get Error message : pid(%d), reason(%d), msg(%s)", pid, reason, err_msg);
-				__vc_mgr_cb_error(pid, reason);
+			}
+			else {
+				SLOG(LOG_ERROR, TAG_VCM, "<<<< vc mgr Get Error message : reason(%d), daemon_pid(%d), msg(%s)", reason, daemon_pid, err_msg);
+				__vc_mgr_cb_error(reason, daemon_pid, err_msg);
 			}
 
 			SLOG(LOG_DEBUG, TAG_VCM, "=====");
@@ -552,6 +570,9 @@ int vc_mgr_dbus_close_connection()
 	dbus_connection_close(g_m_conn_sender);
 	dbus_connection_close(g_m_conn_listener);
 
+	dbus_connection_unref(g_m_conn_sender);
+	dbus_connection_unref(g_m_conn_listener);
+
 	g_m_conn_sender = NULL;
 	g_m_conn_listener = NULL;
 
@@ -619,8 +640,53 @@ int vc_mgr_dbus_request_hello()
 	return result;
 }
 
-int vc_mgr_dbus_request_initialize(int pid, int* service_state, int* foreground)
+static int __dbus_restore_daemon()
 {
+	int ret = -1;
+	int count = 0;
+	while (0 != ret) {
+		ret = vc_mgr_dbus_request_hello();
+		if (0 != ret) {
+			if (VC_ERROR_TIMED_OUT != ret) {
+				SLOG(LOG_ERROR, TAG_VCM, "[ERROR] Fail to restore daemon");
+				break;
+			} else {
+				SLOG(LOG_WARN, TAG_VCM, "[WARNING] retry restore daemon");
+				usleep(10000);
+				count++;
+				if (VC_RETRY_COUNT == count) {
+					SLOG(LOG_ERROR, TAG_VCM, "[ERROR] Fail to request");
+					break;
+				}
+			}
+		} else {
+			SLOG(LOG_ERROR, TAG_VCM, "[SUCCESS] restore daemon");
+		}
+	}
+	return ret;
+}
+
+int vc_mgr_dbus_request_initialize(int pid, int* service_state, int* foreground, int* daemon_pid)
+{
+	DBusError err;
+	dbus_error_init(&err);
+
+	bool exist = dbus_bus_name_has_owner(g_m_conn_sender, VC_SERVER_SERVICE_NAME, &err);
+	if (dbus_error_is_set(&err)) {
+		SLOG(LOG_ERROR, TAG_VCM, "[ERROR] Dbus Error (%s)", err.message);
+		dbus_error_free(&err);
+	}
+
+	int ret;
+	if (false == exist) {
+		ret = __dbus_restore_daemon();
+		if (VC_ERROR_NONE != ret) {
+			SLOG(LOG_ERROR, TAG_VCM, "[ERROR] Fail to restore daemon");
+			return VC_ERROR_TIMED_OUT;
+		}
+		return VC_ERROR_OPERATION_FAILED;
+	}
+
 	DBusMessage* msg;
 
 	msg = dbus_message_new_method_call(
@@ -640,9 +706,6 @@ int vc_mgr_dbus_request_initialize(int pid, int* service_state, int* foreground)
 		DBUS_TYPE_INT32, &pid,
 		DBUS_TYPE_INVALID);
 
-	DBusError err;
-	dbus_error_init(&err);
-
 	DBusMessage* result_msg;
 	int result = VC_ERROR_OPERATION_FAILED;
 
@@ -657,10 +720,12 @@ int vc_mgr_dbus_request_initialize(int pid, int* service_state, int* foreground)
 	if (NULL != result_msg) {
 		int tmp_service_state = 0;
 		int tmp_foreground = 0;
+		int tmp_daemon_pid = 0;
 		dbus_message_get_args(result_msg, &err,
 			DBUS_TYPE_INT32, &result,
 			DBUS_TYPE_INT32, &tmp_service_state,
 			DBUS_TYPE_INT32, &tmp_foreground,
+			DBUS_TYPE_INT32, &tmp_daemon_pid,
 			DBUS_TYPE_INVALID);
 
 		if (dbus_error_is_set(&err)) {
@@ -674,8 +739,9 @@ int vc_mgr_dbus_request_initialize(int pid, int* service_state, int* foreground)
 		if (0 == result) {
 			*service_state = tmp_service_state;
 			*foreground = tmp_foreground;
-			SLOG(LOG_DEBUG, TAG_VCM, "<<<< vc mgr initialize : result = %d, service state = %d, foreground = %d", 
-				result, *service_state, *foreground);
+			*daemon_pid = tmp_daemon_pid;
+			SLOG(LOG_DEBUG, TAG_VCM, "<<<< vc mgr initialize : result = %d, service state = %d, foreground = %d, daemon_pid = %d", 
+				result, *service_state, *foreground, *daemon_pid);
 		} else {
 			SLOG(LOG_ERROR, TAG_VCM, "<<<< vc mgr initialize : result = %d", result);
 		}
@@ -690,6 +756,25 @@ int vc_mgr_dbus_request_initialize(int pid, int* service_state, int* foreground)
 
 int vc_mgr_dbus_request_finalize(int pid)
 {
+	DBusError err;
+	dbus_error_init(&err);
+
+	bool exist = dbus_bus_name_has_owner(g_m_conn_sender, VC_SERVER_SERVICE_NAME, &err);
+	if (dbus_error_is_set(&err)) {
+		SLOG(LOG_ERROR, TAG_VCM, "[ERROR] Dbus Error (%s)", err.message);
+		dbus_error_free(&err);
+	}
+
+	int ret;
+	if (false == exist) {
+		ret = __dbus_restore_daemon();
+		if (VC_ERROR_NONE != ret) {
+			SLOG(LOG_ERROR, TAG_VCM, "[ERROR] Fail to restore daemon");
+			return VC_ERROR_TIMED_OUT;
+		}
+		return VC_ERROR_OPERATION_FAILED;
+	}
+
 	DBusMessage* msg;
 
 	msg = dbus_message_new_method_call(
@@ -706,9 +791,6 @@ int vc_mgr_dbus_request_finalize(int pid)
 	}
 
 	dbus_message_append_args(msg, DBUS_TYPE_INT32, &pid, DBUS_TYPE_INVALID);
-
-	DBusError err;
-	dbus_error_init(&err);
 
 	DBusMessage* result_msg;
 	int result = VC_ERROR_OPERATION_FAILED;
@@ -750,6 +832,25 @@ int vc_mgr_dbus_request_finalize(int pid)
 
 int vc_mgr_dbus_request_set_command(int pid)
 {
+	DBusError err;
+	dbus_error_init(&err);
+
+	bool exist = dbus_bus_name_has_owner(g_m_conn_sender, VC_SERVER_SERVICE_NAME, &err);
+	if (dbus_error_is_set(&err)) {
+		SLOG(LOG_ERROR, TAG_VCM, "[ERROR] Dbus Error (%s)", err.message);
+		dbus_error_free(&err);
+	}
+
+	int ret;
+	if (false == exist) {
+		ret = __dbus_restore_daemon();
+		if (VC_ERROR_NONE != ret) {
+			SLOG(LOG_ERROR, TAG_VCM, "[ERROR] Fail to restore daemon");
+			return VC_ERROR_TIMED_OUT;
+		}
+		return VC_ERROR_OPERATION_FAILED;
+	}
+
 	DBusMessage* msg;
 
 	msg = dbus_message_new_method_call(
@@ -768,9 +869,6 @@ int vc_mgr_dbus_request_set_command(int pid)
 	dbus_message_append_args(msg,
 							 DBUS_TYPE_INT32, &pid,
 							 DBUS_TYPE_INVALID);
-
-	DBusError err;
-	dbus_error_init(&err);
 
 	DBusMessage* result_msg;
 	int result = VC_ERROR_OPERATION_FAILED;
@@ -811,6 +909,25 @@ int vc_mgr_dbus_request_set_command(int pid)
 
 int vc_mgr_dbus_request_unset_command(int pid)
 {
+	DBusError err;
+	dbus_error_init(&err);
+
+	bool exist = dbus_bus_name_has_owner(g_m_conn_sender, VC_SERVER_SERVICE_NAME, &err);
+	if (dbus_error_is_set(&err)) {
+		SLOG(LOG_ERROR, TAG_VCM, "[ERROR] Dbus Error (%s)", err.message);
+		dbus_error_free(&err);
+	}
+
+	int ret;
+	if (false == exist) {
+		ret = __dbus_restore_daemon();
+		if (VC_ERROR_NONE != ret) {
+			SLOG(LOG_ERROR, TAG_VCM, "[ERROR] Fail to restore daemon");
+			return VC_ERROR_TIMED_OUT;
+		}
+		return VC_ERROR_OPERATION_FAILED;
+	}
+
 	DBusMessage* msg;
 
 	msg = dbus_message_new_method_call(
@@ -829,9 +946,6 @@ int vc_mgr_dbus_request_unset_command(int pid)
 	dbus_message_append_args(msg,
 							 DBUS_TYPE_INT32, &pid,
 							 DBUS_TYPE_INVALID);
-
-	DBusError err;
-	dbus_error_init(&err);
 
 	DBusMessage* result_msg;
 	int result = VC_ERROR_OPERATION_FAILED;
@@ -872,6 +986,25 @@ int vc_mgr_dbus_request_unset_command(int pid)
 
 int vc_mgr_dbus_request_demandable_client(int pid)
 {
+	DBusError err;
+	dbus_error_init(&err);
+
+	bool exist = dbus_bus_name_has_owner(g_m_conn_sender, VC_SERVER_SERVICE_NAME, &err);
+	if (dbus_error_is_set(&err)) {
+		SLOG(LOG_ERROR, TAG_VCM, "[ERROR] Dbus Error (%s)", err.message);
+		dbus_error_free(&err);
+	}
+
+	int ret;
+	if (false == exist) {
+		ret = __dbus_restore_daemon();
+		if (VC_ERROR_NONE != ret) {
+			SLOG(LOG_ERROR, TAG_VCM, "[ERROR] Fail to restore daemon");
+			return VC_ERROR_TIMED_OUT;
+		}
+		return VC_ERROR_OPERATION_FAILED;
+	}
+
 	DBusMessage* msg;
 
 	msg = dbus_message_new_method_call(
@@ -890,9 +1023,6 @@ int vc_mgr_dbus_request_demandable_client(int pid)
 	dbus_message_append_args(msg,
 							 DBUS_TYPE_INT32, &pid,
 							 DBUS_TYPE_INVALID);
-
-	DBusError err;
-	dbus_error_init(&err);
 
 	DBusMessage* result_msg;
 	int result = VC_ERROR_OPERATION_FAILED;
@@ -933,6 +1063,25 @@ int vc_mgr_dbus_request_demandable_client(int pid)
 
 int vc_mgr_dbus_request_set_audio_type(int pid, const char* audio_type)
 {
+	DBusError err;
+	dbus_error_init(&err);
+
+	bool exist = dbus_bus_name_has_owner(g_m_conn_sender, VC_SERVER_SERVICE_NAME, &err);
+	if (dbus_error_is_set(&err)) {
+		SLOG(LOG_ERROR, TAG_VCM, "[ERROR] Dbus Error (%s)", err.message);
+		dbus_error_free(&err);
+	}
+
+	int ret;
+	if (false == exist) {
+		ret = __dbus_restore_daemon();
+		if (VC_ERROR_NONE != ret) {
+			SLOG(LOG_ERROR, TAG_VCM, "[ERROR] Fail to restore daemon");
+			return VC_ERROR_TIMED_OUT;
+		}
+		return VC_ERROR_OPERATION_FAILED;
+	}
+
 	DBusMessage* msg;
 
 	/* create a signal & check for errors */
@@ -953,9 +1102,6 @@ int vc_mgr_dbus_request_set_audio_type(int pid, const char* audio_type)
 							 DBUS_TYPE_INT32, &pid,
 							 DBUS_TYPE_STRING, &(audio_type),
 							 DBUS_TYPE_INVALID);
-
-	DBusError err;
-	dbus_error_init(&err);
 
 	DBusMessage* result_msg;
 	int result = VC_ERROR_OPERATION_FAILED;
@@ -996,6 +1142,25 @@ int vc_mgr_dbus_request_set_audio_type(int pid, const char* audio_type)
 
 int vc_mgr_dbus_request_get_audio_type(int pid, char** audio_type)
 {
+	DBusError err;
+	dbus_error_init(&err);
+
+	bool exist = dbus_bus_name_has_owner(g_m_conn_sender, VC_SERVER_SERVICE_NAME, &err);
+	if (dbus_error_is_set(&err)) {
+		SLOG(LOG_ERROR, TAG_VCM, "[ERROR] Dbus Error (%s)", err.message);
+		dbus_error_free(&err);
+	}
+
+	int ret;
+	if (false == exist) {
+		ret = __dbus_restore_daemon();
+		if (VC_ERROR_NONE != ret) {
+			SLOG(LOG_ERROR, TAG_VCM, "[ERROR] Fail to restore daemon");
+			return VC_ERROR_TIMED_OUT;
+		}
+		return VC_ERROR_OPERATION_FAILED;
+	}
+
 	DBusMessage* msg;
 
 	/* create a signal & check for errors */
@@ -1016,8 +1181,6 @@ int vc_mgr_dbus_request_get_audio_type(int pid, char** audio_type)
 							 DBUS_TYPE_INT32, &pid,
 							 DBUS_TYPE_INVALID);
 
-	DBusError err;
-	dbus_error_init(&err);
 
 	DBusMessage* result_msg;
 	int result = VC_ERROR_OPERATION_FAILED;
@@ -1063,6 +1226,25 @@ int vc_mgr_dbus_request_get_audio_type(int pid, char** audio_type)
 
 int vc_mgr_dbus_request_set_client_info(int pid)
 {
+	DBusError err;
+	dbus_error_init(&err);
+
+	bool exist = dbus_bus_name_has_owner(g_m_conn_sender, VC_SERVER_SERVICE_NAME, &err);
+	if (dbus_error_is_set(&err)) {
+		SLOG(LOG_ERROR, TAG_VCM, "[ERROR] Dbus Error (%s)", err.message);
+		dbus_error_free(&err);
+	}
+
+	int ret;
+	if (false == exist) {
+		ret = __dbus_restore_daemon();
+		if (VC_ERROR_NONE != ret) {
+			SLOG(LOG_ERROR, TAG_VCM, "[ERROR] Fail to restore daemon");
+			return VC_ERROR_TIMED_OUT;
+		}
+		return VC_ERROR_OPERATION_FAILED;
+	}
+
 	DBusMessage* msg;
 
 	/* create a signal & check for errors */
@@ -1082,9 +1264,6 @@ int vc_mgr_dbus_request_set_client_info(int pid)
 	dbus_message_append_args(msg,
 							 DBUS_TYPE_INT32, &pid,
 							 DBUS_TYPE_INVALID);
-
-	DBusError err;
-	dbus_error_init(&err);
 
 	DBusMessage* result_msg;
 	int result = VC_ERROR_OPERATION_FAILED;
@@ -1125,6 +1304,25 @@ int vc_mgr_dbus_request_set_client_info(int pid)
 
 int vc_mgr_dbus_request_start(int pid, int recognition_mode, bool exclusive_command_option, bool start_by_client)
 {
+	DBusError err;
+	dbus_error_init(&err);
+
+	bool exist = dbus_bus_name_has_owner(g_m_conn_sender, VC_SERVER_SERVICE_NAME, &err);
+	if (dbus_error_is_set(&err)) {
+		SLOG(LOG_ERROR, TAG_VCM, "[ERROR] Dbus Error (%s)", err.message);
+		dbus_error_free(&err);
+	}
+
+	int ret;
+	if (false == exist) {
+		ret = __dbus_restore_daemon();
+		if (VC_ERROR_NONE != ret) {
+			SLOG(LOG_ERROR, TAG_VCM, "[ERROR] Fail to restore daemon");
+			return VC_ERROR_TIMED_OUT;
+		}
+		return VC_ERROR_OPERATION_FAILED;
+	}
+
 	DBusMessage* msg;
 
 	/* create a signal & check for errors */
@@ -1151,9 +1349,6 @@ int vc_mgr_dbus_request_start(int pid, int recognition_mode, bool exclusive_comm
 							 DBUS_TYPE_INT32, &(exclusive),
 							 DBUS_TYPE_INT32, &(by),
 							 DBUS_TYPE_INVALID);
-
-	DBusError err;
-	dbus_error_init(&err);
 
 	DBusMessage* result_msg;
 	int result = VC_ERROR_OPERATION_FAILED;
@@ -1194,6 +1389,25 @@ int vc_mgr_dbus_request_start(int pid, int recognition_mode, bool exclusive_comm
 
 int vc_mgr_dbus_request_stop(int pid)
 {
+	DBusError err;
+	dbus_error_init(&err);
+
+	bool exist = dbus_bus_name_has_owner(g_m_conn_sender, VC_SERVER_SERVICE_NAME, &err);
+	if (dbus_error_is_set(&err)) {
+		SLOG(LOG_ERROR, TAG_VCM, "[ERROR] Dbus Error (%s)", err.message);
+		dbus_error_free(&err);
+	}
+
+	int ret;
+	if (false == exist) {
+		ret = __dbus_restore_daemon();
+		if (VC_ERROR_NONE != ret) {
+			SLOG(LOG_ERROR, TAG_VCM, "[ERROR] Fail to restore daemon");
+			return VC_ERROR_TIMED_OUT;
+		}
+		return VC_ERROR_OPERATION_FAILED;
+	}
+
 	DBusMessage* msg;
 
 	/* create a signal & check for errors */
@@ -1213,9 +1427,6 @@ int vc_mgr_dbus_request_stop(int pid)
 	dbus_message_append_args(msg,
 							 DBUS_TYPE_INT32, &pid,
 							 DBUS_TYPE_INVALID);
-
-	DBusError err;
-	dbus_error_init(&err);
 
 	DBusMessage* result_msg;
 	int result = VC_ERROR_OPERATION_FAILED;
@@ -1256,6 +1467,25 @@ int vc_mgr_dbus_request_stop(int pid)
 
 int vc_mgr_dbus_request_cancel(int pid)
 {
+	DBusError err;
+	dbus_error_init(&err);
+
+	bool exist = dbus_bus_name_has_owner(g_m_conn_sender, VC_SERVER_SERVICE_NAME, &err);
+	if (dbus_error_is_set(&err)) {
+		SLOG(LOG_ERROR, TAG_VCM, "[ERROR] Dbus Error (%s)", err.message);
+		dbus_error_free(&err);
+	}
+
+	int ret;
+	if (false == exist) {
+		ret = __dbus_restore_daemon();
+		if (VC_ERROR_NONE != ret) {
+			SLOG(LOG_ERROR, TAG_VCM, "[ERROR] Fail to restore daemon");
+			return VC_ERROR_TIMED_OUT;
+		}
+		return VC_ERROR_OPERATION_FAILED;
+	}
+
 	DBusMessage* msg;
 
 	/* create a signal & check for errors */
@@ -1275,9 +1505,6 @@ int vc_mgr_dbus_request_cancel(int pid)
 	dbus_message_append_args(msg,
 							 DBUS_TYPE_INT32, &pid,
 							 DBUS_TYPE_INVALID);
-
-	DBusError err;
-	dbus_error_init(&err);
 
 	DBusMessage* result_msg;
 	int result = VC_ERROR_OPERATION_FAILED;

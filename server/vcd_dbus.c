@@ -253,6 +253,35 @@ int vcdc_send_result(int pid, int cmd_type)
 	return 0;
 }
 
+int vcdc_send_pre_result_to_manager(int manger_pid, int event, const char* pre_result)
+{
+	DBusError err;
+	dbus_error_init(&err);
+
+	DBusMessage* msg = NULL;
+
+	msg = __get_message(manger_pid, VCD_MANAGER_METHOD_PRE_RESULT, VCD_CLIENT_TYPE_MANAGER);
+
+	if (NULL == msg) {
+		SLOG(LOG_ERROR, TAG_VCD, "[Dbus ERROR] Message is NULL");
+		return VCD_ERROR_OUT_OF_MEMORY;
+	}
+
+	dbus_message_append_args(msg, DBUS_TYPE_INT32, &event, DBUS_TYPE_STRING, &pre_result, DBUS_TYPE_INVALID);
+
+	dbus_message_set_no_reply(msg, TRUE);
+
+	if (1 != dbus_connection_send(g_conn_sender, msg, NULL)) {
+		SLOG(LOG_ERROR, TAG_VCD, "[Dbus ERROR] Fail to Send");
+		return VCD_ERROR_OPERATION_FAILED;
+	} else {
+		SLOG(LOG_DEBUG, TAG_VCD, "[Dbus] SUCCESS Send");
+		dbus_connection_flush(g_conn_sender);
+	}
+
+	return 0;
+}
+
 int vcdc_send_result_to_manager(int manger_pid, int result_type)
 {
 	DBusError err;
@@ -398,43 +427,126 @@ int vcdc_send_service_state(vcd_state_e state)
 	return 0;
 }
 
-int vcdc_send_error_signal(int pid, int reason, char *err_msg)
+int vcdc_send_error_signal_to_manager(int manager_pid, int reason, char *err_msg)
 {
+	SLOG(LOG_ERROR, TAG_VCD, ">>>> Send error signal to manager");
+
 	if (NULL == err_msg) {
 		SLOG(LOG_ERROR, TAG_VCD, "[Dbus ERROR] Input parameter is NULL");
 		return VCD_ERROR_INVALID_PARAMETER;
 	}
 
-	char service_name[64] = {0, };
-	snprintf(service_name, 64, "%s%d", VC_CLIENT_SERVICE_NAME, pid);
+	int daemon_pid;
+	DBusError err;
+	dbus_error_init(&err);
 
-	DBusMessage* msg;
-	SLOG(LOG_DEBUG, TAG_VCD, "[Dbus] send error signal : reason(%d), Error Msg(%s)", reason, err_msg);
+	DBusMessage* msg = NULL;
 
-	msg = dbus_message_new_method_call(
-		service_name,
-		VC_CLIENT_SERVICE_OBJECT_PATH,
-		VC_CLIENT_SERVICE_INTERFACE,
-		VCD_METHOD_ERROR);
+	msg = dbus_message_new_signal(
+		VC_MANAGER_SERVICE_OBJECT_PATH,
+		VC_MANAGER_SERVICE_INTERFACE,
+		VCD_MANAGER_METHOD_ERROR);
 
 	if (NULL == msg) {
-		SLOG(LOG_ERROR, TAG_VCD, "[Dbus ERROR] Fail to create message");
+		SLOG(LOG_ERROR, TAG_VCD, "[Dbus ERROR] Message is NULL");
 		return VCD_ERROR_OUT_OF_MEMORY;
 	}
 
-	dbus_message_append_args(msg,
-		DBUS_TYPE_INT32, &pid,
-		DBUS_TYPE_INT32, &reason,
-		DBUS_TYPE_STRING, &err_msg,
-		DBUS_TYPE_INVALID);
-
-	dbus_message_set_no_reply(msg, TRUE);
+	daemon_pid = getpid();
+	dbus_message_append_args(msg, DBUS_TYPE_INT32, &reason, DBUS_TYPE_INT32, &daemon_pid, DBUS_TYPE_STRING, &err_msg, DBUS_TYPE_INVALID);
 
 	if (1 != dbus_connection_send(g_conn_sender, msg, NULL)) {
 		SLOG(LOG_ERROR, TAG_VCD, "[Dbus ERROR] Fail to Send");
 		return VCD_ERROR_OPERATION_FAILED;
 	} else {
-		SLOG(LOG_DEBUG, TAG_VCD, "[Dbus] SUCCESS Send");
+		SLOG(LOG_DEBUG, TAG_VCD, "<<<< Send error signal to manager : reason(%d), Error Msg(%s)", reason, err_msg);
+		dbus_connection_flush(g_conn_sender);
+	}
+
+	dbus_message_unref(msg);
+
+	return 0;
+}
+
+int vcdc_send_error_signal(int reason, char *err_msg)
+{
+	SLOG(LOG_ERROR, TAG_VCD, ">>>> Send error signal");
+
+	if (NULL == err_msg) {
+		SLOG(LOG_ERROR, TAG_VCD, "[Dbus ERROR] Input parameter is NULL");
+		return VCD_ERROR_INVALID_PARAMETER;
+	}
+
+	int daemon_pid;
+	DBusError err;
+	dbus_error_init(&err);
+
+	DBusMessage* msg = NULL;
+
+	msg = dbus_message_new_signal(
+		VC_MANAGER_SERVICE_OBJECT_PATH,
+		VC_MANAGER_SERVICE_INTERFACE,
+		VCD_MANAGER_METHOD_ERROR);
+
+	if (NULL == msg) {
+		SLOG(LOG_ERROR, TAG_VCD, "[Dbus ERROR] Message is NULL");
+		return VCD_ERROR_OUT_OF_MEMORY;
+	}
+
+	daemon_pid = getpid();
+	dbus_message_append_args(msg, DBUS_TYPE_INT32, &reason, DBUS_TYPE_INT32, &daemon_pid, DBUS_TYPE_STRING, &err_msg, DBUS_TYPE_INVALID);
+
+	if (1 != dbus_connection_send(g_conn_sender, msg, NULL)) {
+		SLOG(LOG_ERROR, TAG_VCD, "[Dbus ERROR] Fail to Send");
+		return VCD_ERROR_OPERATION_FAILED;
+	} else {
+		SLOG(LOG_DEBUG, TAG_VCD, "<<<< Send error signal to manager: reason(%d), daemon_pid(%d), Error Msg(%s)", reason, daemon_pid, err_msg);
+		dbus_connection_flush(g_conn_sender);
+	}
+
+	dbus_message_unref(msg);
+
+	msg = NULL;
+	msg = dbus_message_new_signal(
+		VC_CLIENT_SERVICE_OBJECT_PATH,
+		VC_CLIENT_SERVICE_INTERFACE,
+		VCD_METHOD_ERROR);
+
+	if (NULL == msg) {
+		SLOG(LOG_ERROR, TAG_VCD, "[Dbus ERROR] Message is NULL");
+		return VCD_ERROR_OUT_OF_MEMORY;
+	}
+
+	dbus_message_append_args(msg, DBUS_TYPE_INT32, &reason, DBUS_TYPE_INT32, &daemon_pid, DBUS_TYPE_STRING, &err_msg, DBUS_TYPE_INVALID);
+
+	if (1 != dbus_connection_send(g_conn_sender, msg, NULL)) {
+		SLOG(LOG_ERROR, TAG_VCD, "[Dbus ERROR] Fail to Send");
+		return VCD_ERROR_OPERATION_FAILED;
+	} else {
+		SLOG(LOG_DEBUG, TAG_VCD, "<<<< Send error signal : reason(%d), daemon_pid(%d), Error Msg(%s)", reason, daemon_pid, err_msg);
+		dbus_connection_flush(g_conn_sender);
+	}
+
+	dbus_message_unref(msg);
+
+	msg = NULL;
+	msg = dbus_message_new_signal(
+		VC_WIDGET_SERVICE_OBJECT_PATH,
+		VC_WIDGET_SERVICE_INTERFACE,
+		VCD_WIDGET_METHOD_ERROR);
+
+	if (NULL == msg) {
+		SLOG(LOG_ERROR, TAG_VCD, "[Dbus ERROR] Message is NULL");
+		return VCD_ERROR_OUT_OF_MEMORY;
+	}
+
+	dbus_message_append_args(msg, DBUS_TYPE_INT32, &reason, DBUS_TYPE_INT32, &daemon_pid, DBUS_TYPE_STRING, &err_msg, DBUS_TYPE_INVALID);
+
+	if (1 != dbus_connection_send(g_conn_sender, msg, NULL)) {
+		SLOG(LOG_ERROR, TAG_VCD, "[Dbus ERROR] Fail to Send");
+		return VCD_ERROR_OPERATION_FAILED;
+	} else {
+		SLOG(LOG_DEBUG, TAG_VCD, "<<<< Send error signal to widget : reason(%d), daemon_pid(%d), Error Msg(%s)", reason, daemon_pid, err_msg);
 		dbus_connection_flush(g_conn_sender);
 	}
 
@@ -654,6 +766,9 @@ int vcd_dbus_close_connection()
 
 	dbus_connection_close(g_conn_listener);
 	dbus_connection_close(g_conn_sender);
+
+	dbus_connection_unref(g_conn_listener);
+	dbus_connection_unref(g_conn_sender);
 
 	g_conn_listener = NULL;
 	g_conn_sender = NULL;

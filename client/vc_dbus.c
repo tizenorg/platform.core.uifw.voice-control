@@ -277,6 +277,9 @@ int vc_dbus_close_connection()
 	dbus_connection_close(g_conn_sender);
 	dbus_connection_close(g_conn_listener);
 
+	dbus_connection_unref(g_conn_sender);
+	dbus_connection_unref(g_conn_listener);
+
 	g_conn_sender = NULL;
 	g_conn_listener = NULL;
 
