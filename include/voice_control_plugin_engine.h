@@ -90,6 +90,11 @@ typedef int vcp_cmd_h;
 #define VCP_AUDIO_ID_BLUETOOTH		"VC_AUDIO_ID_BLUETOOTH"		/**< Bluetooth audio id */
 
 /**
+ * @brief Defines of MSF(wifi) audio id.
+*/
+#define VCP_AUDIO_ID_MSF		"VC_AUDIO_ID_MSF"		/**< MSF (wifi) audio id */
+
+/**
 * @brief Definition for none message.
 */
 #define VC_RESULT_MESSAGE_NONE			"vc.result.message.none"
