@@ -62,6 +62,10 @@ int vc_info_parser_set_result(const char* result_text, int event, const char* ms
 
 int vc_info_parser_get_result(char** result_text, int* event, char** result_message, int pid, vc_cmd_list_h vc_cmd_list, bool exclusive);
 
+int vc_info_parser_set_nlp_info(const char* nlp_info);
+
+int vc_info_parser_get_nlp_info(char** nlp_info);
+
 int vc_info_parser_unset_result(bool exclusive);
 
 int vc_info_parser_get_result_pid_list(GSList** pid_list);

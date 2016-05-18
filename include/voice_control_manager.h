@@ -39,6 +39,11 @@ extern "C"
 #define VC_AUDIO_TYPE_BLUETOOTH		"VC_AUDIO_ID_BLUETOOTH"		/**< Bluetooth audio type */
 
 /**
+ * @brief Defines of audio-in type.
+*/
+#define VC_AUDIO_TYPE_MSF		"VC_AUDIO_ID_MSF"		/**< MSF (wifi) audio type */
+
+/**
 * @brief Definitions for foreground command type.
 * @since_tizen @if MOBILE 2.4 @elseif WEARABLE 3.0 @endif
 */
@@ -106,7 +111,16 @@ typedef enum {
 * @see vc_mgr_unset_all_result_cb()
 */
 typedef bool (*vc_mgr_all_result_cb)(vc_result_event_e event, vc_cmd_list_h vc_cmd_list,
-									 const char* result, const char* msg, void *user_data);
+				const char* result, const char* msg, void *user_data);
+
+typedef enum {
+	VC_PRE_RESULT_EVENT_FINAL_RESULT = 0,
+	VC_PRE_RESULT_EVENT_PARTIAL_RESULT,
+	VC_PRE_RESULT_EVENT_ERROR
+}vc_pre_result_event_e;
+
+// support pre-result
+typedef bool(*vc_mgr_pre_result_cb)(vc_pre_result_event_e event, const char* result, void *user_data);
 
 /**
 * @brief Called when user speaking is detected.
@@ -518,6 +532,14 @@ int vc_mgr_get_recording_volume(float* volume);
 */
 int vc_mgr_set_selected_results(vc_cmd_list_h vc_cmd_list);
 
+
+int vc_mgr_set_nlp_info(const char* info);
+
+int vc_mgr_get_nlp_info(char** info);
+
+int vc_mgr_set_pre_result_cb(vc_mgr_pre_result_cb callback, void* user_data);
+
+int vc_mgr_unset_pre_result_cb();
 
 /**
 * @brief Registers a callback function for getting recognition result.

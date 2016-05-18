@@ -49,7 +49,8 @@ typedef enum {
 	VC_ERROR_OPERATION_FAILED	= TIZEN_ERROR_VOICE_CONTROL | 0x014,	/**< Operation failed */
 	VC_ERROR_OPERATION_REJECTED	= TIZEN_ERROR_VOICE_CONTROL | 0x015,	/**< Operation rejected */
 	VC_ERROR_ITERATION_END		= TIZEN_ERROR_VOICE_CONTROL | 0x016,	/**< List reached end */
-	VC_ERROR_EMPTY			= TIZEN_ERROR_VOICE_CONTROL | 0x017	/**< List empty */
+	VC_ERROR_EMPTY			= TIZEN_ERROR_VOICE_CONTROL | 0x017,	/**< List empty */
+	VC_ERROR_SERVICE_RESET		= TIZEN_ERROR_VOICE_CONTROL | 0x018	/**< Service Damon reset */
 } vc_error_e;
 
 /**

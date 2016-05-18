@@ -39,10 +39,16 @@ typedef struct {
 	void*				speech_detected_user_data;
 	vc_current_language_changed_cb	current_lang_changed_cb;
 	void*				current_lang_changed_user_data;
+	vc_mgr_pre_result_cb		pre_result_cb;
+	void*				pre_result_user_data;
 
 	/* All result */
 	vc_result_event_e	all_result_event;
 	char*			all_result_text;
+
+	/* Pre result */
+	vc_pre_result_event_e	pre_result_event;
+	char*			pre_result_text;
 
 	/* exclusive command flag */
 	bool			exclusive_cmd_option;
@@ -155,11 +161,15 @@ int vc_mgr_client_create(vc_h* vc)
 	client->speech_detected_user_data = NULL;
 	client->current_lang_changed_cb = NULL;
 	client->current_lang_changed_user_data = NULL;
+	client->pre_result_cb = NULL;
+	client->pre_result_user_data = NULL;
 
 	client->exclusive_cmd_option = false;
 
 	client->all_result_event = 0;
 	client->all_result_text = NULL;
+	client->pre_result_event = 0;
+	client->pre_result_text = NULL;
 
 	client->result_event = -1;
 	client->result_text = NULL;
@@ -174,6 +184,8 @@ int vc_mgr_client_create(vc_h* vc)
 
 	client->audio_id = NULL;
 	client->recognition_mode = VC_RECOGNITION_MODE_STOP_BY_SILENCE;
+
+	client->reason = 0;
 
 	client->cb_ref_count = 0;
 
@@ -504,6 +516,33 @@ int vc_mgr_client_get_error_cb(vc_h vc, vc_error_cb* callback, void** user_data)
 	return 0;
 }
 
+int vc_mgr_client_set_pre_result_cb(vc_h vc, vc_mgr_pre_result_cb callback, void* user_data)
+{
+	vc_mgr_client_s* client = __mgr_client_get(vc);
+
+	/* check handle */
+	if (NULL == client)
+		return VC_ERROR_INVALID_PARAMETER;
+
+	client->pre_result_cb = callback;
+	client->pre_result_user_data = user_data;
+
+	return 0;
+}
+
+int vc_mgr_client_get_pre_resut_cb(vc_h vc, vc_mgr_pre_result_cb* callback, void** user_data)
+{
+	vc_mgr_client_s* client = __mgr_client_get(vc);
+
+	/* check handle */
+	if (NULL == client)
+		return VC_ERROR_INVALID_PARAMETER;
+
+	*callback = client->pre_result_cb;
+	*user_data = client->pre_result_user_data;
+	
+	return 0;
+}
 
 /* set/get option */
 int vc_mgr_client_set_service_state(vc_h vc, vc_service_state_e state)
@@ -693,6 +732,63 @@ int vc_mgr_client_unset_all_result(vc_h vc)
 	if (NULL != client->all_result_text) {
 		free(client->all_result_text);
 		client->all_result_text = NULL;
+	}
+
+	return 0;
+}
+
+int vc_mgr_client_set_pre_result(vc_h vc, int event, const char* pre_result)
+{
+	vc_mgr_client_s* client = __mgr_client_get(vc);
+
+	/* check handle */
+	if (NULL == client)
+		return VC_ERROR_INVALID_PARAMETER;
+
+	client->pre_result_event = event;
+
+	if (NULL != client->pre_result_text) {
+		free(client->pre_result_text);
+	}
+	client->pre_result_text = strdup(pre_result);
+
+	return 0;
+}
+
+int vc_mgr_client_get_pre_result(vc_h vc, int* event, char** pre_result)
+{
+	vc_mgr_client_s* client = __mgr_client_get(vc);
+
+	/* check handle */
+	if (NULL == client)
+		return VC_ERROR_INVALID_PARAMETER;
+
+	*event = client->pre_result_event;
+
+	if (NULL != pre_result) {
+		if (NULL != client->pre_result_text) {
+			*pre_result = strdup(client->pre_result_text);
+		} else {
+			*pre_result = NULL;
+		}
+	}
+
+	return 0;
+}
+
+int vc_mgr_client_unset_pre_result(vc_h vc)
+{
+	vc_mgr_client_s* client = __mgr_client_get(vc);
+
+	/* check handle */
+	if (NULL == client)
+		return VC_ERROR_INVALID_PARAMETER;
+
+	client->pre_result_event = -1;
+
+	if (NULL != client->pre_result_text) {
+		free(client->pre_result_text);
+		client->pre_result_text = NULL;
 	}
 
 	return 0;

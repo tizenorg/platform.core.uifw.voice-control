@@ -36,6 +36,8 @@ static bool	g_is_engine;
 
 static GList *g_proc_list = NULL;
 
+static Ecore_Timer *g_restart_timer = NULL;
+
 /*
 * VC Server Internal Functions
 */
@@ -65,6 +67,8 @@ static Eina_Bool __restart_engine(void *data)
 {
 	SLOG(LOG_DEBUG, TAG_VCD, "===== Restart by no result");
 
+	g_restart_timer = NULL;
+
 	/* Restart recognition */
 	int ret = vcd_engine_recognize_start(true);
 	if (0 != ret) {
@@ -90,8 +94,8 @@ static int __server_recorder_callback(const void* data, const unsigned int lengt
 {
 	vcd_state_e state = vcd_config_get_service_state();
 	if (VCD_STATE_RECORDING != state) {
-		SLOG(LOG_DEBUG, TAG_VCD, "[Server] Skip by engine processing");
-		return 0;
+		SLOG(LOG_DEBUG, TAG_VCD, "[Server] Not recording state, but recording");
+//		return 0;
 	}
 
 	vcp_speech_detect_e speech_detected = VCP_SPEECH_DETECT_NONE;
@@ -103,6 +107,12 @@ static int __server_recorder_callback(const void* data, const unsigned int lengt
 		/* Error */
 		SLOG(LOG_ERROR, TAG_VCD, "[Server ERROR] Fail to set recording data to engine(%d)", ret);
 		ecore_timer_add(0, __cancel_by_interrupt, NULL);
+		/* Send error cb to manager */
+		if (VCP_ERROR_OUT_OF_NETWORK == ret) {
+			vcdc_send_error_signal_to_manager(vcd_client_manager_get_pid(), VCD_ERROR_TIMED_OUT, "Engine connection failed");
+		} else {
+			vcdc_send_error_signal_to_manager(vcd_client_manager_get_pid(), VCD_ERROR_OPERATION_FAILED, "Engine recognition failed");
+		}
 		return 0;
 	}
 
@@ -257,13 +267,29 @@ static int __convert_type_to_priority(vc_cmd_type_e type)
 	}
 }
 
+static void __vcd_server_pre_result_cb(vcp_pre_result_event_e event, const char* pre_result, void* user_data)
+{
+	if (NULL != pre_result) {
+		vcdc_send_pre_result_to_manager(vcd_client_manager_get_pid(), event, pre_result);
+	}
+
+	return;
+}
+
 static void __vcd_server_result_cb(vcp_result_event_e event, int* result_id, int count, const char* all_result,
-								   const char* non_fixed_result, const char* msg, void *user_data)
+				   const char* non_fixed_result, const char* msg, const char* nlp_info, void *user_data)
 {
 	if (VCD_STATE_PROCESSING != vcd_config_get_service_state()) {
 		if (VCD_RECOGNITION_MODE_RESTART_CONTINUOUSLY != vcd_client_get_recognition_mode()) {
 			SLOG(LOG_ERROR, TAG_VCD, "[Server ERROR] Current state is not 'Processing' and mode is not 'Restart continuously'");
 			return;
+		}
+	}
+
+	// temp 
+	if (NULL != nlp_info) {
+		if (0 != vc_info_parser_set_nlp_info(nlp_info)) {
+			SLOG(LOG_ERROR, TAG_VCD, "[Server ERROR] Fail to save nlp info");
 		}
 	}
 
@@ -283,7 +309,7 @@ static void __vcd_server_result_cb(vcp_result_event_e event, int* result_id, int
 				SLOG(LOG_WARN, TAG_VCD, "[Server WARNING] Fail to send result");
 			}
 
-			ecore_timer_add(0, __restart_engine, NULL);
+			g_restart_timer = ecore_timer_add(0, __restart_engine, NULL);
 			return;
 		}
 		SLOG(LOG_DEBUG, TAG_VCD, "[Server] Stop recorder due to success");
@@ -291,7 +317,7 @@ static void __vcd_server_result_cb(vcp_result_event_e event, int* result_id, int
 	} else if (VCD_RECOGNITION_MODE_RESTART_CONTINUOUSLY == vcd_client_get_recognition_mode()) {
 		SLOG(LOG_DEBUG, TAG_VCD, "[Server] Restart continuously");
 		/* Restart option is ON */
-		ecore_timer_add(0, __restart_engine, NULL);
+		g_restart_timer = ecore_timer_add(0, __restart_engine, NULL);
 		if (VCP_RESULT_EVENT_REJECTED == event) {
 			bool temp = vcd_client_manager_get_exclusive();
 			vc_info_parser_set_result(all_result, event, msg, NULL, temp);
@@ -512,6 +538,8 @@ int vcd_initialize()
 
 	/* Remove old file */
 	__vcd_file_clean_up();
+	/* Send error signal for notifying that daemon is reset*/
+	vcdc_send_error_signal(VCD_ERROR_SERVICE_RESET, "Daemon reset");
 
 	/* initialize modules */
 	ret = vcd_config_initialize(__config_lang_changed_cb, __config_foreground_changed_cb, NULL);
@@ -521,7 +549,7 @@ int vcd_initialize()
 
 	vcd_config_set_service_state(VCD_STATE_NONE);
 
-	ret = vcd_engine_agent_init(__vcd_server_result_cb);
+	ret = vcd_engine_agent_init(__vcd_server_pre_result_cb, __vcd_server_result_cb);
 	if (0 != ret) {
 		SLOG(LOG_ERROR, TAG_VCD, "[Server ERROR] Fail to engine agent initialize : result(%d)", ret);
 		return ret;
@@ -571,6 +599,11 @@ void vcd_finalize()
 			g_proc_list = g_list_remove_link(g_proc_list, iter);
 			iter = g_list_first(g_proc_list);
 		}
+	}
+
+	if (g_restart_timer != NULL) {
+		ecore_timer_del(g_restart_timer);
+		g_restart_timer = NULL;
 	}
 
 	vcd_state_e state = vcd_config_get_service_state();
@@ -852,8 +885,9 @@ int vcd_server_mgr_initialize(int pid)
 
 	/* check if pid is valid */
 	if (false == vcd_client_manager_is_valid(pid)) {
-		SLOG(LOG_ERROR, TAG_VCD, "[Server ERROR] The pid(%d) is already exist", pid);
-		return VCD_ERROR_INVALID_PARAMETER;
+		SLOG(LOG_ERROR, TAG_VCD, "[Server] old manager pid(%d) be removed", vcd_client_manager_get_pid());
+		vcd_server_mgr_cancel();
+		vcd_client_manager_unset();
 	}
 
 	/* Add client information to client manager */
@@ -1145,6 +1179,12 @@ int vcd_server_mgr_cancel()
 	if (VCD_STATE_RECORDING != state && VCD_STATE_PROCESSING != state) {
 		SLOG(LOG_WARN, TAG_VCD, "[Server ERROR] Current state is not recording or processing");
 		return VCD_ERROR_INVALID_STATE;
+	}
+
+	if (g_restart_timer != NULL) {
+		SLOG(LOG_WARN, TAG_VCD, "[Server WARNING] Delete restart engine timer");
+		ecore_timer_del(g_restart_timer);
+		g_restart_timer = NULL;
 	}
 
 	/* 2. Stop recorder */
@@ -1481,7 +1521,7 @@ int vcd_server_widget_start_recording(int pid, bool widget_command)
 		SLOG(LOG_DEBUG, TAG_VCD, "[Server] widget command is available");
 	} else {
 		vcd_client_widget_unset_command(pid);
-		SLOG(LOG_WARN, TAG_VCD, "[Server] widget command is NOT available");
+		SLOG(LOG_DEBUG, TAG_VCD, "[Server] widget command is NOT available");
 	}
 
 	int ret = __start_internal_recognition();

@@ -395,7 +395,7 @@ int __vc_config_set_auto_language()
 	}
 
 	if (true == __vc_config_mgr_check_lang_is_valid(g_config_info->engine_id, candidate_lang)) {
-		/* stt default language change */
+		/* vc default language change */
 		char* before_lang = NULL;
 		if (0 != vc_parser_set_language(candidate_lang)) {
 			SLOG(LOG_ERROR, vc_config_tag(), "Fail to save default language");

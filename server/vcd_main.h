@@ -59,7 +59,8 @@ typedef enum {
 	VCD_ERROR_INVALID_LANGUAGE	= TIZEN_ERROR_VOICE_CONTROL | 0x012,	/**< Invalid language */
 	VCD_ERROR_ENGINE_NOT_FOUND	= TIZEN_ERROR_VOICE_CONTROL | 0x013,	/**< No available engine */
 	VCD_ERROR_OPERATION_FAILED	= TIZEN_ERROR_VOICE_CONTROL | 0x014,	/**< Operation failed */
-	VCD_ERROR_OPERATION_REJECTED	= TIZEN_ERROR_VOICE_CONTROL | 0x015	/**< Operation rejected */
+	VCD_ERROR_OPERATION_REJECTED	= TIZEN_ERROR_VOICE_CONTROL | 0x015,	/**< Operation rejected */
+	VCD_ERROR_SERVICE_RESET		= TIZEN_ERROR_VOICE_CONTROL | 0x018	/**< Daemon Service reset */
 } vcd_error_e;
 
 typedef enum {

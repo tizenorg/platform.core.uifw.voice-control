@@ -120,8 +120,17 @@ typedef int vcp_cmd_h;
 *
 * @see vcpe_stop()
 */
-typedef void (*vcpe_result_cb)(vcp_result_event_e event, int* result_id, int count, const char* all_result,
-							   const char* non_fixed_result, const char* msg, void *user_data);
+typedef void (*vcpe_result_cb)(vcp_result_event_e event, int* result_id, int count,
+			       const char* all_result, const char* non_fixed_result, const char* msg, void *user_data);
+
+typedef enum {
+	VCP_PRE_RESULT_EVENT_FINAL_RESULT = 0,
+	VCP_PRE_RESULT_EVENT_PARTIAL_RESULT,
+	VCP_PRE_RESULT_EVENT_ERROR
+}vcp_pre_result_event_e;
+
+// Add new
+typedef void (*vcpe_pre_result_cb)(vcp_pre_result_event_e event, const char* pre_result, void *user_data);
 
 /**
 * @brief Called to retrieve the supported languages.
@@ -179,6 +188,19 @@ typedef void (*vcpe_deinitialize)(void);
 * @see vcpe_result_cb()
 */
 typedef int (*vcpe_set_result_cb)(vcpe_result_cb callback, void* user_data);
+
+/**
+* @brief Registers a callback function for getting partial recognition result.
+*
+* @param[in] callback Callback function to register
+* @param[in] user_data The user data to be passed to the callback function
+*
+* @return 0 on success, otherwise a negative error value
+*
+* @see vcpe_pre_result_cb()
+*/
+typedef int (*vcpe_set_pre_result_cb)(vcpe_pre_result_cb callback, void* user_data);
+
 
 /**
 * @brief Gets recording format of the engine.
@@ -266,6 +288,11 @@ typedef int (*vcpe_set_commands)(vcp_cmd_h vcp_command);
 * @see vcpe_set_commands()
 */
 typedef int (*vcpe_unset_commands)();
+
+// Add new
+typedef int (*vcpe_set_nlp_info)(const char* info);
+
+typedef int (*vcpe_get_nlp_info)(char** info);
 
 /**
 * @brief Start recognition.
@@ -422,10 +449,13 @@ typedef struct {
 	vcpe_is_language_supported	is_lang_supported;	/**< Check language */
 
 	/* Set info */
+	vcpe_set_pre_result_cb		set_pre_result_cb;	/**< Set pre result callback */
 	vcpe_set_result_cb		set_result_cb;		/**< Set result callback */
 	vcpe_set_language		set_language;		/**< Set language */
 	vcpe_set_commands		set_commands;		/**< Request to set current commands */
 	vcpe_unset_commands		unset_commands;		/**< Request to unset current commands */
+	vcpe_set_nlp_info		set_nlp_info;		/**< Set nlp info */
+	vcpe_get_nlp_info		get_nlp_info;		/**< Get nlp info */
 
 	/* Control recognition */
 	vcpe_start			start;			/**< Start recognition */

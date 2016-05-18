@@ -15,6 +15,7 @@
 */
 
 #include <aul.h>
+#include <system_info.h>
 
 #include "vc_info_parser.h"
 #include "vc_config_mgr.h"
@@ -38,6 +39,10 @@ static vc_h g_vc_m = NULL;
 static GSList* g_demandable_client_list = NULL;
 
 static float g_volume_db = 0;
+
+static int g_daemon_pid = 0;
+
+static int g_feature_enabled = -1;
 
 static Eina_Bool __vc_mgr_notify_state_changed(void *data);
 static Eina_Bool __vc_mgr_notify_error(void *data);
@@ -82,9 +87,39 @@ static void __vc_mgr_lang_changed_cb(const char* before_lang, const char* curren
 	return;
 }
 
+static int __vc_mgr_get_feature_enabled()
+{
+	if (0 == g_feature_enabled) {
+		SLOG(LOG_ERROR, TAG_VCM, "[ERROR] Voice control feature NOT supported");
+		return VC_ERROR_NOT_SUPPORTED;
+	} else if (-1 == g_feature_enabled) {
+		bool vc_supported = false;
+		bool mic_supported = false;
+		if (0 == system_info_get_platform_bool(VC_FEATURE_PATH, &vc_supported)) {
+			if (0 == system_info_get_platform_bool(VC_MIC_FEATURE_PATH, &mic_supported)) {
+				if (false == vc_supported || false == mic_supported) {
+					SLOG(LOG_ERROR, TAG_VCM, "[ERROR] Voice control feature NOT supported");
+					g_feature_enabled = 0;
+					return VC_ERROR_NOT_SUPPORTED;
+				}
+
+				g_feature_enabled = 1;
+			}
+		}
+	}
+
+	return 0;
+}
+
 int vc_mgr_initialize()
 {
 	SLOG(LOG_DEBUG, TAG_VCM, "===== [Manager] Initialize");
+
+	
+	if (0 != __vc_mgr_get_feature_enabled()) {
+		SLOG(LOG_DEBUG, TAG_VCM, "===== [Manager] not supported");
+		return VC_ERROR_NOT_SUPPORTED;
+	}
 
 	/* check handle */
 	if (true == vc_mgr_client_is_valid(g_vc_m)) {
@@ -190,19 +225,14 @@ int vc_mgr_deinitialize()
 
 static Eina_Bool __vc_mgr_connect_daemon(void *data)
 {
-	/* Send hello */
-	if (0 != vc_mgr_dbus_request_hello()) {
-		return EINA_TRUE;
-	}
-
-	g_m_connect_timer = NULL;
-	SLOG(LOG_DEBUG, TAG_VCM, "===== [Manager] Connect daemon");
-
 	/* request initialization */
 	int ret = -1;
 	int service_state = 0;
 	int foreground = VC_RUNTIME_INFO_NO_FOREGROUND;
-	ret = vc_mgr_dbus_request_initialize(g_vc_m->handle, &service_state, &foreground);
+
+	g_m_connect_timer = NULL;
+
+	ret = vc_mgr_dbus_request_initialize(g_vc_m->handle, &service_state, &foreground, &g_daemon_pid);
 
 	if (VC_ERROR_ENGINE_NOT_FOUND == ret) {
 		SLOG(LOG_ERROR, TAG_VCM, "[ERROR] Fail to initialize : %s", __vc_mgr_get_error_code(ret));
@@ -256,6 +286,77 @@ static Eina_Bool __vc_mgr_connect_daemon(void *data)
 	return EINA_FALSE;
 }
 
+static Eina_Bool __vc_mgr_prepare_daemon(void *data)
+{
+	/* Send hello */
+	if (0 != vc_mgr_dbus_request_hello()) {
+		return EINA_TRUE;
+	}
+
+	g_m_connect_timer = NULL;
+	SLOG(LOG_DEBUG, TAG_VCM, "===== [Manager] Connect daemon");
+
+	g_m_connect_timer = ecore_idler_add(__vc_mgr_connect_daemon, data);
+
+#if 0
+	/* request initialization */
+	int ret = -1;
+	int service_state = 0;
+	int foreground = VC_RUNTIME_INFO_NO_FOREGROUND;
+	ret = vc_mgr_dbus_request_initialize(g_vc_m->handle, &service_state, &foreground, &g_daemon_pid);
+
+	if (VC_ERROR_ENGINE_NOT_FOUND == ret) {
+		SLOG(LOG_ERROR, TAG_VCM, "[ERROR] Fail to initialize : %s", __vc_mgr_get_error_code(ret));
+
+		vc_mgr_client_set_error(g_vc_m, VC_ERROR_ENGINE_NOT_FOUND);
+		ecore_timer_add(0, __vc_mgr_notify_error, g_vc_m);
+
+		SLOG(LOG_DEBUG, TAG_VCM, "=====");
+		SLOG(LOG_DEBUG, TAG_VCM, "  ");
+		return EINA_FALSE;
+
+	} else if (0 != ret) {
+		SLOG(LOG_ERROR, TAG_VCM, "[WARNING] Fail to connection. Retry to connect : %s", __vc_mgr_get_error_code(ret));
+		return EINA_TRUE;
+	} else {
+		/* Success to connect */
+	}
+
+	/* Set service state */
+	vc_mgr_client_set_service_state(g_vc_m, (vc_service_state_e)service_state);
+
+	/* Set foreground */
+	vc_mgr_client_set_foreground(g_vc_m, foreground, true);
+
+	SLOG(LOG_DEBUG, TAG_VCM, "[SUCCESS] Connected daemon");
+
+	vc_mgr_client_set_client_state(g_vc_m, VC_STATE_READY);
+
+	vc_state_changed_cb changed_callback = NULL;
+	void* user_data = NULL;
+
+	vc_mgr_client_get_state_changed_cb(g_vc_m, &changed_callback, &user_data);
+
+	vc_state_e current_state;
+	vc_state_e before_state;
+
+	vc_mgr_client_get_before_state(g_vc_m, &current_state, &before_state);
+
+	if (NULL != changed_callback) {
+		vc_mgr_client_use_callback(g_vc_m);
+		changed_callback(before_state, current_state, user_data);
+		vc_mgr_client_not_use_callback(g_vc_m);
+		SLOG(LOG_DEBUG, TAG_VCM, "State changed callback is called");
+	} else {
+		SLOG(LOG_WARN, TAG_VCM, "[WARNING] State changed callback is null");
+	}
+
+	SLOG(LOG_DEBUG, TAG_VCM, "=====");
+	SLOG(LOG_DEBUG, TAG_VCM, "  ");
+#endif
+	return EINA_FALSE;
+}
+
 int vc_mgr_prepare()
 {
 	SLOG(LOG_DEBUG, TAG_VCM, "===== [Manager] Prepare");
@@ -276,7 +377,7 @@ int vc_mgr_prepare()
 		return VC_ERROR_INVALID_STATE;
 	}
 
-	g_m_connect_timer = ecore_timer_add(0, __vc_mgr_connect_daemon, NULL);
+	g_m_connect_timer = ecore_timer_add(0, __vc_mgr_prepare_daemon, NULL);
 
 	SLOG(LOG_DEBUG, TAG_VCM, "=====");
 	SLOG(LOG_DEBUG, TAG_VCM, " ");
@@ -794,6 +895,11 @@ int vc_mgr_get_audio_type(char** audio_id)
 	char* temp = NULL;
 
 	vc_mgr_client_get_audio_type(g_vc_m, &temp);
+
+	if (NULL != temp) {
+		free(temp);
+		temp = NULL;
+	}
 
 	if (NULL == temp) {
 		/* Not initiallized */
@@ -1412,6 +1518,90 @@ static Eina_Bool __vc_mgr_set_select_result(void *data)
 	return EINA_FALSE;
 }
 
+int vc_mgr_set_nlp_info(const char* info)
+{
+	return 0;
+}
+
+int vc_mgr_get_nlp_info(char** info)
+{
+	SLOG(LOG_DEBUG, TAG_VCM, "===== [Manager] Get nlp info");
+
+	vc_service_state_e service_state = -1;
+	vc_mgr_client_get_service_state(g_vc_m, &service_state);
+	if (service_state != VC_SERVICE_STATE_PROCESSING) {
+		vc_recognition_mode_e recognition_mode;
+		vc_mgr_get_recognition_mode(&recognition_mode);
+
+		if (VC_RECOGNITION_MODE_RESTART_CONTINUOUSLY != recognition_mode) {
+			SLOG(LOG_ERROR, TAG_VCM, "[ERROR] Invalid State: service state is not 'PROCESSING' and mode is not 'Restart continously'");
+			SLOG(LOG_DEBUG, TAG_VCM, "=====");
+			SLOG(LOG_DEBUG, TAG_VCM, " ");
+			return VC_ERROR_INVALID_STATE;
+		}
+	}
+
+	int ret = -1;
+	ret = vc_info_parser_get_nlp_info(info);
+	if (0 != ret) {
+		SLOG(LOG_ERROR, TAG_VCM, "[ERROR] Fail to get nlp_info");
+	}
+
+	if (0 == strncmp(*info, "null", strlen("null"))) {
+		SLOG(LOG_DEBUG, TAG_VCM, "Get nlp info (NULL)");
+		*info = NULL;
+	}
+
+	SLOG(LOG_DEBUG, TAG_VCM, "=====");
+	SLOG(LOG_DEBUG, TAG_VCM, " ");
+
+	return 0;
+}
+
+int vc_mgr_set_pre_result_cb(vc_mgr_pre_result_cb callback, void* user_data)
+{
+	if (NULL == callback){
+		SLOG(LOG_ERROR, TAG_VCM, "[ERROR] Set error callback : callback is NULL");
+		return VC_ERROR_INVALID_PARAMETER;
+	}
+
+	vc_state_e state;
+	if (0 != vc_mgr_client_get_client_state(g_vc_m, &state)) {
+		SLOG(LOG_ERROR, TAG_VCM, "[ERROR] Set error callback : A handle is not available");
+		return VC_ERROR_INVALID_STATE;
+	}
+
+	/* check state */
+	if (state != VC_STATE_INITIALIZED) {
+		SLOG(LOG_ERROR, TAG_VCM, "[ERROR] Set error callback : Current state is not 'Initialized'");
+		return VC_ERROR_INVALID_STATE;
+	}
+
+	vc_mgr_client_set_pre_result_cb(g_vc_m, callback, user_data);
+
+	SLOG(LOG_DEBUG, TAG_VCM, "[SUCCESS] Set pre result callback");
+	return 0;
+}
+
+int vc_mgr_unset_pre_result_cb()
+{
+	vc_state_e state;
+	if (0 != vc_mgr_client_get_client_state(g_vc_m, &state)) {
+		SLOG(LOG_ERROR, TAG_VCM, "[ERROR] Unset error callback : A handle is not available");
+		return VC_ERROR_INVALID_STATE;
+	}
+
+	/* check state */
+	if (state != VC_STATE_INITIALIZED) {
+		SLOG(LOG_ERROR, TAG_VCM, "[ERROR] Unset error callback : Current state is not 'Initialized'");
+		return VC_ERROR_INVALID_STATE;
+	}
+
+	vc_mgr_client_set_pre_result_cb(g_vc_m, NULL, NULL);
+
+	return 0;
+}
+
 static void __vc_mgr_notify_all_result(vc_result_type_e result_type)
 {
 	char* temp_text = NULL;
@@ -1540,6 +1730,46 @@ static Eina_Bool __vc_mgr_notify_result(void *data)
 	if (NULL != temp_text)	free(temp_text);
 
 	return EINA_FALSE;
+}
+
+static Eina_Bool __vc_mgr_notify_pre_result(void *data)
+{
+	vc_mgr_pre_result_cb callback = NULL;
+	void* user_data = NULL;
+	int event = -1;
+	char* pre_result = NULL;
+
+	vc_mgr_client_get_pre_resut_cb(g_vc_m, &callback, &user_data);
+	if (NULL == callback) {
+		SLOG(LOG_ERROR, TAG_VCM, "[ERROR] Client speech detected callback is NULL");
+		return EINA_FALSE;
+	}
+
+	vc_mgr_client_get_pre_result(g_vc_m, &event, &pre_result);
+
+	vc_mgr_client_use_callback(g_vc_m);
+	callback(event, pre_result, user_data);
+	vc_mgr_client_not_use_callback(g_vc_m);
+	SLOG(LOG_DEBUG, TAG_VCM, "Speech detected callback called");
+
+	if (NULL != pre_result) {
+		free(pre_result);
+	}
+
+	vc_mgr_client_unset_pre_result(g_vc_m);
+
+	return EINA_FALSE;
+}
+
+void __vc_mgr_cb_pre_result(int event, const char* pre_result)
+{
+	if (0 != vc_mgr_client_set_pre_result(g_vc_m, event, pre_result)) {
+		SLOG(LOG_ERROR, TAG_VCM, "[ERROR] Client speech detected callback is NULL");
+	}
+
+	ecore_timer_add(0, __vc_mgr_notify_pre_result, NULL);
+
+	return;
 }
 
 void __vc_mgr_cb_all_result(vc_result_type_e type)
@@ -1692,11 +1922,29 @@ static Eina_Bool __vc_mgr_notify_error(void *data)
 	return EINA_FALSE;
 }
 
-int __vc_mgr_cb_error(int pid, int reason)
+int __vc_mgr_cb_error(int reason, int daemon_pid, char* msg)
 {
-	if (0 != vc_mgr_client_get_handle(pid, &g_vc_m)) {
-		SLOG(LOG_ERROR, TAG_VCM, "Handle is not valid");
+	vc_state_e state;
+	if (0 != vc_mgr_client_get_client_state(g_vc_m, &state)) {
+		SLOG(LOG_ERROR, TAG_VCM, "[WARNING] Invalid client");
 		return -1;
+	}
+
+	/* check state */
+	if (state != VC_STATE_READY) {
+		SLOG(LOG_ERROR, TAG_VCM, "[WARNING] not connected client yet");
+		return -1;
+	}
+
+	if ((daemon_pid == g_daemon_pid) && (VC_ERROR_SERVICE_RESET == reason)) {
+		SLOG(LOG_ERROR, TAG_VCM, "[WARNING] This is first initializing, not daemon reset");
+		return -1;
+	}
+	SLOG(LOG_ERROR, TAG_VCM, "[ERROR] Error reason(%d), msg(%s)", reason, msg);
+
+	if (VC_ERROR_SERVICE_RESET == reason) {
+		vc_mgr_client_set_client_state(g_vc_m, VC_STATE_INITIALIZED);
+		__vc_mgr_notify_state_changed(NULL);
 	}
 
 	vc_mgr_client_set_error(g_vc_m, reason);
@@ -1748,6 +1996,7 @@ int vc_mgr_set_state_changed_cb(vc_state_changed_cb callback, void* user_data)
 
 	vc_mgr_client_set_state_changed_cb(g_vc_m, callback, user_data);
 
+	SLOG(LOG_DEBUG, TAG_VCM, "[SUCCESS] Set state changed callback");
 	return 0;
 }
 
@@ -1823,6 +2072,7 @@ int vc_mgr_set_service_state_changed_cb(vc_service_state_changed_cb callback, vo
 
 	vc_mgr_client_set_service_state_changed_cb(g_vc_m, callback, user_data);
 
+	SLOG(LOG_DEBUG, TAG_VCM, "[SUCCESS] Set sevice state changed callback");
 	return 0;
 }
 
@@ -1863,6 +2113,7 @@ int vc_mgr_set_speech_detected_cb(vc_mgr_begin_speech_detected_cb callback, void
 
 	vc_mgr_client_set_speech_detected_cb(g_vc_m, callback, user_data);
 
+	SLOG(LOG_DEBUG, TAG_VCM, "[SUCCESS] Set speech detected callback");
 	return 0;
 }
 
@@ -1903,6 +2154,7 @@ int vc_mgr_set_current_language_changed_cb(vc_current_language_changed_cb callba
 
 	vc_mgr_client_set_current_lang_changed_cb(g_vc_m, callback, user_data);
 
+	SLOG(LOG_DEBUG, TAG_VCM, "[SUCCESS] Set current language changed callback");
 	return 0;
 }
 

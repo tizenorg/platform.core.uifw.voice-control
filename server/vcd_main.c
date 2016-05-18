@@ -63,9 +63,9 @@ int main(int argc, char** argv)
 		ecore_timer_del(g_check_client_timer);
 	}
 
-	vcd_dbus_close_connection();
-
 	vcd_finalize();
+
+	vcd_dbus_close_connection();
 
 	ecore_shutdown();
 

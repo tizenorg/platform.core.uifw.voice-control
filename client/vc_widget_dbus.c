@@ -339,6 +339,9 @@ int vc_widget_dbus_close_connection()
 
 	dbus_connection_close(g_w_conn_sender);
 	dbus_connection_close(g_w_conn_listener);
+
+	dbus_connection_unref(g_w_conn_sender);
+	dbus_connection_unref(g_w_conn_listener);
 	
 	g_w_conn_sender = NULL;
 	g_w_conn_listener = NULL;

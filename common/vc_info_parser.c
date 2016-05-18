@@ -1212,6 +1212,94 @@ int vc_info_parser_get_result(char** result_text, int* event, char** result_mess
 	return 0;
 }
 
+int vc_info_parser_set_nlp_info(const char* nlp_info)
+{
+	if (NULL == nlp_info) {
+		SLOG(LOG_ERROR, vc_info_tag(), "[ERROR] nlp info is NULL");
+		return -1;
+	}
+
+	remove(VC_RUNTIME_INFO_NLP_INFO);
+
+	FILE* fp = NULL;
+	int write_size = -1;
+
+	fp = fopen(VC_RUNTIME_INFO_NLP_INFO, "w+");
+	if (NULL == fp) {
+		SLOG(LOG_ERROR, vc_info_tag(), "[ERROR] Fail to open file %s", VC_RUNTIME_INFO_NLP_INFO);
+		return -1;
+	}
+
+	/* Write size */
+	fprintf(fp, "size(%d)\n", strlen(nlp_info));
+
+	write_size = fwrite(nlp_info, 1, strlen(nlp_info), fp);
+	fclose(fp);
+
+	if (0 >= write_size) {
+		SLOG(LOG_ERROR, vc_info_tag(), "[ERROR] Fail to write file");
+		return -1;
+	}
+
+	if (0 != __vc_info_parser_set_file_mode(VC_RUNTIME_INFO_NLP_INFO)) {
+		SLOG(LOG_ERROR, vc_info_tag(), "[ERROR] Fail to set file mode - %s", VC_RUNTIME_INFO_NLP_INFO);
+	}
+
+	SLOG(LOG_DEBUG, vc_info_tag(), "[SUCCESS] Write file (%s) size (%d)", VC_RUNTIME_INFO_NLP_INFO, strlen(nlp_info));
+
+	return 0;
+}
+
+int vc_info_parser_get_nlp_info(char** nlp_info)
+{
+	if (NULL == nlp_info) {
+		SLOG(LOG_ERROR, vc_info_tag(), "[ERROR] nlp info is NULL");
+		return -1;
+	}
+
+	FILE* fp = NULL;
+	int readn = 0;
+
+	fp = fopen(VC_RUNTIME_INFO_NLP_INFO, "r");
+	if (NULL == fp) {
+		SLOG(LOG_ERROR, vc_info_tag(), "[ERROR] Fail to open file %s", VC_RUNTIME_INFO_NLP_INFO);
+		return -1;
+	}
+
+	int ret;
+	ret = fscanf(fp, "size(%d)\n", &readn);
+	if (ret <= 0) {
+		SLOG(LOG_DEBUG, vc_info_tag(), "[ERROR] Fail to get buffer size");
+		fclose(fp);
+		return -1;
+	}
+
+	SLOG(LOG_DEBUG, vc_info_tag(), "[DEBUG] buffer size (%d)", readn);
+    if (10000000 < readn || 0 > readn) {
+        SLOG(LOG_DEBUG, vc_info_tag(), "[ERROR] Invalid buffer size");
+        fclose(fp);
+        return -1;
+    }
+    int tmp_readn = readn + 10;
+
+	*nlp_info = (char*)calloc(tmp_readn, sizeof(char));
+    if (NULL == *nlp_info) {
+        SLOG(LOG_ERROR, vc_info_tag(), "[ERROR] Out of memory");
+        fclose(fp);
+        return -1;
+    }
+
+	readn = fread(*nlp_info, 1, readn, fp);
+	fclose(fp);
+
+	SLOG(LOG_DEBUG, vc_info_tag(), "[DEBUG] Read buffer (%d)", readn);
+
+	/* remove(VC_RUNTIME_INFO_NLP_INFO); */
+
+	return 0;
+}
+
+
 int vc_info_parser_unset_result(bool exclusive)
 {
 	if (false == exclusive) {

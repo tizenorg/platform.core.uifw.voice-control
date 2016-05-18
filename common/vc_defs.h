@@ -128,6 +128,7 @@ extern "C" {
 #define VCD_MANAGER_METHOD_HELLO		"vcd_manager_method_hello"
 #define VCD_MANAGER_METHOD_SPEECH_DETECTED	"vcd_manager_method_speech_detected"
 #define VCD_MANAGER_METHOD_ALL_RESULT		"vcd_manager_method_all_result"
+#define VCD_MANAGER_METHOD_PRE_RESULT		"vcd_manager_method_pre_result"
 #define VCD_MANAGER_METHOD_RESULT		"vcd_manager_method_result"
 #define VCD_MANAGER_METHOD_SET_VOLUME		"vcd_manager_method_set_volume"
 #define VCD_MANAGER_METHOD_SET_SERVICE_STATE	"vcd_manager_method_set_service_state"
@@ -168,6 +169,8 @@ extern "C" {
 #define VC_RUNTIME_INFO_EX_RESULT	tzplatform_mkpath(TZ_USER_HOME, "share/.voice/vc/vc-ex-result.xml")
 
 #define VC_RUNTIME_INFO_CLIENT		tzplatform_mkpath(TZ_USER_HOME, "share/.voice/vc/vc-client-info.xml")
+
+#define VC_RUNTIME_INFO_NLP_INFO	tzplatform_mkpath(TZ_USER_HOME, "share/.voice/vc/vc-nlp-info.xml")
 
 #define VC_NO_FOREGROUND_PID		0
 #define VC_BASE_LANGUAGE		"en_US"
