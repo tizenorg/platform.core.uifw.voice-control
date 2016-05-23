@@ -14,7 +14,9 @@
 * limitations under the License.
 */
 
-
+#include <cynara-client.h>
+#include <cynara-error.h>
+#include <cynara-session.h>
 #include <libintl.h>
 #include <stdlib.h>
 #include <system_info.h>
@@ -28,10 +30,13 @@
 
 static int g_feature_enabled = -1;
 
+static int g_privilege_allowed = -1;
+static cynara *p_cynara = NULL;
+
 static int __vc_cmd_get_feature_enabled()
 {
 	if (0 == g_feature_enabled) {
-		SLOG(LOG_ERROR, TAG_VCC, "[ERROR] Voice control feature NOT supported");
+		SLOG(LOG_ERROR, TAG_VCCMD, "[ERROR] Voice control feature NOT supported");
 		return VC_ERROR_NOT_SUPPORTED;
 	} else if (-1 == g_feature_enabled) {
 		bool vc_supported = false;
@@ -39,18 +44,18 @@ static int __vc_cmd_get_feature_enabled()
 		if (0 == system_info_get_platform_bool(VC_FEATURE_PATH, &vc_supported)) {
 			if (0 == system_info_get_platform_bool(VC_MIC_FEATURE_PATH, &mic_supported)) {
 				if (false == vc_supported || false == mic_supported) {
-					SLOG(LOG_ERROR, TAG_VCC, "[ERROR] Voice control feature NOT supported");
+					SLOG(LOG_ERROR, TAG_VCCMD, "[ERROR] Voice control feature NOT supported");
 					g_feature_enabled = 0;
 					return VC_ERROR_NOT_SUPPORTED;
 				}
 
 				g_feature_enabled = 1;
 			} else {
-				SLOG(LOG_ERROR, TAG_VCC, "[ERROR] Fail to get feature value");
+				SLOG(LOG_ERROR, TAG_VCCMD, "[ERROR] Fail to get feature value");
 				return VC_ERROR_NOT_SUPPORTED;
 			}
 		} else {
-			SLOG(LOG_ERROR, TAG_VCC, "[ERROR] Fail to get feature value");
+			SLOG(LOG_ERROR, TAG_VCCMD, "[ERROR] Fail to get feature value");
 			return VC_ERROR_NOT_SUPPORTED;
 		}
 	}
@@ -58,10 +63,85 @@ static int __vc_cmd_get_feature_enabled()
 	return 0;
 }
 
+static int __check_privilege_initialize()
+{
+	int ret = cynara_initialize(&p_cynara, NULL);
+	if (CYNARA_API_SUCCESS != ret)
+		SLOG(LOG_ERROR, TAG_VCCMD, "[ERROR] fail to initialize");
+	
+	return ret == CYNARA_API_SUCCESS;
+}
+
+static int __check_privilege(const char* uid, const char * privilege)
+{
+	FILE *fp = NULL;
+	char smack_label[1024] = "/proc/self/attr/current";
+
+	if (!p_cynara) {
+	    return false;
+	}
+
+	fp = fopen(smack_label, "r");
+	if (fp != NULL) {
+	    if (fread(smack_label, 1, sizeof(smack_label), fp) <= 0)
+		SLOG(LOG_ERROR, TAG_VCCMD, "[ERROR] fail to fread");
+
+	    fclose(fp);
+	}
+
+	pid_t pid = getpid();
+	char *session = cynara_session_from_pid(pid);
+	int ret = cynara_check(p_cynara, smack_label, session, uid, privilege);
+	SLOG(LOG_DEBUG, TAG_VCCMD, "[Client]cynara_check returned %d(%s)", ret, (CYNARA_API_ACCESS_ALLOWED == ret) ? "Allowed" : "Denied");
+	if (session)
+	    free(session);
+
+	if (ret != CYNARA_API_ACCESS_ALLOWED)
+	    return false;
+	return true;
+}
+
+static void __check_privilege_deinitialize()
+{
+	if (p_cynara)
+		cynara_finish(p_cynara);
+	p_cynara = NULL;
+}
+
+static int __vc_cmd_check_privilege()
+{
+	char uid[16];
+	int ret = -1;
+
+	if (0 == g_privilege_allowed) {
+		SLOG(LOG_ERROR, TAG_VCCMD, "[ERROR] Permission is denied");
+		return VC_ERROR_PERMISSION_DENIED;
+	} else if (-1 == g_privilege_allowed) {
+		if (false == __check_privilege_initialize()){
+			SLOG(LOG_ERROR, TAG_VCCMD, "[ERROR] privilege initialize is failed");
+			return VC_ERROR_PERMISSION_DENIED;
+		}
+		snprintf(uid, 16, "%d", getuid());
+		if (false == __check_privilege(uid, VC_PRIVILEGE)) {
+			SLOG(LOG_ERROR, TAG_VCCMD, "[ERROR] Permission is denied");
+			g_privilege_allowed = 0;
+			__check_privilege_deinitialize();
+			return VC_ERROR_PERMISSION_DENIED;
+		}
+		__check_privilege_deinitialize();
+	}
+
+	g_privilege_allowed = 1;
+	return VC_ERROR_NONE;	
+}
+
 int vc_cmd_list_create(vc_cmd_list_h* vc_cmd_list)
 {
 	if (0 != __vc_cmd_get_feature_enabled()) {
 		return VC_ERROR_NOT_SUPPORTED;
+	}
+	if (0 != __vc_cmd_check_privilege()) {
+		return VC_ERROR_PERMISSION_DENIED;
 	}
 
 	if (NULL == vc_cmd_list) {
@@ -91,6 +171,9 @@ int vc_cmd_list_destroy(vc_cmd_list_h vc_cmd_list, bool release_command)
 	if (0 != __vc_cmd_get_feature_enabled()) {
 		return VC_ERROR_NOT_SUPPORTED;
 	}
+	if (0 != __vc_cmd_check_privilege()) {
+		return VC_ERROR_PERMISSION_DENIED;
+	}
 
 	if (NULL == vc_cmd_list) {
 		SLOG(LOG_ERROR, TAG_VCCMD, "[ERROR] Input parameter is NULL");
@@ -117,6 +200,9 @@ int vc_cmd_list_get_count(vc_cmd_list_h vc_cmd_list, int* count)
 	if (0 != __vc_cmd_get_feature_enabled()) {
 		return VC_ERROR_NOT_SUPPORTED;
 	}
+	if (0 != __vc_cmd_check_privilege()) {
+		return VC_ERROR_PERMISSION_DENIED;
+	}
 
 	if (NULL == vc_cmd_list || NULL == count) {
 		SLOG(LOG_ERROR, TAG_VCCMD, "[ERROR] Get command count : Input parameter is NULL");
@@ -137,6 +223,9 @@ int vc_cmd_list_add(vc_cmd_list_h vc_cmd_list, vc_cmd_h vc_command)
 {
 	if (0 != __vc_cmd_get_feature_enabled()) {
 		return VC_ERROR_NOT_SUPPORTED;
+	}
+	if (0 != __vc_cmd_check_privilege()) {
+		return VC_ERROR_PERMISSION_DENIED;
 	}
 
 	if (NULL == vc_cmd_list || NULL == vc_command) {
@@ -165,6 +254,9 @@ int vc_cmd_list_remove(vc_cmd_list_h vc_cmd_list, vc_cmd_h vc_command)
 {
 	if (0 != __vc_cmd_get_feature_enabled()) {
 		return VC_ERROR_NOT_SUPPORTED;
+	}
+	if (0 != __vc_cmd_check_privilege()) {
+		return VC_ERROR_PERMISSION_DENIED;
 	}
 
 	if (NULL == vc_cmd_list || NULL == vc_command) {
@@ -220,6 +312,9 @@ int vc_cmd_list_remove_all(vc_cmd_list_h vc_cmd_list, bool release_command)
 	if (0 != __vc_cmd_get_feature_enabled()) {
 		return VC_ERROR_NOT_SUPPORTED;
 	}
+	if (0 != __vc_cmd_check_privilege()) {
+		return VC_ERROR_PERMISSION_DENIED;
+	}
 
 	SLOG(LOG_DEBUG, TAG_VCCMD, "===== Destroy all command");
 
@@ -268,6 +363,9 @@ int vc_cmd_list_foreach_commands(vc_cmd_list_h vc_cmd_list, vc_cmd_list_cb callb
 	if (0 != __vc_cmd_get_feature_enabled()) {
 		return VC_ERROR_NOT_SUPPORTED;
 	}
+	if (0 != __vc_cmd_check_privilege()) {
+		return VC_ERROR_PERMISSION_DENIED;
+	}
 
 	if (NULL == vc_cmd_list) {
 		SLOG(LOG_ERROR, TAG_VCCMD, "[ERROR] Input parameter is NULL");
@@ -308,6 +406,9 @@ int vc_cmd_list_filter_by_type(vc_cmd_list_h original, int type, vc_cmd_list_h* 
 
 	if (0 != __vc_cmd_get_feature_enabled()) {
 		return VC_ERROR_NOT_SUPPORTED;
+	}
+	if (0 != __vc_cmd_check_privilege()) {
+		return VC_ERROR_PERMISSION_DENIED;
 	}
 
 	if (NULL == original) {
@@ -393,6 +494,9 @@ int vc_cmd_list_first(vc_cmd_list_h vc_cmd_list)
 	if (0 != __vc_cmd_get_feature_enabled()) {
 		return VC_ERROR_NOT_SUPPORTED;
 	}
+	if (0 != __vc_cmd_check_privilege()) {
+		return VC_ERROR_PERMISSION_DENIED;
+	}
 
 	if (NULL == vc_cmd_list) {
 		SLOG(LOG_ERROR, TAG_VCCMD, "[ERROR] Input parameter is NULL");
@@ -416,6 +520,9 @@ int vc_cmd_list_last(vc_cmd_list_h vc_cmd_list)
 {
 	if (0 != __vc_cmd_get_feature_enabled()) {
 		return VC_ERROR_NOT_SUPPORTED;
+	}
+	if (0 != __vc_cmd_check_privilege()) {
+		return VC_ERROR_PERMISSION_DENIED;
 	}
 
 	if (NULL == vc_cmd_list) {
@@ -444,6 +551,9 @@ int vc_cmd_list_next(vc_cmd_list_h vc_cmd_list)
 	if (0 != __vc_cmd_get_feature_enabled()) {
 		return VC_ERROR_NOT_SUPPORTED;
 	}
+	if (0 != __vc_cmd_check_privilege()) {
+		return VC_ERROR_PERMISSION_DENIED;
+	}
 
 	if (NULL == vc_cmd_list) {
 		SLOG(LOG_ERROR, TAG_VCCMD, "[ERROR] Input parameter is NULL");
@@ -471,6 +581,9 @@ int vc_cmd_list_prev(vc_cmd_list_h vc_cmd_list)
 	if (0 != __vc_cmd_get_feature_enabled()) {
 		return VC_ERROR_NOT_SUPPORTED;
 	}
+	if (0 != __vc_cmd_check_privilege()) {
+		return VC_ERROR_PERMISSION_DENIED;
+	}
 
 	if (NULL == vc_cmd_list) {
 		SLOG(LOG_ERROR, TAG_VCCMD, "[ERROR] Input parameter is NULL");
@@ -495,6 +608,9 @@ int vc_cmd_list_get_current(vc_cmd_list_h vc_cmd_list, vc_cmd_h* vc_command)
 {
 	if (0 != __vc_cmd_get_feature_enabled()) {
 		return VC_ERROR_NOT_SUPPORTED;
+	}
+	if (0 != __vc_cmd_check_privilege()) {
+		return VC_ERROR_PERMISSION_DENIED;
 	}
 
 	if (NULL == vc_cmd_list || NULL == vc_command) {
@@ -528,6 +644,9 @@ int vc_cmd_create(vc_cmd_h* vc_command)
 {
 	if (0 != __vc_cmd_get_feature_enabled()) {
 		return VC_ERROR_NOT_SUPPORTED;
+	}
+	if (0 != __vc_cmd_check_privilege()) {
+		return VC_ERROR_PERMISSION_DENIED;
 	}
 
 	if (NULL == vc_command) {
@@ -565,6 +684,9 @@ int vc_cmd_destroy(vc_cmd_h vc_command)
 	if (0 != __vc_cmd_get_feature_enabled()) {
 		return VC_ERROR_NOT_SUPPORTED;
 	}
+	if (0 != __vc_cmd_check_privilege()) {
+		return VC_ERROR_PERMISSION_DENIED;
+	}
 
 	if (NULL == vc_command) {
 		SLOG(LOG_ERROR, TAG_VCCMD, "[ERROR] Input parameter is NULL");
@@ -591,6 +713,9 @@ int vc_cmd_set_id(vc_cmd_h vc_command, int id)
 	if (0 != __vc_cmd_get_feature_enabled()) {
 		return VC_ERROR_NOT_SUPPORTED;
 	}
+	if (0 != __vc_cmd_check_privilege()) {
+		return VC_ERROR_PERMISSION_DENIED;
+	}
 
 	if (NULL == vc_command) {
 		SLOG(LOG_ERROR, TAG_VCCMD, "[ERROR] Invalid parameter ");
@@ -613,6 +738,9 @@ int vc_cmd_get_id(vc_cmd_h vc_command, int* id)
 	if (0 != __vc_cmd_get_feature_enabled()) {
 		return VC_ERROR_NOT_SUPPORTED;
 	}
+	if (0 != __vc_cmd_check_privilege()) {
+		return VC_ERROR_PERMISSION_DENIED;
+	}
 
 	if (NULL == vc_command || NULL == id) {
 		SLOG(LOG_ERROR, TAG_VCCMD, "[ERROR] Invalid handle ");
@@ -634,6 +762,9 @@ int vc_cmd_set_command(vc_cmd_h vc_command, const char* command)
 {
 	if (0 != __vc_cmd_get_feature_enabled()) {
 		return VC_ERROR_NOT_SUPPORTED;
+	}
+	if (0 != __vc_cmd_check_privilege()) {
+		return VC_ERROR_PERMISSION_DENIED;
 	}
 
 	if (NULL == vc_command) {
@@ -664,6 +795,9 @@ int vc_cmd_get_command(vc_cmd_h vc_command, char** command)
 	if (0 != __vc_cmd_get_feature_enabled()) {
 		return VC_ERROR_NOT_SUPPORTED;
 	}
+	if (0 != __vc_cmd_check_privilege()) {
+		return VC_ERROR_PERMISSION_DENIED;
+	}
 
 	if (NULL == vc_command || NULL == command) {
 		SLOG(LOG_ERROR, TAG_VCCMD, "[ERROR] Invalid handle ");
@@ -686,6 +820,9 @@ int vc_cmd_set_unfixed_command(vc_cmd_h vc_command, const char* command)
 {
 	if (0 != __vc_cmd_get_feature_enabled()) {
 		return VC_ERROR_NOT_SUPPORTED;
+	}
+	if (0 != __vc_cmd_check_privilege()) {
+		return VC_ERROR_PERMISSION_DENIED;
 	}
 
 	if (NULL == vc_command) {
@@ -715,6 +852,9 @@ int vc_cmd_get_unfixed_command(vc_cmd_h vc_command, char** command)
 	if (0 != __vc_cmd_get_feature_enabled()) {
 		return VC_ERROR_NOT_SUPPORTED;
 	}
+	if (0 != __vc_cmd_check_privilege()) {
+		return VC_ERROR_PERMISSION_DENIED;
+	}
 
 	if (NULL == vc_command || NULL == command) {
 		SLOG(LOG_ERROR, TAG_VCCMD, "[ERROR] Invalid handle ");
@@ -737,6 +877,9 @@ int vc_cmd_set_type(vc_cmd_h vc_command, int type)
 	if (0 != __vc_cmd_get_feature_enabled()) {
 		return VC_ERROR_NOT_SUPPORTED;
 	}
+	if (0 != __vc_cmd_check_privilege()) {
+		return VC_ERROR_PERMISSION_DENIED;
+	}
 
 	if (NULL == vc_command) {
 		SLOG(LOG_ERROR, TAG_VCCMD, "[ERROR] Invalid parameter ");
@@ -757,6 +900,9 @@ int vc_cmd_get_type(vc_cmd_h vc_command, int* type)
 {
 	if (0 != __vc_cmd_get_feature_enabled()) {
 		return VC_ERROR_NOT_SUPPORTED;
+	}
+	if (0 != __vc_cmd_check_privilege()) {
+		return VC_ERROR_PERMISSION_DENIED;
 	}
 
 	if (NULL == vc_command || NULL == type) {
@@ -779,6 +925,9 @@ int vc_cmd_set_format(vc_cmd_h vc_command, vc_cmd_format_e format)
 	if (0 != __vc_cmd_get_feature_enabled()) {
 		return VC_ERROR_NOT_SUPPORTED;
 	}
+	if (0 != __vc_cmd_check_privilege()) {
+		return VC_ERROR_PERMISSION_DENIED;
+	}
 
 	if (NULL == vc_command) {
 		SLOG(LOG_ERROR, TAG_VCCMD, "[ERROR] Invalid parameter ");
@@ -799,6 +948,9 @@ int vc_cmd_get_format(vc_cmd_h vc_command, vc_cmd_format_e* format)
 {
 	if (0 != __vc_cmd_get_feature_enabled()) {
 		return VC_ERROR_NOT_SUPPORTED;
+	}
+	if (0 != __vc_cmd_check_privilege()) {
+		return VC_ERROR_PERMISSION_DENIED;
 	}
 
 	if (NULL == vc_command || NULL == format) {
@@ -821,6 +973,9 @@ int vc_cmd_set_pid(vc_cmd_h vc_command, int pid)
 	if (0 != __vc_cmd_get_feature_enabled()) {
 		return VC_ERROR_NOT_SUPPORTED;
 	}
+	if (0 != __vc_cmd_check_privilege()) {
+		return VC_ERROR_PERMISSION_DENIED;
+	}
 
 	if (NULL == vc_command) {
 		SLOG(LOG_ERROR, TAG_VCCMD, "[ERROR] Invalid parameter ");
@@ -841,6 +996,9 @@ int vc_cmd_get_pid(vc_cmd_h vc_command, int* pid)
 {
 	if (0 != __vc_cmd_get_feature_enabled()) {
 		return VC_ERROR_NOT_SUPPORTED;
+	}
+	if (0 != __vc_cmd_check_privilege()) {
+		return VC_ERROR_PERMISSION_DENIED;
 	}
 
 	if (NULL == vc_command || NULL == pid) {
@@ -863,6 +1021,9 @@ int vc_cmd_set_domain(vc_cmd_h vc_command, int domain)
 	if (0 != __vc_cmd_get_feature_enabled()) {
 		return VC_ERROR_NOT_SUPPORTED;
 	}
+	if (0 != __vc_cmd_check_privilege()) {
+		return VC_ERROR_PERMISSION_DENIED;
+	}
 
 	if (NULL == vc_command) {
 		SLOG(LOG_ERROR, TAG_VCCMD, "[ERROR] Invalid parameter ");
@@ -883,6 +1044,9 @@ int vc_cmd_get_domain(vc_cmd_h vc_command, int* domain)
 {
 	if (0 != __vc_cmd_get_feature_enabled()) {
 		return VC_ERROR_NOT_SUPPORTED;
+	}
+	if (0 != __vc_cmd_check_privilege()) {
+		return VC_ERROR_PERMISSION_DENIED;
 	}
 
 	if (NULL == vc_command || NULL == domain) {

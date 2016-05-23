@@ -42,12 +42,12 @@ INCLUDE(FindPkgConfig)
 IF("${_TV_PRODUCT}" STREQUAL "TRUE")
 pkg_check_modules(pkgs REQUIRED
     aul capi-base-common capi-media-audio-io capi-media-sound-manager capi-network-bluetooth capi-system-info
-    dbus-1 dlog ecore glib-2.0 libtzplatform-config libxml-2.0 vconf #msfapi
+    cynara-client cynara-session dbus-1 dlog ecore glib-2.0 libtzplatform-config libxml-2.0 vconf #msfapi
 )
 ELSE()
 pkg_check_modules(pkgs REQUIRED
     aul capi-base-common capi-media-audio-io capi-media-sound-manager capi-network-bluetooth capi-system-info
-    dbus-1 dlog ecore glib-2.0 libtzplatform-config libxml-2.0 vconf
+    cynara-client cynara-session dbus-1 dlog ecore glib-2.0 libtzplatform-config libxml-2.0 vconf
 )
 ENDIF()
 
