@@ -15,6 +15,9 @@
 */
 
 #include <aul.h>
+#include <cynara-client.h>
+#include <cynara-error.h>
+#include <cynara-session.h>
 #include <system_info.h>
 
 #include "vc_client.h"
@@ -35,6 +38,9 @@ static Ecore_Timer* g_connect_timer = NULL;
 static vc_h g_vc = NULL;
 
 static int g_feature_enabled = -1;
+
+static int g_privilege_allowed = -1;
+static cynara *p_cynara = NULL;
 
 #if 0
 static Ecore_Event_Handler* g_focus_in_hander = NULL;
@@ -72,6 +78,78 @@ static int __vc_get_feature_enabled()
 	}
 
 	return 0;
+}
+
+static int __check_privilege_initialize()
+{
+	int ret = cynara_initialize(&p_cynara, NULL);
+	if (CYNARA_API_SUCCESS != ret)
+		SLOG(LOG_ERROR, TAG_VCC, "[ERROR] fail to initialize");
+	
+	return ret == CYNARA_API_SUCCESS;
+}
+
+static int __check_privilege(const char* uid, const char * privilege)
+{
+	FILE *fp = NULL;
+	char smack_label[1024] = "/proc/self/attr/current";
+
+	if (!p_cynara) {
+	    return false;
+	}
+
+	fp = fopen(smack_label, "r");
+	if (fp != NULL) {
+	    if (fread(smack_label, 1, sizeof(smack_label), fp) <= 0)
+		SLOG(LOG_ERROR, TAG_VCC, "[ERROR] fail to fread");
+
+	    fclose(fp);
+	}
+
+	pid_t pid = getpid();
+	char *session = cynara_session_from_pid(pid);
+	int ret = cynara_check(p_cynara, smack_label, session, uid, privilege);
+	SLOG(LOG_DEBUG, TAG_VCC, "[Client]cynara_check returned %d(%s)", ret, (CYNARA_API_ACCESS_ALLOWED == ret) ? "Allowed" : "Denied");
+	if (session)
+	    free(session);
+
+	if (ret != CYNARA_API_ACCESS_ALLOWED)
+	    return false;
+	return true;
+}
+
+static void __check_privilege_deinitialize()
+{
+	if (p_cynara)
+		cynara_finish(p_cynara);
+	p_cynara = NULL;
+}
+
+static int __vc_check_privilege()
+{
+	char uid[16];
+	int ret = -1;
+
+	if (0 == g_privilege_allowed) {
+		SLOG(LOG_ERROR, TAG_VCC, "[ERROR] Permission is denied");
+		return VC_ERROR_PERMISSION_DENIED;
+	} else if (-1 == g_privilege_allowed) {
+		if (false == __check_privilege_initialize()){
+			SLOG(LOG_ERROR, TAG_VCC, "[ERROR] privilege initialize is failed");
+			return VC_ERROR_PERMISSION_DENIED;
+		}
+		snprintf(uid, 16, "%d", getuid());
+		if (false == __check_privilege(uid, VC_PRIVILEGE)) {
+			SLOG(LOG_ERROR, TAG_VCC, "[ERROR] Permission is denied");
+			g_privilege_allowed = 0;
+			__check_privilege_deinitialize();
+			return VC_ERROR_PERMISSION_DENIED;
+		}
+		__check_privilege_deinitialize();
+	}
+
+	g_privilege_allowed = 1;
+	return VC_ERROR_NONE;	
 }
 
 static const char* __vc_get_error_code(vc_error_e err)
@@ -218,6 +296,9 @@ int vc_initialize(void)
 	if (0 != __vc_get_feature_enabled()) {
 		return VC_ERROR_NOT_SUPPORTED;
 	}
+	if (0 != __vc_check_privilege()) {
+		return VC_ERROR_PERMISSION_DENIED;
+	}
 
 	SLOG(LOG_DEBUG, TAG_VCC, "===== [Client] Initialize");
 
@@ -301,6 +382,9 @@ int vc_deinitialize(void)
 {
 	if (0 != __vc_get_feature_enabled()) {
 		return VC_ERROR_NOT_SUPPORTED;
+	}
+	if (0 != __vc_check_privilege()) {
+		return VC_ERROR_PERMISSION_DENIED;
 	}
 
 	SLOG(LOG_DEBUG, TAG_VCC, "===== [Client] Deinitialize");
@@ -489,6 +573,9 @@ int vc_prepare(void)
 	if (0 != __vc_get_feature_enabled()) {
 		return VC_ERROR_NOT_SUPPORTED;
 	}
+	if (0 != __vc_check_privilege()) {
+		return VC_ERROR_PERMISSION_DENIED;
+	}
 
 	SLOG(LOG_DEBUG, TAG_VCC, "===== [Client] Prepare");
 
@@ -520,6 +607,9 @@ int vc_unprepare(void)
 {
 	if (0 != __vc_get_feature_enabled()) {
 		return VC_ERROR_NOT_SUPPORTED;
+	}
+	if (0 != __vc_check_privilege()) {
+		return VC_ERROR_PERMISSION_DENIED;
 	}
 
 	SLOG(LOG_DEBUG, TAG_VCC, "===== [Client] Unprepare");
@@ -555,6 +645,9 @@ int vc_foreach_supported_languages(vc_supported_language_cb callback, void* user
 {
 	if (0 != __vc_get_feature_enabled()) {
 		return VC_ERROR_NOT_SUPPORTED;
+	}
+	if (0 != __vc_check_privilege()) {
+		return VC_ERROR_PERMISSION_DENIED;
 	}
 
 	SLOG(LOG_DEBUG, TAG_VCC, "===== [Client] Foreach Supported Language");
@@ -593,6 +686,9 @@ int vc_get_current_language(char** language)
 	if (0 != __vc_get_feature_enabled()) {
 		return VC_ERROR_NOT_SUPPORTED;
 	}
+	if (0 != __vc_check_privilege()) {
+		return VC_ERROR_PERMISSION_DENIED;
+	}
 
 	SLOG(LOG_DEBUG, TAG_VCC, "===== [Client] Get Current Language");
 
@@ -629,6 +725,9 @@ int vc_get_state(vc_state_e* state)
 	if (0 != __vc_get_feature_enabled()) {
 		return VC_ERROR_NOT_SUPPORTED;
 	}
+	if (0 != __vc_check_privilege()) {
+		return VC_ERROR_PERMISSION_DENIED;
+	}
 
 	SLOG(LOG_DEBUG, TAG_VCC, "===== [Client] Get State");
 
@@ -664,6 +763,9 @@ int vc_get_service_state(vc_service_state_e* state)
 {
 	if (0 != __vc_get_feature_enabled()) {
 		return VC_ERROR_NOT_SUPPORTED;
+	}
+	if (0 != __vc_check_privilege()) {
+		return VC_ERROR_PERMISSION_DENIED;
 	}
 
 	SLOG(LOG_DEBUG, TAG_VCC, "===== [Client] Get Service State");
@@ -859,6 +961,9 @@ int vc_set_command_list(vc_cmd_list_h vc_cmd_list, int type)
 	if (0 != __vc_get_feature_enabled()) {
 		return VC_ERROR_NOT_SUPPORTED;
 	}
+	if (0 != __vc_check_privilege()) {
+		return VC_ERROR_PERMISSION_DENIED;
+	}
 
 	SLOG(LOG_DEBUG, TAG_VCC, "===== [Client] Set Command list");
 
@@ -929,6 +1034,9 @@ int vc_unset_command_list(int type)
 {
 	if (0 != __vc_get_feature_enabled()) {
 		return VC_ERROR_NOT_SUPPORTED;
+	}
+	if (0 != __vc_check_privilege()) {
+		return VC_ERROR_PERMISSION_DENIED;
 	}
 
 	SLOG(LOG_DEBUG, TAG_VCC, "===== [Client] Unset Command list");
@@ -1020,6 +1128,9 @@ int vc_set_exclusive_command_option(bool value)
 {
 	if (0 != __vc_get_feature_enabled()) {
 		return VC_ERROR_NOT_SUPPORTED;
+	}
+	if (0 != __vc_check_privilege()) {
+		return VC_ERROR_PERMISSION_DENIED;
 	}
 
 	SLOG(LOG_DEBUG, TAG_VCC, "===== [Client] Set exclusive command");
@@ -1371,6 +1482,9 @@ int vc_set_result_cb(vc_result_cb callback, void* user_data)
 	if (0 != __vc_get_feature_enabled()) {
 		return VC_ERROR_NOT_SUPPORTED;
 	}
+	if (0 != __vc_check_privilege()) {
+		return VC_ERROR_PERMISSION_DENIED;
+	}
 
 	if (NULL == callback)
 		return VC_ERROR_INVALID_PARAMETER;
@@ -1396,6 +1510,9 @@ int vc_unset_result_cb(void)
 {
 	if (0 != __vc_get_feature_enabled()) {
 		return VC_ERROR_NOT_SUPPORTED;
+	}
+	if (0 != __vc_check_privilege()) {
+		return VC_ERROR_PERMISSION_DENIED;
 	}
 
 	vc_state_e state;
@@ -1452,6 +1569,9 @@ int vc_set_service_state_changed_cb(vc_service_state_changed_cb callback, void* 
 	if (0 != __vc_get_feature_enabled()) {
 		return VC_ERROR_NOT_SUPPORTED;
 	}
+	if (0 != __vc_check_privilege()) {
+		return VC_ERROR_PERMISSION_DENIED;
+	}
 
 	if (NULL == callback)
 		return VC_ERROR_INVALID_PARAMETER;
@@ -1478,6 +1598,9 @@ int vc_unset_service_state_changed_cb(void)
 	if (0 != __vc_get_feature_enabled()) {
 		return VC_ERROR_NOT_SUPPORTED;
 	}
+	if (0 != __vc_check_privilege()) {
+		return VC_ERROR_PERMISSION_DENIED;
+	}
 
 	vc_state_e state;
 	if (0 != vc_client_get_client_state(g_vc, &state)) {
@@ -1500,6 +1623,9 @@ int vc_set_state_changed_cb(vc_state_changed_cb callback, void* user_data)
 {
 	if (0 != __vc_get_feature_enabled()) {
 		return VC_ERROR_NOT_SUPPORTED;
+	}
+	if (0 != __vc_check_privilege()) {
+		return VC_ERROR_PERMISSION_DENIED;
 	}
 
 	if (callback == NULL)
@@ -1527,6 +1653,9 @@ int vc_unset_state_changed_cb(void)
 	if (0 != __vc_get_feature_enabled()) {
 		return VC_ERROR_NOT_SUPPORTED;
 	}
+	if (0 != __vc_check_privilege()) {
+		return VC_ERROR_PERMISSION_DENIED;
+	}
 
 	vc_state_e state;
 	if (0 != vc_client_get_client_state(g_vc, &state)) {
@@ -1549,6 +1678,9 @@ int vc_set_current_language_changed_cb(vc_current_language_changed_cb callback, 
 {
 	if (0 != __vc_get_feature_enabled()) {
 		return VC_ERROR_NOT_SUPPORTED;
+	}
+	if (0 != __vc_check_privilege()) {
+		return VC_ERROR_PERMISSION_DENIED;
 	}
 
 	if (NULL == callback)
@@ -1576,6 +1708,9 @@ int vc_unset_current_language_changed_cb(void)
 	if (0 != __vc_get_feature_enabled()) {
 		return VC_ERROR_NOT_SUPPORTED;
 	}
+	if (0 != __vc_check_privilege()) {
+		return VC_ERROR_PERMISSION_DENIED;
+	}
 
 	vc_state_e state;
 	if (0 != vc_client_get_client_state(g_vc, &state)) {
@@ -1598,6 +1733,9 @@ int vc_set_error_cb(vc_error_cb callback, void* user_data)
 {
 	if (0 != __vc_get_feature_enabled()) {
 		return VC_ERROR_NOT_SUPPORTED;
+	}
+	if (0 != __vc_check_privilege()) {
+		return VC_ERROR_PERMISSION_DENIED;
 	}
 
 	if (NULL == callback)
@@ -1624,6 +1762,9 @@ int vc_unset_error_cb(void)
 {
 	if (0 != __vc_get_feature_enabled()) {
 		return VC_ERROR_NOT_SUPPORTED;
+	}
+	if (0 != __vc_check_privilege()) {
+		return VC_ERROR_PERMISSION_DENIED;
 	}
 
 	vc_state_e state;

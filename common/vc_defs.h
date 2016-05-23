@@ -180,6 +180,8 @@ extern "C" {
 #define VC_FEATURE_PATH			"tizen.org/feature/speech.control"
 #define VC_MIC_FEATURE_PATH		"tizen.org/feature/microphone"
 
+#define VC_PRIVILEGE			"http://tizen.org/privilege/recorder"
+
 /******************************************************************************************
 * Defines for common enum
 *******************************************************************************************/
