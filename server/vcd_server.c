@@ -697,6 +697,10 @@ static void __vcd_cleanup_client(vcd_client_type_e type)
 		mgr_pid = vcd_client_manager_get_pid();
 		client_list = &mgr_pid;
 		client_count = 1;
+		if (-1 == mgr_pid) {
+			SLOG(LOG_WARN, TAG_VCD, "[WARNING] Invalid Manager pid");
+			return;
+		}
 	}
 
 	if (0 == ret || mgr_pid > 0) {
