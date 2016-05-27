@@ -207,8 +207,6 @@ int vc_mgr_deinitialize()
 		break;
 	case VC_STATE_NONE:
 		break;
-	default:
-		break;
 	}
 
 	SLOG(LOG_DEBUG, TAG_VCM, "Success: destroy");

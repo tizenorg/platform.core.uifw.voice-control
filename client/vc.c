@@ -418,8 +418,6 @@ int vc_deinitialize(void)
 		break;
 	case VC_STATE_NONE:
 		break;
-	default:
-		break;
 	}
 
 	SLOG(LOG_DEBUG, TAG_VCC, "Success: destroy");

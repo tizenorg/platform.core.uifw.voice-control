@@ -189,8 +189,6 @@ int vc_widget_deinitialize()
 		break;
 	case VC_STATE_NONE:
 		break;
-	default:
-		break;
 	}
 
 	SLOG(LOG_DEBUG, TAG_VCW, "Success: destroy");
