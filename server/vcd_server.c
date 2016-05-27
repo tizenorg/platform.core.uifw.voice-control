@@ -257,13 +257,13 @@ static Eina_Bool __vcd_send_selected_result(void *data)
 static int __convert_type_to_priority(vc_cmd_type_e type)
 {
 	switch (type) {
-		case VC_COMMAND_TYPE_NONE:		return 0; break;
-		case VC_COMMAND_TYPE_BACKGROUND:	return 1; break;
-		case VC_COMMAND_TYPE_FOREGROUND:	return 2; break;
-		case VC_COMMAND_TYPE_WIDGET:		return 2; break;
-		case VC_COMMAND_TYPE_SYSTEM:		return 3; break;
-		case VC_COMMAND_TYPE_EXCLUSIVE:		return 3; break;
-		default:				return 0; break;
+		case VC_COMMAND_TYPE_NONE:		return 0;
+		case VC_COMMAND_TYPE_BACKGROUND:	return 1;
+		case VC_COMMAND_TYPE_FOREGROUND:	return 2;
+		case VC_COMMAND_TYPE_WIDGET:		return 2;
+		case VC_COMMAND_TYPE_SYSTEM:		return 3;
+		case VC_COMMAND_TYPE_EXCLUSIVE:		return 3;
+		default:				return 0;
 	}
 }
 
@@ -272,8 +272,6 @@ static void __vcd_server_pre_result_cb(vcp_pre_result_event_e event, const char*
 	if (NULL != pre_result) {
 		vcdc_send_pre_result_to_manager(vcd_client_manager_get_pid(), event, pre_result);
 	}
-
-	return;
 }
 
 static void __vcd_server_result_cb(vcp_result_event_e event, int* result_id, int count, const char* all_result,
