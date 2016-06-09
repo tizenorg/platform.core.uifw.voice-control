@@ -290,8 +290,6 @@ typedef int (*vcpe_set_commands)(vcp_cmd_h vcp_command);
 typedef int (*vcpe_unset_commands)();
 
 // Add new
-typedef int (*vcpe_set_nlp_info)(const char* info);
-
 typedef int (*vcpe_get_nlp_info)(char** info);
 
 /**
@@ -454,7 +452,6 @@ typedef struct {
 	vcpe_set_language		set_language;		/**< Set language */
 	vcpe_set_commands		set_commands;		/**< Request to set current commands */
 	vcpe_unset_commands		unset_commands;		/**< Request to unset current commands */
-	vcpe_set_nlp_info		set_nlp_info;		/**< Set nlp info */
 	vcpe_get_nlp_info		get_nlp_info;		/**< Get nlp info */
 
 	/* Control recognition */

@@ -296,62 +296,6 @@ static Eina_Bool __vc_mgr_prepare_daemon(void *data)
 
 	g_m_connect_timer = ecore_idler_add(__vc_mgr_connect_daemon, data);
 
-#if 0
-	/* request initialization */
-	int ret = -1;
-	int service_state = 0;
-	int foreground = VC_RUNTIME_INFO_NO_FOREGROUND;
-	ret = vc_mgr_dbus_request_initialize(g_vc_m->handle, &service_state, &foreground, &g_daemon_pid);
-
-	if (VC_ERROR_ENGINE_NOT_FOUND == ret) {
-		SLOG(LOG_ERROR, TAG_VCM, "[ERROR] Fail to initialize : %s", __vc_mgr_get_error_code(ret));
-
-		vc_mgr_client_set_error(g_vc_m, VC_ERROR_ENGINE_NOT_FOUND);
-		ecore_timer_add(0, __vc_mgr_notify_error, g_vc_m);
-
-		SLOG(LOG_DEBUG, TAG_VCM, "=====");
-		SLOG(LOG_DEBUG, TAG_VCM, "  ");
-		return EINA_FALSE;
-
-	} else if (0 != ret) {
-		SLOG(LOG_ERROR, TAG_VCM, "[WARNING] Fail to connection. Retry to connect : %s", __vc_mgr_get_error_code(ret));
-		return EINA_TRUE;
-	} else {
-		/* Success to connect */
-	}
-
-	/* Set service state */
-	vc_mgr_client_set_service_state(g_vc_m, (vc_service_state_e)service_state);
-
-	/* Set foreground */
-	vc_mgr_client_set_foreground(g_vc_m, foreground, true);
-
-	SLOG(LOG_DEBUG, TAG_VCM, "[SUCCESS] Connected daemon");
-
-	vc_mgr_client_set_client_state(g_vc_m, VC_STATE_READY);
-
-	vc_state_changed_cb changed_callback = NULL;
-	void* user_data = NULL;
-
-	vc_mgr_client_get_state_changed_cb(g_vc_m, &changed_callback, &user_data);
-
-	vc_state_e current_state;
-	vc_state_e before_state;
-
-	vc_mgr_client_get_before_state(g_vc_m, &current_state, &before_state);
-
-	if (NULL != changed_callback) {
-		vc_mgr_client_use_callback(g_vc_m);
-		changed_callback(before_state, current_state, user_data);
-		vc_mgr_client_not_use_callback(g_vc_m);
-		SLOG(LOG_DEBUG, TAG_VCM, "State changed callback is called");
-	} else {
-		SLOG(LOG_WARN, TAG_VCM, "[WARNING] State changed callback is null");
-	}
-
-	SLOG(LOG_DEBUG, TAG_VCM, "=====");
-	SLOG(LOG_DEBUG, TAG_VCM, "  ");
-#endif
 	return EINA_FALSE;
 }
 
@@ -1514,11 +1458,6 @@ static Eina_Bool __vc_mgr_set_select_result(void *data)
 {
 	vc_mgr_set_selected_results(NULL);
 	return EINA_FALSE;
-}
-
-int vc_mgr_set_nlp_info(const char* info)
-{
-	return 0;
 }
 
 int vc_mgr_get_nlp_info(char** info)
