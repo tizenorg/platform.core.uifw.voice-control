@@ -472,7 +472,6 @@ void __pre_result_cb(vcp_pre_result_event_e event, const char* pre_result, void*
 		SLOG(LOG_DEBUG, TAG_VCD, "[Engine Agent ERROR] Result callback function is NOT valid");
 	}
 
-	return;
 }
 
 void __result_cb(vcp_result_event_e event, int* result_id, int count, const char* all_result, const char* non_fixed, const char* msg, void *user_data)

@@ -533,8 +533,6 @@ int vc_mgr_get_recording_volume(float* volume);
 int vc_mgr_set_selected_results(vc_cmd_list_h vc_cmd_list);
 
 
-int vc_mgr_set_nlp_info(const char* info);
-
 int vc_mgr_get_nlp_info(char** info);
 
 int vc_mgr_set_pre_result_cb(vc_mgr_pre_result_cb callback, void* user_data);
