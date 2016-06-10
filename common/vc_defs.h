@@ -26,7 +26,7 @@ extern "C" {
 
 
 /******************************************************************************************
-* Definition for Dbus
+* Definitions for Dbus
 *******************************************************************************************/
 
 #define VC_CLIENT_SERVICE_NAME         "org.tizen.voice.vcclient"
@@ -53,7 +53,7 @@ extern "C" {
 #define VC_METHOD_HELLO			"vc_method_hello"
 
 /******************************************************************************************
-* Message Definition for Client
+* Message Definitions for Client
 *******************************************************************************************/
 
 #define VC_METHOD_INITIALIZE		"vc_method_initialize"
@@ -87,7 +87,7 @@ extern "C" {
 #define VC_METHOD_AUTH_CANCEL		"vc_method_auth_cancel"
 
 /******************************************************************************************
-* Message Definition for widget
+* Message Definitions for widget
 *******************************************************************************************/
 
 #define VC_WIDGET_METHOD_INITIALIZE		"vc_widget_method_initialize"
@@ -107,7 +107,7 @@ extern "C" {
 
 
 /******************************************************************************************
-* Message Definition for manager
+* Message Definitions for manager
 *******************************************************************************************/
 
 #define VC_MANAGER_METHOD_INITIALIZE		"vc_manager_method_initialize"
@@ -139,7 +139,7 @@ extern "C" {
 
 
 /******************************************************************************************
-* Defines for configuration
+* Definitions for configuration
 *******************************************************************************************/
 
 #define VC_DAEMON_PATH			tzplatform_mkpath(TZ_SYS_BIN, "vc-daemon")
@@ -183,7 +183,7 @@ extern "C" {
 #define VC_PRIVILEGE			"http://tizen.org/privilege/recorder"
 
 /******************************************************************************************
-* Defines for common enum
+* Definitions for common enum
 *******************************************************************************************/
 
 typedef enum {

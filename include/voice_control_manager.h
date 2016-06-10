@@ -34,41 +34,41 @@ extern "C"
 
 
 /**
- * @brief Defines of audio-in type.
+ * @brief Definition of audio-in type.
 */
 #define VC_AUDIO_TYPE_BLUETOOTH		"VC_AUDIO_ID_BLUETOOTH"		/**< Bluetooth audio type */
 
 /**
- * @brief Defines of audio-in type.
+ * @brief Definition of audio-in type.
 */
 #define VC_AUDIO_TYPE_MSF		"VC_AUDIO_ID_MSF"		/**< MSF (wifi) audio type */
 
 /**
-* @brief Definitions for foreground command type.
+* @brief Definition for foreground command type.
 * @since_tizen @if MOBILE 2.4 @elseif WEARABLE 3.0 @endif
 */
 #define VC_COMMAND_TYPE_FOREGROUND	1
 
 /**
-* @brief Definitions for background command type.
+* @brief Definition for background command type.
 * @since_tizen @if MOBILE 2.4 @elseif WEARABLE 3.0 @endif
 */
 #define VC_COMMAND_TYPE_BACKGROUND	2
 
 /**
-* @brief Definitions for widget command type.
+* @brief Definition for widget command type.
 * @since_tizen @if MOBILE 2.4 @elseif WEARABLE 3.0 @endif
 */
 #define VC_COMMAND_TYPE_WIDGET		3
 
 /**
-* @brief Definitions for system command type.
+* @brief Definition for system command type.
 * @since_tizen @if MOBILE 2.4 @elseif WEARABLE 3.0 @endif
 */
 #define VC_COMMAND_TYPE_SYSTEM		4
 
 /**
-* @brief Definitions for exclusive command type.
+* @brief Definition for exclusive command type.
 * @since_tizen @if MOBILE 2.4 @elseif WEARABLE 3.0 @endif
 */
 #define VC_COMMAND_TYPE_EXCLUSIVE	5

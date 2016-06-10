@@ -85,12 +85,12 @@ typedef enum {
 typedef int vcp_cmd_h;
 
 /**
- * @brief Defines of bluetooth audio id.
+ * @brief Definition of bluetooth audio id.
 */
 #define VCP_AUDIO_ID_BLUETOOTH		"VC_AUDIO_ID_BLUETOOTH"		/**< Bluetooth audio id */
 
 /**
- * @brief Defines of MSF(wifi) audio id.
+ * @brief Definition of MSF(wifi) audio id.
 */
 #define VCP_AUDIO_ID_MSF		"VC_AUDIO_ID_MSF"		/**< MSF (wifi) audio id */
 
