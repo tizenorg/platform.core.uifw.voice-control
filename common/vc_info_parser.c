@@ -1676,6 +1676,9 @@ int __vc_cmd_parser_print_commands(GSList* cmd_list)
 	iter = g_slist_nth(cmd_list, 0);
 
 	for (i = 0; i < count; i++) {
+		if (NULL == iter)
+			break;
+
 		temp_cmd = iter->data;
 
 		if (NULL == temp_cmd) {
@@ -1689,9 +1692,6 @@ int __vc_cmd_parser_print_commands(GSList* cmd_list)
 			 temp_cmd->command, temp_cmd->parameter);
 
 		iter = g_slist_next(iter);
-
-		if (NULL == iter)
-			break;
 	}
 
 	return 0;
