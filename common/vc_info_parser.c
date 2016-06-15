@@ -150,6 +150,9 @@ int vc_cmd_parser_save_file(int pid, vc_cmd_type_e type, GSList* cmd_list)
 	int selected_count = 0;
 
 	for (i = 0; i < count; i++) {
+		if (NULL == iter)
+			break;
+
 		temp_cmd = iter->data;
 
 		if (NULL == temp_cmd) {
@@ -1482,6 +1485,9 @@ int vc_info_parser_set_client_info(GSList* client_info_list)
 	char temp[16] = {0, };
 
 	for (i = 0; i < count; i++) {
+		if (NULL == iter)
+			break;
+
 		client = iter->data;
 
 		if (NULL != client) {
