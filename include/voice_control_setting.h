@@ -31,7 +31,7 @@ extern "C" {
 #endif
 
 /**
-* @brief Defines of audio-in type.
+* @brief Definition of audio-in type.
 */
 #define VC_SETTING_LANGUAGE_AUTO	"auto"
 
