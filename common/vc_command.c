@@ -386,6 +386,11 @@ int vc_cmd_list_foreach_commands(vc_cmd_list_h vc_cmd_list, vc_cmd_list_cb callb
 	iter = g_slist_nth(list->list, 0);
 
 	for (i = 0; i < count; i++) {
+		if (NULL == iter) {
+			SLOG(LOG_ERROR, TAG_VCCMD, "[ERROR] No command in list");
+			return VC_ERROR_OPERATION_FAILED;
+		}
+
 		temp_cmd = iter->data;
 
 		if (NULL != temp_cmd) {
@@ -441,6 +446,10 @@ int vc_cmd_list_filter_by_type(vc_cmd_list_h original, int type, vc_cmd_list_h* 
 	iter = g_slist_nth(list->list, 0);
 
 	for (i = 0; i < count; i++) {
+		if (NULL == iter) {
+			SLOG(LOG_ERROR, TAG_VCCMD, "[ERROR] No command in list");
+			return VC_ERROR_OPERATION_FAILED;
+		}
 		if (NULL != iter->data) {
 			iter_cmd = iter->data;
 
