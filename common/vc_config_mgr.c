@@ -118,6 +118,11 @@ int __vc_config_mgr_check_engine_is_valid(const char* engine_id)
 	}
 
 	iter = g_slist_nth(g_engine_list, 0);
+	if (NULL == iter) {
+		SLOG(LOG_ERROR, vc_config_tag(), "[ERROR] No engine in list");
+		return -1;
+	}
+
 	engine_info = iter->data;
 
 	if (NULL == engine_info) {
