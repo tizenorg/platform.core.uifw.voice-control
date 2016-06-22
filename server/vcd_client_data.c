@@ -815,6 +815,9 @@ int __show_client_list()
 	} else {
 		iter = g_slist_nth(g_client_list, 0);
 		for (i = 0; i < count; i++) {
+			if (NULL == iter)
+				break;
+
 			data = iter->data;
 
 			SLOG(LOG_DEBUG, TAG_VCD, "[%dth] pid(%d)", i, data->pid);
@@ -835,6 +838,9 @@ int __show_client_list()
 	} else {
 		iter = g_slist_nth(g_widget_list, 0);
 		for (i = 0; i < count; i++) {
+			if (NULL == iter)
+				break;
+
 			widget_data = iter->data;
 
 			SLOG(LOG_DEBUG, TAG_VCD, "[%dth] pid(%d)", i, widget_data->pid);
@@ -862,6 +868,9 @@ int __show_command_list(GSList* cmd_group)
 	} else {
 		iter = g_slist_nth(cmd_group, 0);
 		for (i = 0; i < count; i++) {
+			if (NULL == iter)
+				break;
+
 			data = iter->data;
 
 			if (NULL != data->parameter) {
@@ -889,6 +898,9 @@ GSList* __client_get_item(const int pid)
 	if (0 < count) {
 		iter = g_slist_nth(g_client_list, 0);
 		for (i = 0; i < count; i++) {
+			if (NULL == iter)
+				break;
+
 			data = iter->data;
 
 			if (pid == data->pid)
@@ -912,6 +924,9 @@ vc_client_info_s* __client_get_element(int pid)
 	if (0 < count) {
 		iter = g_slist_nth(g_client_list, 0);
 		for (i = 0; i < count; i++) {
+			if (NULL == iter)
+				break;
+
 			data = iter->data;
 
 			if (pid == data->pid)
@@ -1163,6 +1178,9 @@ GSList* __widget_get_item(int pid)
 	if (0 < count) {
 		iter = g_slist_nth(g_widget_list, 0);
 		for (i = 0; i < count; i++) {
+			if (NULL == iter)
+				break;
+
 			data = iter->data;
 
 			if (pid == data->pid)
@@ -1186,6 +1204,9 @@ widget_info_s* __widget_get_element(int pid)
 	if (0 < count) {
 		iter = g_slist_nth(g_widget_list, 0);
 		for (i = 0; i < count; i++) {
+			if (NULL == iter)
+				break;
+
 			data = iter->data;
 
 			if (NULL != data) {
