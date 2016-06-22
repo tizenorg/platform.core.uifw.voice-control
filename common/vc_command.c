@@ -110,7 +110,8 @@ static void __check_privilege_deinitialize()
 
 static int __vc_cmd_check_privilege()
 {
-	char uid[16];
+#if 0
+        char uid[16];
 	int ret = -1;
 
 	if (0 == g_privilege_allowed) {
@@ -132,6 +133,7 @@ static int __vc_cmd_check_privilege()
 	}
 
 	g_privilege_allowed = 1;
+#endif
 	return VC_ERROR_NONE;	
 }
 
