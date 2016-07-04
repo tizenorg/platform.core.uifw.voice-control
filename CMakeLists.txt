@@ -29,6 +29,7 @@ SET(EXEC_PREFIX "${PREFIX}")
 SET(VERSION 0.2.10)
 
 ADD_DEFINITIONS("-DVOICE_LIBDIR=\"${LIBDIR}\"")
+ADD_DEFINITIONS("-Werror")
 
 # pkg config tool
 INCLUDE(FindPkgConfig)

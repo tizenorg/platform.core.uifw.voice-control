@@ -30,7 +30,7 @@
 
 static int g_feature_enabled = -1;
 
-static int g_privilege_allowed = -1;
+static int g_privilege_allowed = 1; /* Always True */
 static cynara *p_cynara = NULL;
 
 static int __vc_cmd_get_feature_enabled()
@@ -110,9 +110,7 @@ static void __check_privilege_deinitialize()
 
 static int __vc_cmd_check_privilege()
 {
-#if 0
         char uid[16];
-	int ret = -1;
 
 	if (0 == g_privilege_allowed) {
 		SLOG(LOG_ERROR, TAG_VCCMD, "[ERROR] Permission is denied");
@@ -133,8 +131,8 @@ static int __vc_cmd_check_privilege()
 	}
 
 	g_privilege_allowed = 1;
-#endif
-	return VC_ERROR_NONE;	
+
+	return VC_ERROR_NONE;
 }
 
 int vc_cmd_list_create(vc_cmd_list_h* vc_cmd_list)
