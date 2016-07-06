@@ -1234,7 +1234,7 @@ int vc_info_parser_set_nlp_info(const char* nlp_info)
 	}
 
 	/* Write size */
-	fprintf(fp, "size(%d)\n", strlen(nlp_info));
+	fprintf(fp, "size(%d)\n", (int)strlen(nlp_info));
 
 	write_size = fwrite(nlp_info, 1, strlen(nlp_info), fp);
 	fclose(fp);
