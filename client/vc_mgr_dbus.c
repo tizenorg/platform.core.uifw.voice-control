@@ -240,8 +240,7 @@ static Eina_Bool vc_mgr_listener_event_callback(void* data, Ecore_Fd_Handler *fd
 			if (dbus_error_is_set(&err)) {
 				SLOG(LOG_ERROR, TAG_VCM, "<<<< vc mgr Get Error message : Get arguments error (%s)", err.message);
 				dbus_error_free(&err);
-			}
-			else {
+			} else {
 				SLOG(LOG_ERROR, TAG_VCM, "<<<< vc mgr Get Error message : reason(%d), daemon_pid(%d), msg(%s)", reason, daemon_pid, err_msg);
 				__vc_mgr_cb_error(reason, daemon_pid, err_msg);
 			}

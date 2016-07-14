@@ -1278,19 +1278,19 @@ int vc_info_parser_get_nlp_info(char** nlp_info)
 	}
 
 	SLOG(LOG_DEBUG, vc_info_tag(), "[DEBUG] buffer size (%d)", readn);
-    if (10000000 < readn || 0 > readn) {
-        SLOG(LOG_DEBUG, vc_info_tag(), "[ERROR] Invalid buffer size");
-        fclose(fp);
-        return -1;
-    }
-    int tmp_readn = readn + 10;
+	if (10000000 < readn || 0 > readn) {
+		SLOG(LOG_DEBUG, vc_info_tag(), "[ERROR] Invalid buffer size");
+		fclose(fp);
+		return -1;
+	}
+	int tmp_readn = readn + 10;
 
 	*nlp_info = (char*)calloc(tmp_readn, sizeof(char));
-    if (NULL == *nlp_info) {
-        SLOG(LOG_ERROR, vc_info_tag(), "[ERROR] Out of memory");
-        fclose(fp);
-        return -1;
-    }
+	if (NULL == *nlp_info) {
+		SLOG(LOG_ERROR, vc_info_tag(), "[ERROR] Out of memory");
+		fclose(fp);
+		return -1;
+	}
 
 	readn = fread(*nlp_info, 1, readn, fp);
 	fclose(fp);

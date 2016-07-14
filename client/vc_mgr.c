@@ -1497,7 +1497,7 @@ int vc_mgr_get_nlp_info(char** info)
 
 int vc_mgr_set_pre_result_cb(vc_mgr_pre_result_cb callback, void* user_data)
 {
-	if (NULL == callback){
+	if (NULL == callback) {
 		SLOG(LOG_ERROR, TAG_VCM, "[ERROR] Set error callback : callback is NULL");
 		return VC_ERROR_INVALID_PARAMETER;
 	}

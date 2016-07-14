@@ -542,8 +542,7 @@ int vcd_recorder_start()
 
 			g_bt_extend_count = 0;
 #endif
-		}
-		else if (0 == strncmp(VCP_AUDIO_ID_MSF, g_current_audio_type, strlen(VCP_AUDIO_ID_MSF))) {
+		} else if (0 == strncmp(VCP_AUDIO_ID_MSF, g_current_audio_type, strlen(VCP_AUDIO_ID_MSF))) {
 			SLOG(LOG_ERROR, TAG_VCD, "[Recorder] call RegisterMSFAudioCallback() function");
 #ifdef TV_MSF_WIFI_MODE
 
@@ -633,8 +632,7 @@ int vcd_recorder_stop()
 				return VCD_ERROR_OPERATION_FAILED;
 			}
 #endif
-		}
-		else if (0 == strncmp(VCP_AUDIO_ID_MSF, g_current_audio_type, strlen(VCP_AUDIO_ID_MSF))) {
+		} else if (0 == strncmp(VCP_AUDIO_ID_MSF, g_current_audio_type, strlen(VCP_AUDIO_ID_MSF))) {
 #ifdef TV_MSF_WIFI_MODE
 			UnRegisterMSFAudioCallback();
 			stoped = true;

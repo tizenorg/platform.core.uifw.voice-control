@@ -117,7 +117,7 @@ typedef enum {
 	VC_PRE_RESULT_EVENT_FINAL_RESULT = 0,
 	VC_PRE_RESULT_EVENT_PARTIAL_RESULT,
 	VC_PRE_RESULT_EVENT_ERROR
-}vc_pre_result_event_e;
+} vc_pre_result_event_e;
 
 // support pre-result
 typedef bool(*vc_mgr_pre_result_cb)(vc_pre_result_event_e event, const char* result, void *user_data);

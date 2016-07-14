@@ -110,13 +110,13 @@ static void __check_privilege_deinitialize()
 
 static int __vc_cmd_check_privilege()
 {
-        char uid[16];
+	char uid[16];
 
 	if (0 == g_privilege_allowed) {
 		SLOG(LOG_ERROR, TAG_VCCMD, "[ERROR] Permission is denied");
 		return VC_ERROR_PERMISSION_DENIED;
 	} else if (-1 == g_privilege_allowed) {
-		if (false == __check_privilege_initialize()){
+		if (false == __check_privilege_initialize()) {
 			SLOG(LOG_ERROR, TAG_VCCMD, "[ERROR] privilege initialize is failed");
 			return VC_ERROR_PERMISSION_DENIED;
 		}
@@ -454,7 +454,7 @@ int vc_cmd_list_filter_by_type(vc_cmd_list_h original, int type, vc_cmd_list_h* 
 			if (NULL != iter_cmd) {
 				int iter_type;
 				if (0 != vc_cmd_get_type((vc_cmd_h)iter_cmd, &iter_type)) {
-					SLOG(LOG_ERROR,TAG_VCCMD, "[ERROR] Fail to get command type");
+					SLOG(LOG_ERROR, TAG_VCCMD, "[ERROR] Fail to get command type");
 					continue;
 				}
 

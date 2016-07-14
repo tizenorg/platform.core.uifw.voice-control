@@ -127,7 +127,7 @@ typedef enum {
 	VCP_PRE_RESULT_EVENT_FINAL_RESULT = 0,
 	VCP_PRE_RESULT_EVENT_PARTIAL_RESULT,
 	VCP_PRE_RESULT_EVENT_ERROR
-}vcp_pre_result_event_e;
+} vcp_pre_result_event_e;
 
 // Add new
 typedef void (*vcpe_pre_result_cb)(vcp_pre_result_event_e event, const char* pre_result, void *user_data);
