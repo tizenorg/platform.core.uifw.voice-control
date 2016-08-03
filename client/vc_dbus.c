@@ -309,6 +309,13 @@ int vc_dbus_reconnect()
 
 int vc_dbus_request_hello()
 {
+	if (NULL == g_conn_sender) {
+		SLOG(LOG_ERROR, TAG_VCC, "[ERROR] NULL connection");
+		if (0 != vc_dbus_reconnect()) {
+			SLOG(LOG_ERROR, TAG_VCC, "[ERROR] Fail to reconnect");
+		}
+	}
+
 	DBusMessage* msg;
 
 	msg = dbus_message_new_method_call(
@@ -349,6 +356,12 @@ int vc_dbus_request_hello()
 
 int vc_dbus_request_initialize(int pid, int* mgr_pid, int* service_state)
 {
+	if (NULL == g_conn_sender) {
+		SLOG(LOG_ERROR, TAG_VCC, "[ERROR] NULL connection");
+		if (0 != vc_dbus_reconnect()) {
+			SLOG(LOG_ERROR, TAG_VCC, "[ERROR] Fail to reconnect");
+		}
+	}
 	DBusMessage* msg;
 
 	msg = dbus_message_new_method_call(
@@ -417,6 +430,13 @@ int vc_dbus_request_initialize(int pid, int* mgr_pid, int* service_state)
 
 int vc_dbus_request_finalize(int pid)
 {
+	if (NULL == g_conn_sender) {
+		SLOG(LOG_ERROR, TAG_VCC, "[ERROR] NULL connection");
+		if (0 != vc_dbus_reconnect()) {
+			SLOG(LOG_ERROR, TAG_VCC, "[ERROR] Fail to reconnect");
+		}
+	}
+
 	DBusMessage* msg;
 
 	msg = dbus_message_new_method_call(
@@ -477,6 +497,13 @@ int vc_dbus_request_finalize(int pid)
 
 int vc_dbus_request_set_exclusive_command(int pid, bool value)
 {
+	if (NULL == g_conn_sender) {
+		SLOG(LOG_ERROR, TAG_VCC, "[ERROR] NULL connection");
+		if (0 != vc_dbus_reconnect()) {
+			SLOG(LOG_ERROR, TAG_VCC, "[ERROR] Fail to reconnect");
+		}
+	}
+
 	DBusMessage* msg;
 
 	msg = dbus_message_new_method_call(
@@ -541,6 +568,13 @@ int vc_dbus_request_set_exclusive_command(int pid, bool value)
 
 int vc_dbus_request_set_command(int pid, vc_cmd_type_e cmd_type)
 {
+	if (NULL == g_conn_sender) {
+		SLOG(LOG_ERROR, TAG_VCC, "[ERROR] NULL connection");
+		if (0 != vc_dbus_reconnect()) {
+			SLOG(LOG_ERROR, TAG_VCC, "[ERROR] Fail to reconnect");
+		}
+	}
+
 	DBusMessage* msg;
 
 	msg = dbus_message_new_method_call(
@@ -603,6 +637,13 @@ int vc_dbus_request_set_command(int pid, vc_cmd_type_e cmd_type)
 
 int vc_dbus_request_unset_command(int pid, vc_cmd_type_e cmd_type)
 {
+	if (NULL == g_conn_sender) {
+		SLOG(LOG_ERROR, TAG_VCC, "[ERROR] NULL connection");
+		if (0 != vc_dbus_reconnect()) {
+			SLOG(LOG_ERROR, TAG_VCC, "[ERROR] Fail to reconnect");
+		}
+	}
+
 	DBusMessage* msg;
 
 	msg = dbus_message_new_method_call(
@@ -665,6 +706,13 @@ int vc_dbus_request_unset_command(int pid, vc_cmd_type_e cmd_type)
 
 int vc_dbus_set_foreground(int pid, bool value)
 {
+	if (NULL == g_conn_sender) {
+		SLOG(LOG_ERROR, TAG_VCC, "[ERROR] NULL connection");
+		if (0 != vc_dbus_reconnect()) {
+			SLOG(LOG_ERROR, TAG_VCC, "[ERROR] Fail to reconnect");
+		}
+	}
+
 	DBusMessage* msg = NULL;
 	int tmp_value = 0;
 
@@ -921,6 +969,13 @@ int vc_dbus_request_cancel(int pid)
 /* Authority */
 int vc_dbus_request_auth_enable(int pid, int mgr_pid)
 {
+	if (NULL == g_conn_sender) {
+		SLOG(LOG_ERROR, TAG_VCC, "[ERROR] NULL connection");
+		if (0 != vc_dbus_reconnect()) {
+			SLOG(LOG_ERROR, TAG_VCC, "[ERROR] Fail to reconnect");
+		}
+	}
+
 	DBusMessage* msg;
 
 	char service_name[64] = {0,};
@@ -991,6 +1046,13 @@ int vc_dbus_request_auth_enable(int pid, int mgr_pid)
 
 int vc_dbus_request_auth_disable(int pid, int mgr_pid)
 {
+	if (NULL == g_conn_sender) {
+		SLOG(LOG_ERROR, TAG_VCC, "[ERROR] NULL connection");
+		if (0 != vc_dbus_reconnect()) {
+			SLOG(LOG_ERROR, TAG_VCC, "[ERROR] Fail to reconnect");
+		}
+	}
+
 	DBusMessage* msg;
 
 	char service_name[64] = {0,};
@@ -1061,6 +1123,13 @@ int vc_dbus_request_auth_disable(int pid, int mgr_pid)
 
 int vc_dbus_request_auth_start(int pid, int mgr_pid)
 {
+	if (NULL == g_conn_sender) {
+		SLOG(LOG_ERROR, TAG_VCC, "[ERROR] NULL connection");
+		if (0 != vc_dbus_reconnect()) {
+			SLOG(LOG_ERROR, TAG_VCC, "[ERROR] Fail to reconnect");
+		}
+	}
+
 	DBusMessage* msg;
 
 	char service_name[64] = {0,};
@@ -1133,6 +1202,13 @@ int vc_dbus_request_auth_start(int pid, int mgr_pid)
 
 int vc_dbus_request_auth_stop(int pid, int mgr_pid)
 {
+	if (NULL == g_conn_sender) {
+		SLOG(LOG_ERROR, TAG_VCC, "[ERROR] NULL connection");
+		if (0 != vc_dbus_reconnect()) {
+			SLOG(LOG_ERROR, TAG_VCC, "[ERROR] Fail to reconnect");
+		}
+	}
+
 	DBusMessage* msg;
 
 	char service_name[64] = {0,};
@@ -1203,6 +1279,13 @@ int vc_dbus_request_auth_stop(int pid, int mgr_pid)
 
 int vc_dbus_request_auth_cancel(int pid, int mgr_pid)
 {
+	if (NULL == g_conn_sender) {
+		SLOG(LOG_ERROR, TAG_VCC, "[ERROR] NULL connection");
+		if (0 != vc_dbus_reconnect()) {
+			SLOG(LOG_ERROR, TAG_VCC, "[ERROR] Fail to reconnect");
+		}
+	}
+
 	DBusMessage* msg;
 
 	char service_name[64] = {0,};
