@@ -92,13 +92,14 @@ static int __check_privilege_initialize()
 static int __check_privilege(const char* uid, const char * privilege)
 {
 	FILE *fp = NULL;
-	char smack_label[1024] = "/proc/self/attr/current";
+	char label_path[1024] = "/proc/self/attr/current";
+	char smack_label[1024] = {'\0',};
 
 	if (!p_cynara) {
 	    return false;
 	}
 
-	fp = fopen(smack_label, "r");
+	fp = fopen(label_path, "r");
 	if (fp != NULL) {
 	    if (fread(smack_label, 1, sizeof(smack_label), fp) <= 0)
 		SLOG(LOG_ERROR, TAG_VCC, "[ERROR] fail to fread");
@@ -553,6 +554,32 @@ static Eina_Bool __vc_connect_daemon(void *data)
 	if (0 != ret) {
 		SLOG(LOG_ERROR, TAG_VCC, "[ERROR] Fail to set app stae changed callback");
 	}
+
+	int status = aul_app_get_status_bypid(getpid());
+	if (STATUS_FOCUS == status || STATUS_VISIBLE == status) {
+		SLOG(LOG_DEBUG, TAG_VCC, "===== Set foreground");
+		ret = vc_dbus_set_foreground(getpid(), true);
+		if (0 != ret) {
+			SLOG(LOG_ERROR, TAG_VCC, "[ERROR] Fail to set foreground (true) : %d", ret);
+		}
+
+		ret = vc_client_set_is_foreground(g_vc, true);
+		if (0 != ret) {
+			SLOG(LOG_ERROR, TAG_VCC, "[ERROR] Fail to save is_foreground (true) : %d", ret);
+		}
+
+		/* set authority valid */
+		vc_auth_state_e state = VC_AUTH_STATE_NONE;
+		if (0 != vc_client_get_auth_state(g_vc, &state)) {
+			SLOG(LOG_ERROR, TAG_VCC, "[ERROR] Fail to get auth state");
+		}
+		if (VC_AUTH_STATE_INVALID == state) {
+			vc_client_set_auth_state(g_vc, VC_AUTH_STATE_VALID);
+
+			/* notify auth changed cb */
+			ecore_timer_add(0, __notify_auth_changed_cb, NULL);
+		}
+	}	
 #endif
 	vc_client_set_client_state(g_vc, VC_STATE_READY);
 	ecore_timer_add(0, __vc_notify_state_changed, g_vc);

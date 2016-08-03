@@ -82,9 +82,13 @@ static float get_volume_decibel(char* data, int size);
 #ifdef TV_MSF_WIFI_MODE
 static void __msf_wifi_audio_data_receive_cb(msf_wifi_voice_data_s *voice_data, void* user_data)
 {
-	if (VCD_RECORDER_STATE_RECORDING != g_recorder_state) {
-		/*SLOG(LOG_DEBUG, TAG_VCD, "[Recorder] Exit audio reading normal func");*/
+	if (0 != strncmp(g_current_audio_type, VCP_AUDIO_ID_MSF, sizeof(VCP_AUDIO_ID_MSF))){
+		SLOG(LOG_ERROR, TAG_VCD, "[Recorder ERROR] current audio type is (%s)", g_current_audio_type);
 		return;
+	}
+
+	if (VCD_RECORDER_STATE_RECORDING != g_recorder_state) {
+		SLOG(LOG_WARN, TAG_VCD, "[Recorder] Not start yet, but send audio data vi MSF");
 	}
 
 	if (NULL != g_audio_cb) {
@@ -135,9 +139,13 @@ static void _bt_cb_hid_state_changed(int result, bool connected, const char *rem
 
 static void _bt_hid_audio_data_receive_cb(bt_hid_voice_data_s *voice_data, void *user_data)
 {
-	if (VCD_RECORDER_STATE_RECORDING != g_recorder_state) {
-		/*SLOG(LOG_DEBUG, TAG_VCD, "[Recorder] Exit audio reading normal func");*/
+	if (0 != strncmp(g_current_audio_type, VCP_AUDIO_ID_BLUETOOTH, sizeof(VCP_AUDIO_ID_BLUETOOTH))){
+		SLOG(LOG_ERROR, TAG_VCD, "[Recorder ERROR] current audio type is (%s)", g_current_audio_type);
 		return;
+	}
+
+	if (VCD_RECORDER_STATE_RECORDING != g_recorder_state) {
+		SLOG(LOG_WARN, TAG_VCD, "[Recorder] Not start yet, but send audio data vi Bluetooth");
 	}
 
 	if (NULL != g_audio_cb) {
